@@ -1,37 +1,50 @@
+# ──────────────────────────────────────────────────────────
+# STAGE 1: Builder
+# ──────────────────────────────────────────────────────────
+FROM python:3.11-slim AS builder
 
-# Usar una imagen base oficial de Python (ligera y segura)
-FROM python:3.11-slim
-
-# Evitar que Python escriba archivos .pyc y asegurar logs en tiempo real
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Directorio de trabajo en el contenedor
 WORKDIR /app
 
-# Instalar dependencias del sistema y crear usuario no-root
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+# ──────────────────────────────────────────────────────────
+# STAGE 2: Production
+# ──────────────────────────────────────────────────────────
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Directorio de trabajo
+WORKDIR /app
+
+# Instalar solo librerías de ejecución necesarias (libpq para Postgres)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
     postgresql-client \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* \
     && groupadd -r postor && useradd -r -g postor postor
 
-# Copiar el archivo de requerimientos e instalar dependencias de Python
-COPY requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt
+# Copiar dependencias instaladas desde el builder
+COPY --from=builder /install /usr/local
 
-# Copiar el resto del código del proyecto
+# Copiar el código del proyecto
 COPY . /app/
+
+# Permisos para el usuario no-root
 RUN chown -R postor:postor /app
 
-# Cambiar al usuario postor
 USER postor
 
-# Exponer el puerto donde correrá Gunicorn
 EXPOSE 8000
 
-# Comando por defecto para arrancar la aplicación (enfocado a Postor Cafe)
-CMD ["gunicorn", "restaurante.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "restaurante.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
