@@ -1,0 +1,81 @@
+{% extends 'usuarios/base_gerente.html' %}
+{% load static %}
+
+{% block title %}Personal - Postor Cafe San Pedro de Huaca{% endblock %}
+
+{% block active_personal %}active{% endblock %}
+
+{% block content %}
+<header>
+    <h2>Gestión de Usuarios</h2>
+    <a href="{% url 'usuarios:crear_usuario' %}" class="btn-confirmar"
+        style="width: auto; margin: 0; background: #FF5722; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px;">
+        + Nuevo Usuario
+    </a>
+</header>
+
+<section class="audit-section">
+    <table class="table-custom">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in usuarios %}
+            <tr>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="https://ui-avatars.com/api/?name={{ u.username }}&background=random&color=fff"
+                            style="border-radius: 50%; width: 30px;">
+                        {{ u.username }}
+                    </div>
+                </td>
+                <td>{{ u.email }}</td>
+                <td>
+                    {% if u.rol == 'admin' %}
+                    <span
+                        style="padding: 5px 10px; border-radius: 15px; font-size: 0.8em; background: #ffebee; color: #c62828;">
+                        {% elif u.rol == 'gerente' %}
+                        <span
+                            style="padding: 5px 10px; border-radius: 15px; font-size: 0.8em; background: #e3f2fd; color: #1565c0;">
+                            {% else %}
+                            <span
+                                style="padding: 5px 10px; border-radius: 15px; font-size: 0.8em; background: #fff3e0; color: #ef6c00;">
+                                {% endif %}
+                                {{ u.get_rol_display }}
+                            </span>
+                </td>
+                <td>
+                    {% if u.last_activity and u.last_activity >= time_threshold %}
+                    <span
+                        style="color: #2e7d32; font-weight: bold; background: #e8f5e9; padding: 4px 8px; border-radius: 12px;">
+                        ● Online
+                    </span>
+                    {% else %}
+                    <div style="color: #757575; font-size: 0.9em;">
+                        ○ Offline
+                        {% if u.last_activity %}
+                        <span style="display: block; font-size: 0.8em; margin-top:2px;">
+                            Hace {{ u.last_activity|timesince }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'usuarios:editar_usuario' u.id %}"
+                        style="color: #f28500; font-weight: bold; text-decoration: none;">
+                        Editar
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

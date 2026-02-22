@@ -1,0 +1,23 @@
+{% if not clientes %}
+<div class="cliente-item selected" onclick="seleccionarCliente(null, 'Consumidor Final', '9999999999999')">
+    <div class="icon-avatar"><i class="fas fa-user"></i></div>
+    <div class="info">
+        <strong>Consumidor Final</strong>
+        <small>9999999999999</small>
+    </div>
+    <i class="fas fa-check-circle check-icon"></i>
+</div>
+{% endif %}
+
+{% for cliente in clientes %}
+<div class="cliente-item" onclick="seleccionarCliente({{ cliente.id }}, '{{ cliente.nombres }}', '{{ cliente.cedula_o_ruc }}')">
+    <div class="icon-avatar" style="background: #DBEAFE; color: #1D4ED8;">
+        <i class="fas fa-user-tie"></i>
+    </div>
+    <div class="info">
+        <strong>{{ cliente.nombres }}</strong>
+        <small>{{ cliente.cedula_o_ruc }}</small>
+    </div>
+    <i class="fas fa-check-circle check-icon"></i>
+</div>
+{% endfor %}

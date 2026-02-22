@@ -1,0 +1,297 @@
+<script src="https://unpkg.com/htmx.org@1.9.6"></script>
+
+<div class="modal-overlay">
+    <div class="modal-content">
+
+        <form action="{% url 'pedidos:procesar_pago' pedido.id %}" method="POST">
+            {% csrf_token %}
+
+            <div class="modal-header">
+                <h3><i class="fas fa-cash-register"></i> Finalizar Cuenta</h3>
+                <button type="button" class="btn-close" onclick="cerrarModal()"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="resumen-pago">
+                    <span>Total a Pagar:</span>
+                    <span class="monto-total">${{ pedido.total }}</span>
+                </div>
+
+                <p style="margin-bottom: 10px; font-weight: 600; color: #374151;">Datos de Facturación:</p>
+
+                <input type="hidden" id="cliente_seleccionado_id" name="cliente_id" value="">
+
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="q" placeholder="Buscar (Escribe despacio)..." autocomplete="off"
+                        hx-get="{% url 'clientes:buscar' %}" hx-trigger="keyup changed"
+                        hx-target="#resultados-clientes">
+                </div>
+
+                <div id="resultados-clientes" class="results-area">
+                    {% include 'clientes/partials/resultados_busqueda.html' with clientes=None %}
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-new-client" hx-get="{% url 'clientes:modal_crear' %}"
+                    hx-target="#resultados-clientes" hx-swap="innerHTML">
+                    <i class="fas fa-user-plus"></i> Nuevo
+                </button>
+
+                <button type="submit" class="btn-pay">
+                    <i class="fas fa-file-invoice-dollar"></i> FACTURAR
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function seleccionarCliente(id, nombre, ruc) {
+        // 1. Guardar el ID en el input oculto
+        document.getElementById('cliente_seleccionado_id').value = id ? id : '';
+
+        // 2. Efecto visual (clase .selected)
+        document.querySelectorAll('.cliente-item').forEach(el => el.classList.remove('selected'));
+
+        // Se la ponemos al que dimos click
+        if (event && event.currentTarget) {
+            event.currentTarget.classList.add('selected');
+        }
+
+        console.log("Cliente seleccionado ID:", id, "Nombre:", nombre);
+    }
+
+    function cerrarModal() {
+        document.getElementById('modal-container').innerHTML = '';
+    }
+</script>
+
+<style>
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s;
+    }
+
+    .modal-content {
+        background: white;
+        width: 500px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        animation: slideUp 0.3s;
+        display: flex;
+        flex-direction: column;
+        max-height: 90vh;
+    }
+
+    .modal-header {
+        padding: 20px;
+        border-bottom: 1px solid #E5E7EB;
+        background: #F9FAFB;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: #111827;
+        font-size: 1.25rem;
+    }
+
+    .btn-close {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        color: #6B7280;
+    }
+
+    .modal-body {
+        padding: 25px;
+        overflow-y: auto;
+    }
+
+    .resumen-pago {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #ECFDF5;
+        color: #065F46;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        border: 1px solid #10B981;
+        font-weight: bold;
+    }
+
+    .monto-total {
+        font-size: 1.5rem;
+    }
+
+    .search-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 2px solid #E5E7EB;
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 15px;
+        transition: 0.2s;
+    }
+
+    .search-box:focus-within {
+        border-color: #F97316;
+    }
+
+    .search-box input {
+        border: none;
+        outline: none;
+        width: 100%;
+        font-size: 1rem;
+    }
+
+    .results-area {
+        max-height: 250px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .cliente-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .cliente-item:hover {
+        background: #F3F4F6;
+    }
+
+    .cliente-item.selected {
+        border-color: #F97316;
+        background: #FFF7ED;
+    }
+
+    .icon-avatar {
+        width: 35px;
+        height: 35px;
+        background: #E5E7EB;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6B7280;
+    }
+
+    .cliente-item.selected .icon-avatar {
+        background: #F97316;
+        color: white;
+    }
+
+    .info {
+        flex: 1;
+    }
+
+    .info strong {
+        display: block;
+        font-size: 0.95rem;
+        color: #1F2937;
+    }
+
+    .info small {
+        color: #6B7280;
+    }
+
+    .check-icon {
+        color: #F97316;
+        display: none;
+    }
+
+    .cliente-item.selected .check-icon {
+        display: block;
+    }
+
+    .modal-footer {
+        padding: 20px;
+        border-top: 1px solid #E5E7EB;
+        background: #F9FAFB;
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-new-client {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #D1D5DB;
+        background: white;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .btn-new-client:hover {
+        background: #F3F4F6;
+    }
+
+    .btn-pay {
+        flex: 2;
+        padding: 12px;
+        border: none;
+        background: #111827;
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-pay:hover {
+        background: #000;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+</style>

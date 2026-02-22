@@ -1,0 +1,367 @@
+{% extends 'usuarios/base_gerente.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Estilos Premium Específicos para Ficha Técnica */
+    .premium-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .premium-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .premium-subtitle {
+        color: var(--text-gray);
+        font-size: 1rem;
+    }
+
+    .premium-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: none;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .premium-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header-clean {
+        background: transparent;
+        border-bottom: 1px solid #f0f0f0;
+        padding: 1.5rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .kpi-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    }
+
+    .kpi-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4));
+        pointer-events: none;
+    }
+
+    .kpi-label {
+        font-size: 0.9rem;
+        color: var(--text-gray);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .kpi-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin: 0.5rem 0;
+        color: var(--text-dark);
+    }
+
+    .kpi-sub {
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .text-success-premium {
+        color: #05cd99;
+    }
+
+    .text-danger-premium {
+        color: #ee5d50;
+    }
+
+    .text-warning-premium {
+        color: #ffce2a;
+    }
+
+    .chart-circle {
+        position: relative;
+        width: 100%;
+        height: 10px;
+        background: #f4f7fe;
+        border-radius: 5px;
+        margin-top: 10px;
+        overflow: hidden;
+    }
+
+    .chart-fill {
+        height: 100%;
+        border-radius: 5px;
+    }
+
+    /* Tabla Estilizada */
+    .premium-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .premium-table th {
+        background: #f9fbff;
+        color: var(--text-gray);
+        font-weight: 600;
+        padding: 1rem;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .premium-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #f9f9f9;
+        color: var(--text-dark);
+        font-weight: 500;
+    }
+
+    .premium-table tr:hover td {
+        background-color: #fcfdff;
+    }
+
+    .badge-premium {
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .badge-sub {
+        background: #e0e7ff;
+        color: #4318ff;
+    }
+
+    .badge-insumo {
+        background: #f4f7fe;
+        color: #a3aed0;
+    }
+
+    /* Imagen del Plato */
+    .dish-image-container {
+        width: 100%;
+        height: 250px;
+        border-radius: 20px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .dish-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s;
+    }
+
+    .dish-image:hover {
+        transform: scale(1.05);
+    }
+
+    .dish-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #f4f7fe 0%, #eef2ff 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: var(--text-gray);
+    }
+</style>
+
+<div class="container-fluid" style="padding: 10px 30px 30px 30px;">
+    <!-- HEADER -->
+    <div class="premium-header">
+        <div>
+            <h1 class="premium-title">Ficha Técnica</h1>
+            <span class="premium-subtitle">Análisis de Costos y Rentabilidad</span>
+        </div>
+        <a href="{% url 'usuarios:gestion_menu' %}" class="btn btn-light"
+            style="border-radius: 12px; font-weight: 600; color: var(--text-gray);">
+            <i class="fas fa-arrow-left"></i> Volver al Menú
+        </a>
+    </div>
+
+    <!-- DASHBOARD KPIs -->
+    <div class="kpi-grid">
+        <!-- PVP -->
+        <div class="kpi-card" style="border-left: 4px solid var(--primary-color);">
+            <div class="kpi-label">Precio de Venta (PVP)</div>
+            <div class="kpi-value">${{ producto.precio }}</div>
+            <div class="kpi-sub">
+                <i class="fas fa-tag" style="color: var(--primary-color);"></i>
+                <span style="color: var(--text-gray);">Precio al público</span>
+            </div>
+        </div>
+
+        <!-- COSTO (Food Cost) -->
+        <div class="kpi-card" style="border-left: 4px solid #ee5d50;">
+            <div class="kpi-label">Costo por Plato (Food Cost)</div>
+            <div class="kpi-value">${{ costo_total|floatformat:2 }}</div>
+            <div class="kpi-sub">
+                <span class="text-danger-premium" style="font-weight: 700;">{{ food_cost_pct|floatformat:1 }}%</span>
+                <span style="color: var(--text-gray);">del PVP</span>
+            </div>
+            <!-- Barra de Progreso Visual -->
+            <div class="chart-circle">
+                <div class="chart-fill" style="width: {{ food_cost_pct|stringformat:'.0f' }}%; background: #ee5d50;">
+                </div>
+            </div>
+        </div>
+
+        <!-- MARGEN -->
+        <div class="kpi-card" style="border-left: 4px solid #05cd99;">
+            <div class="kpi-label">Margen de Rentabilidad</div>
+            <div class="kpi-value">${{ margen_contribucion|floatformat:2 }}</div>
+            <div class="kpi-sub">
+                <span class="text-success-premium" style="font-weight: 700;">{{ margen_pct|floatformat:1 }}%</span>
+                <span style="color: var(--text-gray);">Ganancia Bruta</span>
+            </div>
+            <div class="chart-circle">
+                <div class="chart-fill" style="width: {{ margen_pct|stringformat:'.0f' }}%; background: #05cd99;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- DETALLE DEL PLATO (IMG + INFO) -->
+        <div class="col-md-4 mb-4">
+            <div class="dish-image-container mb-4">
+                {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="dish-image">
+                {% else %}
+                <div class="dish-placeholder">
+                    <i class="fas fa-utensils" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <span>Sin fotografía asignada</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="premium-card">
+                <div class="card-header-clean">
+                    <i class="fas fa-info-circle text-primary"></i> Información General
+                </div>
+                <div style="padding: 1.5rem;">
+                    <div style="margin-bottom: 1rem;">
+                        <span style="color: var(--text-gray); font-size: 0.9rem; display: block;">Nombre del
+                            Producto</span>
+                        <strong style="font-size: 1.1rem; color: var(--text-dark);">{{ producto.nombre }}</strong>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <span style="color: var(--text-gray); font-size: 0.9rem; display: block;">Categoría</span>
+                        <span class="badge badge-light"
+                            style="font-size: 0.9rem; color: var(--text-dark); background: #f4f7fe; padding: 5px 10px; border-radius: 8px;">
+                            {{ producto.categoria|default:"Plato Fuerte" }}
+                        </span>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-gray); font-size: 0.9rem; display: block;">Última
+                            Actualización</span>
+                        <span style="font-size: 0.9rem; color: var(--text-dark);">Hoy</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABLA DE RECETA -->
+        <div class="col-md-8">
+            <div class="premium-card" style="min-height: 100%;">
+                <div class="card-header-clean d-flex justify-content-between">
+                    <span><i class="fas fa-scroll text-warning"></i> Composición de la Receta</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="premium-table">
+                        <thead>
+                            <tr>
+                                <th>Ingrediente / Sub-receta</th>
+                                <th class="text-center">Tipo</th>
+                                <th class="text-center">Unidad</th>
+                                <th class="text-center">Cant. Neta</th>
+                                <th class="text-right">Costo Unitario</th>
+                                <th class="text-right">Costo Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in ingredientes %}
+                            <tr>
+                                <td>
+                                    <div style="display: flex; flex-direction: column;">
+                                        <span style="font-weight: 600;">{{ item.nombre }}</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    {% if item.es_subreceta %}
+                                    <span class="badge-premium badge-sub">Sub-receta</span>
+                                    {% else %}
+                                    <span class="badge-premium badge-insumo">Insumo</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center" style="color: var(--text-gray);">{{ item.unidad }}</td>
+                                <td class="text-center" style="font-weight: 700;">{{ item.cantidad|floatformat }}</td>
+                                <td class="text-right" style="color: var(--text-gray);">${{ item.costo_unitario|floatformat:2 }}</td>
+                                <td class="text-right" style="font-weight: 700; color: var(--text-dark);">${{ item.costo_total|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center" style="padding: 3rem;">
+                                    <i class="fas fa-exclamation-circle text-muted"
+                                        style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                                    <p class="text-muted">No se han asignado ingredientes a este plato.</p>
+                                    <a href="{% url 'pedidos:gestion_receta' producto.id %}"
+                                        class="btn btn-primary btn-sm">Agregar Ingredientes</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot style="background: #fcfdff; border-top: 2px solid #f0f0f0;">
+                            <tr>
+                                <td colspan="5" class="text-right"
+                                    style="padding-right: 2rem; font-weight: 600; color: var(--text-gray);">TOTAL COSTO
+                                    MATERIA PRIMA</td>
+                                <td class="text-right" style="font-size: 1.2rem; font-weight: 800; color: #ee5d50;">${{ costo_total|floatformat:2 }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

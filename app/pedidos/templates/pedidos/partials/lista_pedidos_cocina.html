@@ -1,0 +1,205 @@
+{% if not pedidos %}
+<div style="grid-column: 1/-1; text-align: center; margin-top: 100px; color: #9CA3AF;">
+    <i class="fas fa-check-circle" style="font-size: 4rem; color: #10B981; margin-bottom: 20px; opacity: 0.5;"></i>
+    <h2 style="color: #4B5563; font-weight: 800;">¡Todo limpio, Chef!</h2>
+    <p>No hay comandas pendientes por ahora.</p>
+</div>
+{% endif %}
+
+{% for pedido in pedidos %}
+<div class="kitchen-card" style="opacity: 0; animation: slideIn 0.4s forwards;">
+
+    <div class="card-header">
+        <div>
+            <span class="label-orden">ORDEN</span>
+            <h3 class="mesa-title">Mesa {{ pedido.mesa.numero }}</h3>
+            <span class="badged-user">
+                <i class="fas fa-user-tie"></i> {{ pedido.mesero.username|default:"Sin Mesero" }}
+            </span>
+        </div>
+        <span class="badge-id">#{{ pedido.id }}</span>
+    </div>
+
+    <div class="card-body">
+        {% if pedido.observacion %}
+        <div
+            style="background: #FEF2F2; border-left: 4px solid #EF4444; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
+            <div style="color: #EF4444; font-weight: 800; font-size: 0.8rem; margin-bottom: 4px;">
+                <i class="fas fa-exclamation-circle"></i> NOTA GENERAL:
+            </div>
+            <div style="color: #7F1D1D; font-size: 0.9rem; font-style: italic;">
+                {{ pedido.observacion }}
+            </div>
+        </div>
+        {% endif %}
+
+        {% for item in pedido.items.all %}
+        <div class="item-row">
+            <div class="qty-box">{{ item.cantidad }}</div>
+
+            <div class="item-details">
+                <span class="item-name">{{ item.producto.nombre }}</span>
+                {% if item.notas %}
+                <div class="item-note">
+                    <i class="fas fa-comment-alt"></i> {{ item.notas }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="card-footer">
+        <div class="meta-info">
+            <span><i class="fas fa-user"></i> {{ pedido.mesero.first_name|default:pedido.mesero.username }}</span>
+            <span><i class="far fa-clock"></i> {{ pedido.created_at|date:"H:i" }}</span>
+        </div>
+
+        <a href="{% url 'pedidos:terminar_pedido' pedido.id %}" class="btn-ready">
+            <i class="fas fa-check-circle"></i> MARCAR LISTO
+        </a>
+    </div>
+</div>
+
+<style>
+    .kitchen-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border: 1px solid #F3F4F6;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* Header */
+    .card-header {
+        padding: 20px 20px 10px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .label-orden {
+        font-size: 0.7rem;
+        color: #F97316;
+        font-weight: 800;
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 2px;
+    }
+
+    .mesa-title {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #1F2937;
+        margin: 0;
+    }
+
+    .badge-id {
+        background: #FFEDD5;
+        /* Naranja muy suave */
+        color: #EA580C;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    /* Body */
+    .card-body {
+        padding: 10px 20px 20px 20px;
+        flex: 1;
+    }
+
+    .item-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        margin-bottom: 12px;
+        border-bottom: 1px dashed #F3F4F6;
+        padding-bottom: 8px;
+    }
+
+    .item-row:last-child {
+        border-bottom: none;
+    }
+
+    .qty-box {
+        background: #FFF7ED;
+        color: #F97316;
+        font-weight: 800;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 1.1rem;
+    }
+
+    .item-name {
+        font-weight: 600;
+        color: #374151;
+        font-size: 1rem;
+        display: block;
+    }
+
+    .item-note {
+        font-size: 0.8rem;
+        color: #EF4444;
+        font-style: italic;
+        margin-top: 2px;
+    }
+
+    /* Footer */
+    .card-footer {
+        padding: 15px 20px 20px 20px;
+        background: #FAFAFA;
+        border-top: 1px solid #F3F4F6;
+    }
+
+    .meta-info {
+        display: flex;
+        justify-content: space-between;
+        color: #6B7280;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .btn-ready {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: #10B981;
+        /* Verde vibrante */
+        color: white;
+        text-decoration: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: 0.2s;
+        box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+    }
+
+    .btn-ready:hover {
+        background: #059669;
+        transform: translateY(-2px);
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endfor %}

@@ -1,0 +1,102 @@
+{% extends 'hostal/base_hostal.html' %}
+{% load static %}
+
+{% block title %}Gestión de Habitaciones - Hostal{% endblock %}
+{% block active_habitaciones %}active{% endblock %}
+
+{% block content %}
+<div class="mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="fw-bold mb-1" style="color: var(--text-dark);">Gestión de Habitaciones</h1>
+        <p class="text-muted">Control de disponibilidad, limpieza y precios.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for hab in habitaciones %}
+    <div class="col-md-6 col-lg-4 col-xl-3">
+        <div class="card h-100 border-0 shadow-sm" style="border-radius: 16px;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="badge bg-light text-dark border" style="font-size: 0.9rem;">Hab. {{ hab.numero }}</span>
+                    {% if hab.estado == 'disponible' %}
+                        <span class="badge bg-success-subtle text-success">Disponible</span>
+                    {% elif hab.estado == 'ocupada' %}
+                        <span class="badge bg-danger-subtle text-danger">Ocupada</span>
+                    {% elif hab.estado == 'limpieza' %}
+                        <span class="badge bg-warning-subtle text-warning">Limpieza</span>
+                    {% elif hab.estado == 'reservada' %}
+                        <span class="badge bg-info-subtle text-info">Reservada</span>
+                    {% endif %}
+                </div>
+                
+                <h5 class="fw-bold mb-1">{{ hab.tipo.nombre }}</h5>
+                <p class="text-muted small mb-3">
+                    Capacidad: {{ hab.tipo.capacidad_personas }} pers.
+                    {% if hab.piso %} | Piso {{ hab.piso }}{% endif %}
+                </p>
+                
+                <div class="mb-3">
+                    <div class="small text-muted fw-bold">PRECIO BASE</div>
+                    <div class="fs-4 fw-bold text-dark">
+                        ${{ hab.precio_actual|floatformat:2 }}
+                        {% if hab.precio_personalizado %}
+                            <span class="text-muted fs-6 fw-normal text-decoration-line-through">${{ hab.tipo.precio_noche|floatformat:2 }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <button class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#editHabModal{{ hab.id }}">
+                    <i class="fas fa-edit me-2"></i> Gestionar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar -->
+    <div class="modal fade" id="editHabModal{{ hab.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Gestionar Habitación {{ hab.numero }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'hostal:gestion_habitaciones' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="habitacion_id" value="{{ hab.id }}">
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">ESTADO ACTUAL</label>
+                            <select name="estado" class="form-select">
+                                <option value="disponible" {% if hab.estado == 'disponible' %}selected{% endif %}>Disponible</option>
+                                <option value="ocupada" {% if hab.estado == 'ocupada' %}selected{% endif %}>Ocupada</option>
+                                <option value="limpieza" {% if hab.estado == 'limpieza' %}selected{% endif %}>Limpieza / Mantenimiento</option>
+                                <option value="reservada" {% if hab.estado == 'reservada' %}selected{% endif %}>Reservada</option>
+                            </select>
+                            <div class="form-text small">Cambiar manualmente el estado anulará la automatización actual.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">PRECIO PERSONALIZADO ($)</label>
+                            <input type="number" step="0.01" name="precio" class="form-control" 
+                                   value="{{ hab.precio_personalizado|default_if_none:'' }}" 
+                                   placeholder="Precio estándar: ${{ hab.tipo.precio_noche }}">
+                            <div class="form-text small">Dejar vacío para usar el precio del tipo de habitación.</div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" style="border-radius: 12px;">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <div class="text-muted">No hay habitaciones registradas.</div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

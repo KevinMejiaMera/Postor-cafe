@@ -1,0 +1,112 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cocina - Pedidos Pendientes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script src="https://unpkg.com/idiomorph/dist/idiomorph-ext.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-cream: #FFF7ED; /* Fondo crema de la imagen */
+            --orange-header: #F97316;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --text-dark: #1F2937;
+            --text-gray: #6B7280;
+            --green-btn: #10B981;
+            --green-hover: #059669;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-cream);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* CABECERA NARANJA */
+        .kitchen-header {
+            background-color: var(--orange-header);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(249, 115, 22, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title {
+            font-weight: 800;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-exit {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .btn-exit:hover { background: rgba(255,255,255,0.3); }
+
+        /* GRID DE TARJETAS */
+        .grid-pedidos {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            align-items: start;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="kitchen-header">
+        <div class="header-title">
+            <i class="fas fa-utensils"></i> Cocina - Pedidos Pendientes
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div style="font-size: 0.85rem; opacity: 0.9; display: flex; align-items: center; gap: 6px;">
+                <span style="height: 8px; width: 8px; background: white; border-radius: 50%; display: inline-block; animation: pulse 2s infinite;"></span>
+                En vivo
+            </div>
+            
+            <a href="{% url 'usuarios:logout' %}" class="btn-exit">
+                Salir <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </div>
+    </header>
+
+    <div class="grid-pedidos"
+         hx-ext="morph"
+         hx-get="{% url 'pedidos:actualizar_cocina' %}"
+         hx-trigger="every 5s"
+         hx-swap="morph:innerHTML">
+        
+        {% include 'pedidos/partials/lista_pedidos_cocina.html' %}
+
+    </div>
+
+    <style>
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+
+</body>
+</html>

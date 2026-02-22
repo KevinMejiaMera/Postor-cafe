@@ -1,0 +1,251 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket #{{ factura.id }}</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            /* Fuente estilo ticket */
+            background: #525659;
+            /* Fondo gris oscuro para la pantalla */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .ticket {
+            background: white;
+            width: 300px;
+            /* Ancho típico de impresora térmica (80mm aprox) */
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .header,
+        .footer {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .info {
+            font-size: 0.8rem;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed black;
+            padding-bottom: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+
+        th {
+            text-align: left;
+            border-bottom: 1px solid black;
+        }
+
+        td {
+            padding: 5px 0;
+            vertical-align: top;
+        }
+
+        .col-cant {
+            width: 30px;
+            text-align: center;
+        }
+
+        .col-precio {
+            text-align: right;
+        }
+
+        .totals {
+            border-top: 1px dashed black;
+            padding-top: 10px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+
+        /* Estilo para el botón de Cerrar */
+        .btn-close-ticket {
+            background: #DC2626;
+            /* Rojo intenso */
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-close-ticket:hover {
+            background: #B91C1C;
+            /* Rojo más oscuro al pasar el mouse */
+        }
+
+        .no-print {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            text-align: center;
+            text-decoration: none;
+            font-family: sans-serif;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+            /* Para que el padding no rompa el ancho */
+        }
+
+        .btn-print {
+            background: #000;
+            color: white;
+        }
+
+        .btn-exit {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-exit:hover {
+            background: #d6d6d6;
+        }
+
+        /* ESTILOS DE IMPRESIÓN */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .ticket {
+                width: 100%;
+                box-shadow: none;
+                padding: 0;
+            }
+
+            .no-print {
+                display: none;
+            }
+
+            /* Ocultamos los botones al imprimir */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="ticket">
+
+        <div class="header">
+            <div class="logo">POSTOR CAFE SAN PEDRO DE HUACA</div>
+            <div style="font-size: 0.8rem;">Av. sabra Dios por el moomento</div>
+            <div style="font-size: 0.8rem;">RUC: 1234567890001</div>
+        </div>
+
+        <div class="info">
+            <div class="info-row">
+                <span>Fecha:</span> <span>{{ factura.fecha_emision|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="info-row">
+                <span>Factura N°:</span> <span>001-001-{{ factura.id|stringformat:"05d" }}</span>
+            </div>
+        </div>
+
+        <div class="info">
+            <div><strong>Cliente:</strong> {{ factura.razon_social }}</div>
+            <div><strong>RUC/CI:</strong> {{ factura.ruc_ci }}</div>
+            {% if factura.direccion %}
+            <div><strong>Dir:</strong> {{ factura.direccion }}</div>
+            {% endif %}
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-cant">#</th>
+                    <th>Desc</th>
+                    <th class="col-precio">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in factura.pedido.items.all %}
+                <tr>
+                    <td class="col-cant">{{ item.cantidad }}</td>
+                    <td>{{ item.producto.nombre }}</td>
+                    <td class="col-precio">${{ item.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="totals">
+            <div class="total-row">
+                <span>TOTAL:</span>
+                <span>${{ factura.total }}</span>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p style="margin-top: 20px; font-size: 0.9rem;">¡Gracias por su compra!</p>
+            <small>Documento sin validez tributaria (Demo)</small>
+        </div>
+
+        <div class="no-print">
+            <button onclick="window.print()" class="btn btn-print">
+                🖨️ IMPRIMIR TICKET
+            </button>
+
+            <a href="{% url 'usuarios:dashboard_mesero' %}" class="btn btn-close-ticket">
+                ⬅️ Volver a Mesas
+            </a>
+        </div>
+
+    </div>
+
+    <script>
+        function cerrarOVolver() {
+            // 1. Intentamos cerrar la pestaña (funciona si es popup)
+            window.close();
+
+            // 2. Si el navegador no lo permitió (porque es pestaña principal),
+            //    esperamos un microsegundo y redirigimos al tablero manualmente.
+            setTimeout(function () {
+                window.location.href = "{% url 'usuarios:dashboard_mesero' %}";
+            }, 100);
+        }
+        // window.print(); 
+    </script>
+
+</body>
+
+</html>

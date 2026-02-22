@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Bloqueado</title>
+    <link rel="stylesheet" href="{% static 'usuarios/css/login.css' %}">
+    <style>
+        .lockout-box { text-align: center; }
+        #countdown-timer {
+            font-size: 2em;
+            font-weight: bold;
+            color: #f28500;
+            margin: 20px 0;
+            padding: 10px;
+            border: 2px solid #f28500;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        /* El botón de regreso estará oculto por defecto */
+        #try-again-message {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container lockout-box">
+        <div class="login-header">
+            <h1>Acceso Bloqueado</h1>
+            <p>Has excedido el número máximo de intentos de inicio de sesión.</p>
+        </div>
+        <p>Podrás intentarlo de nuevo en:</p>
+
+        <div id="countdown-timer" data-duration="{{ cooloff_time.seconds|default:900 }}">--:--</div>
+        
+        <div id="try-again-message">
+            <p style="font-weight: bold; margin-top: 20px;">¡Ya puedes intentarlo de nuevo!</p>
+            <a href="{% url 'usuarios:login' %}" class="btn-primary" style="text-decoration: none; display: inline-block; margin-top: 10px;">Regresar al Login</a>
+        </div>
+    </div>
+
+    <script src="{% static 'usuarios/js/lockout-timer.js' %}"></script>
+
+</body>
+</html>

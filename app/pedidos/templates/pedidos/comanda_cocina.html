@@ -1,0 +1,160 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Comanda #{{ pedido.id }} - Cocina</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background: #eee;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .ticket {
+            background: white;
+            width: 300px;
+            /* 80mm standard */
+            padding: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid black;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .mesa-grande {
+            font-size: 2rem;
+            font-weight: 900;
+            margin: 5px 0;
+            display: block;
+        }
+
+        .meta-info {
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .items-list {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .items-list td {
+            vertical-align: top;
+            padding: 8px 0;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .qty {
+            font-size: 1.5rem;
+            font-weight: bold;
+            width: 40px;
+            text-align: center;
+        }
+
+        .item-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            line-height: 1.1;
+        }
+
+        .nota {
+            font-size: 0.9rem;
+            font-style: italic;
+            margin-top: 2px;
+            color: #444;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.8rem;
+            border-top: 2px solid black;
+            padding-top: 10px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .ticket {
+                width: 100%;
+                box-shadow: none;
+                padding: 0;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+
+        .btn {
+            background: black;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="ticket">
+        <div class="header">
+            <div>COMANDA DE COCINA</div>
+            <span class="mesa-grande">MESA {{ pedido.mesa.numero }}</span>
+            <div class="meta-info">
+                <span>Mesero: {{ pedido.mesero.username|default:"--" }}</span>
+                <span>{{ now|date:"H:i" }}</span>
+            </div>
+        </div>
+
+        <table class="items-list">
+            {% for item in pedido.items.all %}
+            <tr>
+                <td class="qty">{{ item.cantidad }}</td>
+                <td>
+                    <div class="item-name">{{ item.producto.nombre }}</div>
+                    <!-- Aquí podrían ir notas extras si las tuviéramos -->
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        {% if pedido.observacion %}
+        <div
+            style="margin: 15px 0; border: 2px dashed black; padding: 10px; font-weight: bold; font-size: 1rem; text-align: left;">
+            NOTA: {{ pedido.observacion }}
+        </div>
+        {% endif %}
+
+        <div class="footer">
+            Entrada: {{ pedido.created_at|date:"d/m/Y H:i" }}
+        </div>
+
+        <button class="btn no-print" onclick="window.print()">🖨️ IMPRIMIR</button>
+    </div>
+
+    <script>
+        // Auto-imprimir al abrir
+        // window.onload = function() { window.print(); }
+    </script>
+</body>
+
+</html>

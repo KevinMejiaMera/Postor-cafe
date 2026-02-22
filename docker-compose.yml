@@ -1,0 +1,106 @@
+services:
+
+  # ─────────────────────────────────────
+  # BASE DE DATOS
+  # ─────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: postor-db
+    restart: unless-stopped
+    volumes:
+      - postor_db_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    networks:
+      - red_interna
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $$DB_USER -d $$DB_NAME" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+
+  # ─────────────────────────────────────
+  # APLICACIÓN DJANGO
+  # ─────────────────────────────────────
+  app:
+    build: .
+    container_name: postor-app
+    restart: unless-stopped
+    command: gunicorn restaurante.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120
+    volumes:
+      - .:/app
+      - postor_static_volume:/app/staticfiles
+      - postor_media_volume:/app/media
+    expose:
+      - "8000"
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - red_interna
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health/')\" || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+
+  # ─────────────────────────────────────
+  # PROXY NGINX
+  # ─────────────────────────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: postor-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - postor_static_volume:/app/staticfiles:ro
+      - postor_media_volume:/app/media:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - red_interna
+    healthcheck:
+      test: [ "CMD", "nginx", "-t" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+
+# ─────────────────────────────────────
+# NETWORKS
+# ─────────────────────────────────────
+networks:
+  red_interna:
+    driver: bridge
+
+# ─────────────────────────────────────
+# VOLUMES
+# ─────────────────────────────────────
+volumes:
+  postor_db_data:
+  postor_static_volume:
+  postor_media_volume:

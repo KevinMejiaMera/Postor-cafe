@@ -1,0 +1,111 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Postor Cafe San Pedro de Huaca</title>
+
+    <!-- Google Fonts: Outfit & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="{% static 'usuarios/css/login.css' %}?v=4.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="split-screen">
+        <!-- PANE IZQUIERDO: IMAGEN Y FRASE -->
+        <div class="left-pane">
+            <div class="overlay-text">
+                <span class="subtitle-overlay">ALTA COCINA & GESTIÓN</span>
+                <h2>La excelencia en cada detalle, el sabor en cada momento.</h2>
+                <div class="line-accent"></div>
+            </div>
+        </div>
+
+        <!-- PANE DERECHO: FORMULARIO -->
+        <div class="right-pane">
+            <div class="login-container">
+
+                <div class="brand-header">
+                    <div class="icon-circle">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h1>Postor Cafe</h1>
+                    <p class="subtitle">San Pedro de Huaca</p>
+                </div>
+
+                <!-- Mensajes de Error/Info -->
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if failures_left %}
+                <div class="alert alert-warning">
+                    ⚠️ Te quedan <strong>{{ failures_left }}</strong> intentos.
+                </div>
+                {% endif %}
+
+                <form method="post" class="login-form">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label for="identifier">USUARIO</label>
+                        <input type="text" id="identifier" name="identifier" placeholder="Ingrese su usuario" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">CONTRASEÑA</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="password" name="password" placeholder="••••••••" required>
+                            <i class="fas fa-lock input-icon"></i>
+                            <a href="/usuarios/password-reset/" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="remember">
+                            <span class="checkmark"></span>
+                            Mantener sesión iniciada
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        Iniciar Sesión <i class="fas fa-arrow-right"></i>
+                    </button>
+
+                    <div class="support-link">
+                        ¿Nuevo en el equipo? <a href="#">Solicitar acceso</a>
+                    </div>
+                </form>
+
+                <div class="footer-copy">
+                    <span>&copy; 2026 POSTOR CAFE - SAN PEDRO DE HUACA</span>
+                    <div class="socials">
+                        <i class="fab fa-facebook-f"></i>
+                        <i class="fab fa-instagram"></i>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

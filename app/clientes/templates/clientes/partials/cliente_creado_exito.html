@@ -1,0 +1,16 @@
+<script>
+    // Auto-seleccionar el cliente recién creado
+    seleccionarCliente('{{ nuevo_cliente.id }}', '{{ nuevo_cliente.nombres }}', '{{ nuevo_cliente.cedula_o_ruc }}');
+</script>
+
+<div class="cliente-item selected"
+    onclick="seleccionarCliente('{{ nuevo_cliente.id }}', '{{ nuevo_cliente.nombres }}', '{{ nuevo_cliente.cedula_o_ruc }}')">
+    <div class="icon-avatar" style="background: #10B981; color: white;">
+        <i class="fas fa-check"></i>
+    </div>
+    <div class="info">
+        <strong>{{ nuevo_cliente.nombres }} (NUEVO)</strong>
+        <small>CI/RUC: {{ nuevo_cliente.cedula_o_ruc }}</small>
+    </div>
+    <i class="fas fa-check-circle check-icon"></i>
+</div>

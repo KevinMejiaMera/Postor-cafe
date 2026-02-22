@@ -1,0 +1,508 @@
+{% extends 'hostal/base_hostal.html' %}
+{% load hostal_extras %}
+{% block title %}Rack Mensual - Hostal{% endblock %}
+{% block active_reservas %}active{% endblock %}
+
+{% block content %}
+<style>
+    /* New Design Variables */
+    :root {
+        --cell-width: 50px;
+        --cell-height: 64px;
+        --header-height: 60px;
+        --sidebar-col-width: 240px;
+
+        --grid-cols: {
+                {
+                days|length
+            }
+        }
+
+        ;
+
+        --color-purple-primary: #7C3AED;
+        /* Main action purple */
+        --color-purple-light: #F3E8FF;
+        /* Pending bg */
+        --color-purple-text: #6B21A8;
+        /* Pending text */
+        --color-grey-light: #F3F4F6;
+        /* Grid borders/bg */
+        --color-text-main: #1F2937;
+        --color-text-sub: #6B7280;
+    }
+
+    body {
+        background-color: #F9FAFB;
+        /* Overall page bg */
+    }
+
+    .rack-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 40px);
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        border: 1px solid #E5E7EB;
+    }
+
+    /* 1. Header Section (Title & Main Buttons) */
+    .rack-header {
+        padding: 1.5rem 2rem 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+    }
+
+    .page-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--color-text-main);
+        margin: 0;
+        letter-spacing: -0.5px;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-export {
+        background: white;
+        border: 1px solid #D1D5DB;
+        color: var(--color-text-main);
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .btn-export:hover {
+        background: #F9FAFB;
+    }
+
+    .btn-new-reserva {
+        background: var(--color-purple-primary);
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        text-decoration: none;
+        box-shadow: 0 1px 2px rgba(124, 58, 237, 0.3);
+    }
+
+    .btn-new-reserva:hover {
+        background: #6D28D9;
+        transform: translateY(-1px);
+        color: white;
+    }
+
+    /* 2. Controls Section (Search, Nav, Legend) */
+    .rack-controls {
+        padding: 0 2rem 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+    }
+
+    /* Search Input */
+    .search-wrapper {
+        position: relative;
+        min-width: 300px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 10px 10px 10px 40px;
+        border-radius: 8px;
+        border: 1px solid #D1D5DB;
+        background: #F9FAFB;
+        font-size: 0.95rem;
+        color: var(--color-text-main);
+    }
+
+    .search-input:focus {
+        outline: 2px solid var(--color-purple-light);
+        border-color: var(--color-purple-primary);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9CA3AF;
+    }
+
+    /* Month Navigator (Center) */
+    .date-navigator {
+        display: flex;
+        align-items: center;
+        background: #F3F4F6;
+        border-radius: 8px;
+        padding: 4px;
+    }
+
+    .nav-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: transparent;
+        color: #4B5563;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .nav-btn:hover {
+        background: #E5E7EB;
+    }
+
+    .current-month {
+        padding: 0 16px;
+        font-weight: 600;
+        color: var(--color-text-main);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Legend Pills (Right) */
+    .legend-group {
+        display: flex;
+        gap: 8px;
+    }
+
+    .legend-pill {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .pill-confirmado {
+        background: var(--color-purple-light);
+        color: var(--color-purple-text);
+        border: 1px solid transparent;
+    }
+
+    .pill-confirmado::before {
+        content: '●';
+        color: var(--color-purple-primary);
+    }
+
+    /* Dot */
+
+    .pill-pendiente {
+        background: #F3F4F6;
+        color: #4B5563;
+    }
+
+    .pill-pendiente::before {
+        content: '●';
+        color: #9CA3AF;
+    }
+
+    /* 3. Gantt Grid */
+    .gantt-wrapper {
+        flex: 1;
+        overflow: auto;
+        display: grid;
+        grid-template-columns: var(--sidebar-col-width) repeat(var(--grid-cols), var(--cell-width));
+        grid-auto-rows: var(--cell-height);
+        position: relative;
+        background: white;
+        border-top: 1px solid #E5E7EB;
+    }
+
+    /* Sticky Headers */
+    .gantt-header-room {
+        position: sticky;
+        top: 0;
+        left: 0;
+        z-index: 30;
+        background: white;
+        border-bottom: 1px solid #E5E7EB;
+        border-right: 1px solid #E5E7EB;
+        padding: 0 1.5rem;
+        display: flex;
+        align-items: center;
+        font-weight: 700;
+        color: #9CA3AF;
+        font-size: 0.85rem;
+        height: var(--header-height);
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
+    }
+
+    .gantt-header-day {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: white;
+        border-bottom: 1px solid #E5E7EB;
+        border-right: 1px solid #F3F4F6;
+        /* Subtle separator */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: var(--header-height);
+        grid-row: 1 / 2;
+        padding: 4px 0;
+    }
+
+    .header-day-name {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #9CA3AF;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+
+    .header-day-num {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--color-text-main);
+    }
+
+    /* Current Day Highlight in Header */
+    .gantt-header-day.is-today .header-day-num,
+    .gantt-header-day.is-today .header-day-name {
+        color: var(--color-purple-primary);
+    }
+
+    /* Room Cells (Sidebar) */
+    .room-cell {
+        position: sticky;
+        left: 0;
+        z-index: 10;
+        background: white;
+        border-bottom: 1px solid #F3F4F6;
+        border-right: 1px solid #E5E7EB;
+        padding: 0 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        grid-column: 1 / 2;
+    }
+
+    .room-name {
+        font-weight: 700;
+        color: var(--color-text-main);
+        font-size: 0.95rem;
+    }
+
+    .room-type {
+        font-size: 0.8rem;
+        color: #9CA3AF;
+        margin-top: 2px;
+    }
+
+    /* Grid Cells */
+    .grid-cell {
+        border-bottom: 1px solid #F9FAFB;
+        border-right: 1px solid #F9FAFB;
+        /* Very subtle grid */
+        background: white;
+        grid-column: span 1;
+        position: relative;
+    }
+
+    /* Highlighting specific columns */
+    .grid-cell.is-weekend {
+        background: #FAFAFA;
+    }
+
+    /* Current Day Vertical Line Effect */
+    /* We apply a border-left or background to cells of today */
+    .grid-cell.is-today {
+        background: rgba(124, 58, 237, 0.03);
+        /* Very faint purple tint */
+        border-left: 1px dashed rgba(124, 58, 237, 0.3);
+        border-right: 1px dashed rgba(124, 58, 237, 0.3);
+    }
+
+    /* Reservations */
+    .reservation-bar {
+        border-radius: 6px;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        padding: 0 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        margin: 10px 2px;
+        /* Center partially vertically */
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        z-index: 5;
+        cursor: pointer;
+        transition: transform 0.1s;
+    }
+
+    .reservation-bar:hover {
+        transform: scale(1.02);
+        z-index: 15;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Status Specifics matching image */
+    .status-checkin {
+        /* Active/Confirmed */
+        background: var(--color-purple-primary);
+        color: white;
+    }
+
+    .status-pendiente {
+        /* Pending */
+        background: var(--color-purple-light);
+        color: var(--color-purple-text);
+        border: 1px solid rgba(124, 58, 237, 0.2);
+    }
+
+    .status-checkout {
+        /* Finished/History */
+        background: #E5E7EB;
+        color: #6B7280;
+        cursor: default;
+    }
+
+    /* Scrollbar */
+    .gantt-wrapper::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .gantt-wrapper::-webkit-scrollbar-thumb {
+        background: #D1D5DB;
+        border-radius: 4px;
+    }
+
+    .gantt-wrapper::-webkit-scrollbar-track {
+        background: transparent;
+    }
+</style>
+
+<div class="rack-container">
+    <!-- 1. Header -->
+    <div class="rack-header">
+        <h1 class="page-title">Rack Mensual</h1>
+        <div class="header-actions">
+            <a href="#" class="btn-export">
+                <i class="fas fa-download"></i> Exportar
+            </a>
+            <a href="{% url 'hostal:crear_reserva' %}" class="btn-new-reserva">
+                <i class="fas fa-plus"></i> Nueva Reserva
+            </a>
+        </div>
+    </div>
+
+    <!-- 2. Controls -->
+    <div class="rack-controls">
+        <div class="search-wrapper">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" placeholder="Buscar reserva...">
+        </div>
+
+        <div class="date-navigator">
+            <button class="nav-btn" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="current-month">
+                <i class="far fa-calendar-alt text-muted"></i>
+                <span>{{ month_name|capfirst }} {{ year }}</span>
+            </div>
+            <button class="nav-btn" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="legend-group">
+            <div class="legend-pill pill-confirmado">Confirmado</div>
+            <div class="legend-pill pill-pendiente">Pendiente</div>
+            <div class="legend-pill" style="background:#F3F4F6; color:#6B7280;">Mantenimiento</div>
+        </div>
+    </div>
+
+    <!-- 3. Main Grid -->
+    <div class="gantt-wrapper">
+        <!-- HEADER ROW -->
+        <div class="gantt-header-room">Habitación / Tipo</div>
+
+        {% for day in days %}
+        <!-- Using days_data from view which gives dictionary objects -->
+        <div class="gantt-header-day {% if day.is_today %}is-today{% endif %}"
+            style="grid-column: {{ forloop.counter|add:1 }};">
+            <span class="header-day-name">{{ day.name }}</span>
+            <span class="header-day-num">{{ day.num|stringformat:"02d" }}</span>
+        </div>
+        {% endfor %}
+
+        <!-- DATA ROWS -->
+        {% for hab in habitaciones %}
+        <!-- Room Column -->
+        <div class="room-cell" style="grid-row: {{ forloop.counter|add:1 }};">
+            <div class="room-name">{{ hab.numero }}</div>
+            <div class="room-type">{{ hab.tipo.nombre }}</div>
+        </div>
+
+        <!-- Empty Grid Background Cells -->
+        {% for day in days %}
+        <div class="grid-cell {% if day.is_weekend %}is-weekend{% endif %} {% if day.is_today %}is-today{% endif %}"
+            style="grid-row: {{ forloop.parentloop.counter|add:1 }}; 
+                            grid-column: {{ forloop.counter|add:1 }};">
+        </div>
+        {% endfor %}
+
+        <!-- Reservations -->
+        {% for evento in eventos_por_habitacion|get_item:hab.id %}
+        <div class="reservation-bar {% if evento.status == 'checkin' %}status-checkin{% elif evento.status == 'checkout' %}status-checkout{% else %}status-pendiente{% endif %}"
+            style="grid-row: {{ forloop.parentloop.counter|add:1 }};
+                            grid-column: {{ evento.start_day|add:1 }} / span {{ evento.duration }};"
+            title="{{ evento.huesped }}" {% if evento.cancellable %}
+            onclick="confirmarCancelacion('{{ evento.id }}', '{{ evento.huesped }}')" {% endif %}>
+            {{ evento.huesped }}
+        </div>
+        {% endfor %}
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function changeMonth(delta) {
+        const currentUrl = new URL(window.location.href);
+        let year = parseInt("{{ year }}");
+        let month = parseInt("{{ month }}");
+
+        month += delta;
+        if (month > 12) { month = 1; year++; }
+        if (month < 1) { month = 12; year--; }
+
+        currentUrl.searchParams.set('year', year);
+        currentUrl.searchParams.set('month', month);
+        window.location.href = currentUrl.toString();
+    }
+
+    function confirmarCancelacion(reservaId, huesped) {
+        if (confirm(`¿Deseas cancelar la reserva de ${huesped}?`)) {
+            window.location.href = `/hostal/reservas/cancelar/${reservaId}/`;
+        }
+    }
+</script>
+{% endblock %}

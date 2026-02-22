@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Caja - Postor Cafe San Pedro de Huaca</title>
+    <!-- Reutilizamos CSS de gerencia para consistencia -->
+    <link rel="stylesheet" href="{% static 'usuarios/css/dashboard_gerente.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #F3F4F6;
+        }
+
+        .main-content {
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="sidebar">
+        <div class="logo">
+            <i class="fas fa-utensils"></i> Postor Cafe
+        </div>
+        <div class="nav-links">
+            <!-- Si es gerente/admin, MOSTRAR TODO EL MENU DE GERENCIA -->
+            {% if user.rol == 'gerente' or user.rol == 'admin' %}
+            <a href="{% url 'usuarios:dashboard_gerente' %}"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="{% url 'usuarios:gestion_menu' %}"><i class="fas fa-hamburger"></i> Menú</a>
+            <a href="{% url 'usuarios:gestion_inventario' %}"><i class="fas fa-boxes"></i> Inventario</a>
+            <a href="{% url 'usuarios:reportes_ventas' %}"><i class="fas fa-chart-line"></i> Reportes</a>
+            <a href="{% url 'usuarios:lista_usuarios' %}"><i class="fas fa-users"></i> Personal</a>
+            <a href="#" class="active"><i class="fas fa-cash-register"></i> Caja</a>
+            <a href="{% url 'usuarios:logout' %}"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+
+            {% else %}
+            <!-- MENÚ DE MESERO -->
+            <a href="{% url 'usuarios:dashboard_mesero' %}"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="#" class="active"><i class="fas fa-cash-register"></i> Caja</a>
+            <a href="{% url 'usuarios:logout' %}"><i class="fas fa-sign-out-alt"></i> Salir</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+
+</html>

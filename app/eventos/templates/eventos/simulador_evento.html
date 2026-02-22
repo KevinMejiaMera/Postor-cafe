@@ -1,0 +1,726 @@
+{% extends 'usuarios/base_gerente.html' %}
+{% load static %}
+
+{% block title %}Cotizador: {{ evento.nombre }}{% endblock %}
+
+{% block extra_head %}
+<!-- Google Fonts & Bootstrap -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    :root {
+        --primary-color: #FF5722;
+        --secondary-color: #FF8A65;
+        --text-color: #2B3674;
+        --text-muted: #A3AED0;
+        --bg-light: #FFF5F2;
+        --card-shadow: 0px 18px 40px rgba(112, 144, 176, 0.12);
+        --success-gradient: linear-gradient(135deg, #059669 0%, #34D399 100%);
+        --danger-gradient: linear-gradient(135deg, #E11D48 0%, #FB7185 100%);
+        --info-gradient: linear-gradient(135deg, #FF6347 0%, #FF4500 100%);
+        --warning-gradient: linear-gradient(135deg, #F59E0B 0%, #FCD34D 100%);
+    }
+
+    body {
+        font-family: 'DM Sans', sans-serif;
+        background-color: var(--bg-light);
+        color: var(--text-color);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5 {
+        font-weight: 700;
+        color: var(--text-color);
+    }
+
+    .card-custom {
+        border: none;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        background: white;
+        padding: 24px;
+        margin-bottom: 24px;
+        transition: transform 0.2s ease;
+    }
+
+    .nav-pills-custom {
+        background: white;
+        padding: 6px;
+        border-radius: 30px;
+        display: inline-flex;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.03);
+        margin-bottom: 24px;
+    }
+
+    .nav-pills-custom .nav-link {
+        color: var(--text-muted);
+        font-weight: 500;
+        border-radius: 25px;
+        padding: 10px 24px;
+        transition: all 0.3s ease;
+    }
+
+    .nav-pills-custom .nav-link:hover {
+        color: var(--primary-color);
+        background: rgba(255, 87, 34, 0.05);
+    }
+
+    .nav-pills-custom .nav-link.active {
+        background: var(--info-gradient);
+        color: white;
+        box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+    }
+
+    .table-custom {
+        border-collapse: separate;
+        border-spacing: 0 8px;
+    }
+
+    .table-custom th {
+        color: var(--text-muted);
+        font-weight: 500;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: none;
+        padding: 12px 16px;
+    }
+
+    .table-custom td {
+        background: white;
+        border: none;
+        padding: 16px;
+        vertical-align: middle;
+        font-weight: 500;
+        color: var(--text-color);
+    }
+
+    .table-custom tr td:first-child {
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+    }
+
+    .table-custom tr td:last-child {
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+
+    .table-custom tr:hover td {
+        background-color: #FFF8F6;
+    }
+
+    .kpi-card {
+        border-radius: 20px;
+        color: white;
+        padding: 24px;
+        position: relative;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 140px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .kpi-icon {
+        position: absolute;
+        right: -10px;
+        bottom: -10px;
+        font-size: 6rem;
+        opacity: 0.2;
+        transform: rotate(-15deg);
+    }
+
+    .bg-gradient-success {
+        background: var(--success-gradient);
+    }
+
+    .bg-gradient-danger {
+        background: var(--danger-gradient);
+    }
+
+    .bg-gradient-info {
+        background: var(--info-gradient);
+    }
+
+    .bg-gradient-primary {
+        background: var(--info-gradient);
+    }
+
+    .btn-gradient {
+        background: var(--info-gradient);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 24px;
+        font-weight: 600;
+        box-shadow: 0 4px 10px rgba(255, 69, 0, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-gradient:hover {
+        transform: scale(1.02);
+        box-shadow: 0 6px 15px rgba(255, 69, 0, 0.4);
+        color: white;
+    }
+
+    .btn-gradient-danger {
+        background: var(--danger-gradient);
+        box-shadow: 0 4px 10px rgba(225, 29, 72, 0.3);
+    }
+
+    .form-control,
+    .form-select {
+        background-color: #F9FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        padding: 10px 15px;
+        font-size: 0.95rem;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.15);
+        background-color: white;
+    }
+
+    .form-label {
+        font-weight: 500;
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pb-5">
+    <!-- HEADER -->
+    <header class="mb-4 d-flex justify-content-between align-items-center">
+        <div>
+            <a href="{% url 'eventos:dashboard_eventos' %}" class="text-muted text-decoration-none fw-bold small">
+                <i class="fas fa-arrow-left me-1"></i> Volver al Dashboard
+            </a>
+            <h2 class="mt-2 mb-1">{{ evento.nombre }}</h2>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted"><i class="far fa-calendar me-2"></i> {{ evento.fecha_evento|date:"d M Y, H:i"
+                    }}</span>
+                <span class="text-muted"><i class="fas fa-users me-2"></i> {{ evento.personas }} Pax</span>
+                <span
+                    class="badge rounded-pill {% if evento.estado == 'confirmado' %}bg-success{% else %}bg-warning text-dark{% endif %} px-3">
+                    {{ evento.get_estado_display }}
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- TABS -->
+    <ul class="nav nav-pills-custom" id="cotizadorTabs" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#general"><i
+                    class="fas fa-file-alt me-2"></i>General / Menú</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#menaje"><i
+                    class="fas fa-utensils me-2"></i>Menaje</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#gastos"><i
+                    class="fas fa-money-bill-wave me-2"></i>Gastos</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#ingresos"><i
+                    class="fas fa-cash-register me-2"></i>Ingresos</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#resultados"><i
+                    class="fas fa-chart-pie me-2"></i>Resultados</button></li>
+    </ul>
+
+    <div class="tab-content" id="cotizadorTabsContent">
+        <!-- GENERAL -->
+        <div class="tab-pane fade show active" id="general">
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="card-custom h-100">
+                        <h5 class="mb-4 text-primary fw-bold" style="color: var(--primary-color) !important;">1. Datos
+                            del Evento</h5>
+                        <form method="POST" action="{% url 'eventos:actualizar_evento_datos' evento.id %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Nombre Evento</label>
+                                <input type="text" name="nombre" value="{{ evento.nombre }}" class="form-control">
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <label class="form-label text-muted">Pax (Personas)</label>
+                                    <input type="number" name="personas" value="{{ evento.personas }}"
+                                        class="form-control">
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <label class="form-label text-muted">Tipo Servicio</label>
+                                    <select name="tipo_servicio" class="form-select">
+                                        <option value="plato_servido" {% if evento.tipo_servicio=='plato_servido'
+                                            %}selected{% endif %}>Plato Servido</option>
+                                        <option value="buffet" {% if evento.tipo_servicio=='buffet' %}selected{% endif
+                                            %}>Buffet</option>
+                                        <option value="cocktail" {% if evento.tipo_servicio=='cocktail' %}selected{%
+                                            endif %}>Cocktail</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Estado del Evento</label>
+                                <select name="estado" class="form-select"
+                                    style="font-weight: 600; color: var(--primary-color);">
+                                    <option value="borrador" {% if evento.estado=='borrador' %}selected{% endif %}>🟡
+                                        Borrador / Cotización</option>
+                                    <option value="confirmado" {% if evento.estado=='confirmado' %}selected{% endif %}>
+                                        🟢 Confirmado</option>
+                                    <option value="finalizado" {% if evento.estado=='finalizado' %}selected{% endif %}>
+                                        🔵 Finalizado</option>
+                                    <option value="cancelado" {% if evento.estado=='cancelado' %}selected{% endif %}>🔴
+                                        Cancelado</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label text-muted">Fecha y Hora</label>
+                                <input type="datetime-local" name="fecha_evento"
+                                    value="{{ evento.fecha_evento|date:'Y-m-d\TH:i' }}" class="form-control">
+                            </div>
+                            <button type="submit" class="btn btn-gradient w-100"><i
+                                    class="fas fa-save me-2"></i>Actualizar Datos</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="card-custom">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold mb-0" style="color: var(--primary-color);">2. Composición del Menú</h5>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3" data-bs-toggle="collapse"
+                                data-bs-target="#addDishForm">
+                                <i class="fas fa-plus me-1"></i> Agregar Plato
+                            </button>
+                        </div>
+                        <div class="collapse mb-4" id="addDishForm">
+                            <div class="card card-body border-0 bg-light rounded-3">
+                                {% if productos %}
+                                <form method="POST" action="{% url 'eventos:agregar_plato_evento' evento.id %}"
+                                    class="d-flex gap-3 align-items-end">
+                                    {% csrf_token %}
+                                    <div class="flex-grow-1">
+                                        <label class="form-label small text-muted">Seleccionar Producto</label>
+                                        <select name="producto" class="form-select">
+                                            {% for p in productos %}
+                                            <option value="{{ p.id }}">{{ p.nombre }} ($ {{ p.costo_elaboracion }})
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-gradient rounded-3 px-4">Agregar</button>
+                                </form>
+                                {% else %}
+                                <div class="text-center py-3">
+                                    <i class="fas fa-box-open fs-3 text-muted opacity-50 mb-2"></i>
+                                    <p class="text-muted small mb-1">No hay productos disponibles.</p>
+                                    <a href="/admin/pedidos/producto/add/" class="btn btn-sm btn-outline-warning mt-1"
+                                        target="_blank">
+                                        <i class="fas fa-plus me-1"></i> Agregar Producto en Admin
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-custom w-100">
+                                <thead>
+                                    <tr>
+                                        <th>Plato</th>
+                                        <th class="text-center">Cant.</th>
+                                        <th class="text-end">Costo Unit.</th>
+                                        <th class="text-end">Total</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in menu_items %}
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold">{{ item.producto.nombre }}</div>
+                                            <div class="small text-muted">{{ item.producto.categoria.nombre }}</div>
+                                        </td>
+                                        <td class="text-center"><span class="badge bg-light text-dark border">{{
+                                                item.cantidad }}</span></td>
+                                        <td class="text-end text-muted">$ {{ item.costo_unitario_snapshot|floatformat:2
+                                            }}</td>
+                                        <td class="text-end fw-bold text-dark">$ {{ item.costo_total|floatformat:2 }}
+                                        </td>
+                                        <td class="text-end"><a href="{% url 'eventos:eliminar_plato_evento' item.id %}"
+                                                class="btn btn-sm btn-light text-danger rounded-circle"><i
+                                                    class="fas fa-trash"></i></a></td>
+                                    </tr>
+                                    {% endfor %}
+                                    <tr>
+                                        <td colspan="3" class="text-end text-muted fw-bold pt-3">Total Costo Menú:</td>
+                                        <td class="text-end fw-bold pt-3 fs-5" style="color: var(--primary-color);">$ {{
+                                            evento.costo_comida|floatformat:2 }}</td>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MENAJE -->
+        <div class="tab-pane fade" id="menaje">
+            <div class="card-custom">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="fw-bold" style="color: var(--primary-color);">Menaje y Equipo</h5>
+                        <p class="text-muted small mb-0">Gestiona el mobiliario, vajilla y cristalería necesaria.</p>
+                    </div>
+                    <div><a href="{% url 'eventos:auto_calcular_menaje' evento.id %}"
+                            class="btn btn-warning text-white fw-bold shadow-sm rounded-3"><i
+                                class="fas fa-magic me-2"></i> Auto-Calcular Sugerido</a></div>
+                </div>
+                <!-- Manual Add Form -->
+                <div class="card-custom mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3 cursor-pointer"
+                        data-bs-toggle="collapse" data-bs-target="#addMenajeForm">
+                        <h6 class="fw-bold mb-0 text-primary"><i class="fas fa-plus-circle me-2"></i>Agregar Menaje
+                            Manualmente</h6><i class="fas fa-chevron-down text-muted"></i>
+                    </div>
+                    <div class="collapse" id="addMenajeForm">
+                        <form method="POST" action="{% url 'eventos:agregar_item_menaje' evento.id %}"
+                            class="row g-3 align-items-end">
+                            {% csrf_token %}
+                            <div class="col-md-6"><label class="form-label small text-muted">Item de
+                                    Menaje</label><select name="menaje" class="form-select">{% for m in all_menaje %}
+                                    <option value="{{ m.id }}">{{ m.nombre }} ({{ m.categoria.nombre }}) - Costo: ${{
+                                        m.costo_alquiler }}</option>{% endfor %}
+                                </select></div>
+                            <div class="col-md-3"><label class="form-label small text-muted">Cantidad</label><input
+                                    type="number" name="cantidad" value="1" min="1" class="form-control"></div>
+                            <div class="col-md-3"><button type="submit"
+                                    class="btn btn-gradient btn-sm w-100">Agregar</button></div>
+                        </form>
+                    </div>
+                </div>
+                <!-- Alerts -->
+                {% if messages %}{% for message in messages %}<div
+                    class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-3 shadow-sm border-0"><i
+                        class="fas fa-info-circle me-2"></i>{{ message }}<button type="button" class="btn-close"
+                        data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+                <!-- Table -->
+                <div class="table-responsive">
+                    <table class="table table-custom">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Categoria</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-end">Costo Alquiler</th>
+                                <th class="text-end">Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in menaje_items %}
+                            <tr>
+                                <td class="fw-bold">{{ item.menaje.nombre }}</td>
+                                <td><span class="badge bg-light text-secondary border">{{ item.menaje.categoria.nombre
+                                        }}</span></td>
+                                <td class="text-center fw-bold">{{ item.cantidad }}</td>
+                                <td class="text-end text-muted">$ {{ item.costo_unitario_snapshot|floatformat:2 }}</td>
+                                <td class="text-end fw-bold text-dark">$ {{ item.costo_total|floatformat:2 }}</td>
+                                <td class="text-end"><a href="{% url 'eventos:eliminar_item_menaje' item.id %}"
+                                        class="btn btn-sm btn-light text-danger rounded-circle"><i
+                                            class="fas fa-trash"></i></a></td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="text-muted"><i class="fas fa-box-open fs-1 mb-3 opacity-25"></i>
+                                        <p>No hay menaje asignado.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <td colspan="4" class="text-end text-muted fw-bold pt-3">Total Menaje:</td>
+                                <td class="text-end text-danger fw-bold pt-3 fs-5">$ {{
+                                    evento.costo_menaje|floatformat:2 }}</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- GASTOS -->
+        <div class="tab-pane fade" id="gastos">
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="card-custom">
+                        <h5 class="mb-4 text-primary fw-bold" style="color: var(--primary-color) !important;">Registrar
+                            Gasto</h5>
+                        <form method="POST" action="{% url 'eventos:agregar_gasto' evento.id %}">
+                            {% csrf_token %}
+                            <div class="mb-3"><label class="form-label text-muted">Descripción</label><input type="text"
+                                    name="nombre" class="form-control" required></div>
+                            <div class="mb-3"><label class="form-label text-muted">Categoría</label><select
+                                    name="categoria" class="form-select">{% for code, name in categorias_gastos %}
+                                    <option value="{{ code }}">{{ name }}</option>{% endfor %}
+                                </select></div>
+                            <div class="row mb-4">
+                                <div class="col-6"><label class="form-label text-muted">Cant.</label><input
+                                        type="number" name="cantidad" value="1" class="form-control" required></div>
+                                <div class="col-6"><label class="form-label text-muted">Costo Unit $</label><input
+                                        type="number" step="0.01" name="costo_unitario" class="form-control" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-gradient btn-gradient-danger w-100 text-white"><i
+                                    class="fas fa-minus-circle me-2"></i>Registrar Salida</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="card-custom">
+                        <h5 class="fw-bold mb-4" style="color: var(--primary-color);">Detalle de Gastos</h5>
+                        <div class="table-responsive">
+                            <table class="table table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>Descripción</th>
+                                        <th>Categoria</th>
+                                        <th class="text-center">Cant.</th>
+                                        <th class="text-end">Costo Unit.</th>
+                                        <th class="text-end">Total</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in gastos %}
+                                    <tr>
+                                        <td class="fw-bold">{{ item.nombre }}</td>
+                                        <td><span class="badge bg-light text-dark border">{{ item.get_categoria_display
+                                                }}</span></td>
+                                        <td class="text-center">{{ item.cantidad }}</td>
+                                        <td class="text-end text-muted">$ {{ item.costo_unitario|floatformat:2 }}</td>
+                                        <td class="text-end fw-bold">$ {{ item.total|floatformat:2 }}</td>
+                                        <td class="text-end"><a href="{% url 'eventos:eliminar_gasto' item.id %}"
+                                                class="btn btn-sm btn-light text-danger rounded-circle"><i
+                                                    class="fas fa-trash"></i></a></td>
+                                    </tr>
+                                    {% endfor %}
+                                    <tr>
+                                        <td colspan="4" class="text-end text-muted fw-bold pt-3">Total Otros Gastos:
+                                        </td>
+                                        <td class="text-end text-danger fw-bold pt-3 fs-5">$ {{
+                                            evento.costo_gastos_extra|floatformat:2 }}</td>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INGRESOS -->
+        <div class="tab-pane fade" id="ingresos">
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="card-custom">
+                        <h5 class="mb-4 text-primary fw-bold" style="color: var(--primary-color) !important;">Registrar
+                            Ingreso</h5>
+                        <form method="POST" action="{% url 'eventos:agregar_ingreso' evento.id %}">
+                            {% csrf_token %}
+                            <div class="mb-3"><label class="form-label text-muted">Concepto</label><input type="text"
+                                    name="nombre" class="form-control" required></div>
+                            <div class="mb-3"><label class="form-label text-muted">Categoría</label><select
+                                    name="categoria" class="form-select">{% for code, name in categorias_ingresos %}
+                                    <option value="{{ code }}">{{ name }}</option>{% endfor %}
+                                </select></div>
+                            <div class="row mb-4">
+                                <div class="col-6"><label class="form-label text-muted">Cant.</label><input
+                                        type="number" name="cantidad" value="{{ evento.personas }}" class="form-control"
+                                        required></div>
+                                <div class="col-6"><label class="form-label text-muted">Precio Venta $</label><input
+                                        type="number" step="0.01" name="precio_unitario" class="form-control" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-gradient w-100"><i
+                                    class="fas fa-plus-circle me-2"></i>Registrar Ingreso</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="card-custom">
+                        <h5 class="fw-bold mb-4" style="color: var(--primary-color);">Presupuesto de Ingresos</h5>
+                        <div class="table-responsive">
+                            <table class="table table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>Descripción</th>
+                                        <th>Categoria</th>
+                                        <th class="text-center">Cant.</th>
+                                        <th class="text-end">Precio Unit.</th>
+                                        <th class="text-end">Total</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in ingresos %}
+                                    <tr>
+                                        <td class="fw-bold">{{ item.nombre }}</td>
+                                        <td><span class="badge bg-light text-dark border">{{ item.get_categoria_display
+                                                }}</span></td>
+                                        <td class="text-center">{{ item.cantidad }}</td>
+                                        <td class="text-end text-muted">$ {{ item.precio_unitario|floatformat:2 }}</td>
+                                        <td class="text-end fw-bold text-success">$ {{ item.total|floatformat:2 }}</td>
+                                        <td class="text-end"><a href="{% url 'eventos:eliminar_ingreso' item.id %}"
+                                                class="btn btn-sm btn-light text-danger rounded-circle"><i
+                                                    class="fas fa-trash"></i></a></td>
+                                    </tr>
+                                    {% endfor %}
+                                    <tr>
+                                        <td colspan="4" class="text-end text-muted fw-bold pt-3">TOTAL INGRESOS:</td>
+                                        <td class="text-end text-success fw-bold pt-3 fs-5">$ {{
+                                            evento.ingreso_total|floatformat:2 }}</td>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULTADOS -->
+        <div class="tab-pane fade" id="resultados">
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <div class="kpi-card bg-gradient-success">
+                        <div>
+                            <p class="mb-1 opacity-75 fw-bold">Ingresos Totales</p>
+                            <h2 class="text-white mb-0">$ {{ evento.ingreso_total|floatformat:0 }}</h2>
+                        </div><i class="fas fa-hand-holding-usd kpi-icon"></i>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <div class="kpi-card bg-gradient-danger">
+                        <div>
+                            <p class="mb-1 opacity-75 fw-bold">Gastos Totales</p>
+                            <h2 class="text-white mb-0">$ {{ evento.costo_total_evento|floatformat:0 }}</h2>
+                        </div><i class="fas fa-wallet kpi-icon"></i>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div
+                        class="kpi-card {% if evento.ganancia > 0 %}bg-gradient-primary{% else %}bg-secondary{% endif %}">
+                        <div>
+                            <p class="mb-1 opacity-75 fw-bold">Ganancia Neta</p>
+                            <h2 class="text-white mb-0">$ {{ evento.ganancia|floatformat:0 }}</h2><small
+                                class="badge bg-white text-dark mt-2">{{ evento.margen_ganancia|floatformat:1 }}%
+                                Margen</small>
+                        </div><i class="fas fa-chart-line kpi-icon"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card-custom h-100">
+                        <h5 class="fw-bold mb-4" style="color: var(--primary-color);">Desglose Financiero</h5>
+                        <table class="table">
+                            <tr>
+                                <td class="py-3 text-muted">Ingresos</td>
+                                <td class="text-end fw-bold py-3">$ {{ evento.ingreso_total|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 text-muted">Costo Menú</td>
+                                <td class="text-end text-danger py-3">- $ {{ evento.costo_comida|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 text-muted">Costo Menaje</td>
+                                <td class="text-end text-danger py-3">- $ {{ evento.costo_menaje|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 text-muted">Otros Gastos</td>
+                                <td class="text-end text-danger py-3">- $ {{ evento.costo_gastos_extra|floatformat:2 }}
+                                </td>
+                            </tr>
+                            <tr style="border-top: 2px dashed #E2E8F0;">
+                                <td class="py-4 fw-bold fs-5">Resultado Final</td>
+                                <td class="text-end fw-bold fs-5 py-4">$ {{ evento.ganancia|floatformat:2 }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div
+                        class="card-custom h-100 d-flex flex-column justify-content-center align-items-center bg-light">
+                        <h5 class="mb-5 text-muted">Visualización</h5>
+                        <div class="d-flex align-items-end justify-content-center w-75"
+                            style="height: 250px; gap: 20px;">
+                            <div class="d-flex flex-column align-items-center" style="width: 30%;">
+                                <div class="w-100 rounded-top shadow-sm bg-gradient-success position-relative"
+                                    style="height: 200px; display: flex; align-items: flex-end; justify-content: center;">
+                                    <span class="text-white fw-bold mb-2">$</span>
+                                </div>
+                                <span class="mt-3 fw-bold small text-muted">INGRESOS</span>
+                            </div>
+
+                            {% with total_ingreso=evento.ingreso_total|default:1 %}
+
+                            <div class="d-flex flex-column align-items-center" style="width: 30%;">
+                                {% if evento.ingreso_total > 0 %}
+                                {% widthratio evento.costo_total_evento total_ingreso 200 as height_gastos %}
+                                {% endif %}
+                                <div class="w-100 rounded-top shadow-sm bg-gradient-danger position-relative"
+                                    style="--h-gastos: {{ height_gastos|default:0 }}px; height: var(--h-gastos); min-height: 2px;">
+                                </div>
+                                <span class="mt-3 fw-bold small text-muted">GASTOS</span>
+                            </div>
+
+                            <div class="d-flex flex-column align-items-center" style="width: 30%;">
+                                {% if evento.ingreso_total > 0 %}
+                                {% widthratio evento.ganancia total_ingreso 200 as height_ganancia %}
+                                {% endif %}
+                                <div class="w-100 rounded-top shadow-sm bg-gradient-primary position-relative"
+                                    style="--h-ganancia: {{ height_ganancia|default:0 }}px; height: var(--h-ganancia); min-height: 2px;">
+                                </div>
+                                <span class="mt-3 fw-bold small text-muted">GANANCIA</span>
+                            </div>
+
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var hash = window.location.hash;
+        if (hash) { var triggerEl = document.querySelector('button[data-bs-target="' + hash + '"]'); if (triggerEl) { var tab = new bootstrap.Tab(triggerEl); tab.show(); } }
+        var tabButtons = document.querySelectorAll('button[data-bs-toggle="pill"]');
+        tabButtons.forEach(btn => { btn.addEventListener('shown.bs.tab', function (event) { window.location.hash = event.target.getAttribute('data-bs-target'); }); });
+    });
+</script>
+{% endblock %}

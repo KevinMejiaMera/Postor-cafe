@@ -1,0 +1,241 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Hostal - Postor Cafe San Pedro de Huaca{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --hostal-primary: #5856D6;
+            /* Purple/Blueish from design */
+            --hostal-light: #E0E7FF;
+            --hostal-bg: #F5F7FA;
+            --text-dark: #1F2937;
+            --text-light: #6B7280;
+            --sidebar-width: 260px;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--hostal-bg);
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            border-right: 1px solid #f0f0f0;
+            z-index: 1050;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--hostal-primary);
+            margin-bottom: 3rem;
+            padding: 0 0.5rem;
+        }
+
+        .brand-icon {
+            background: var(--hostal-primary);
+            color: white;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .nav-item:hover {
+            color: var(--hostal-primary);
+            background: #F8FAFC;
+        }
+
+        .nav-item.active {
+            background-color: var(--hostal-light);
+            color: var(--hostal-primary);
+            font-weight: 600;
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .bottom-actions {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn-restaurant {
+            background: #FFF7ED;
+            color: #EA580C;
+            border: none;
+            text-align: left;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .btn-restaurant:hover {
+            background: #FFEDD5;
+            color: #C2410C;
+        }
+
+        .logout-link {
+            color: var(--text-light);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .logout-link:hover {
+            color: #EF4444;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem 3rem;
+        }
+
+        /* Utilities */
+        .btn-primary-hostal {
+            background-color: var(--hostal-primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .btn-primary-hostal:hover {
+            background-color: #4338CA;
+            color: white;
+        }
+
+        .btn-outline-hostal {
+            background: transparent;
+            color: var(--hostal-primary);
+            border: 1px solid var(--hostal-primary);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .btn-outline-hostal:hover {
+            background: var(--hostal-light);
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+
+    <nav class="sidebar">
+        <a href="{% url 'hostal:dashboard_hostal' %}" class="brand" style="text-decoration: none;">
+            <div class="brand-icon">
+                <i class="fas fa-bed"></i>
+            </div>
+            <span>Hostal</span>
+        </a>
+
+        <div class="nav-menu">
+            <a href="{% url 'hostal:dashboard_hostal' %}" class="nav-item {% block active_dashboard %}{% endblock %}">
+                <i class="fas fa-th-large"></i> Recepción
+            </a>
+            <a href="{% url 'hostal:calendario_reservas' %}" class="nav-item {% block active_reservas %}{% endblock %}">
+                <i class="fas fa-calendar-alt"></i> Rack Mensual
+            </a>
+            <a href="{% url 'hostal:gestion_habitaciones' %}"
+                class="nav-item {% block active_habitaciones %}{% endblock %}">
+                <i class="fas fa-door-open"></i> Habitaciones
+            </a>
+            <!-- Nuevo Módulo Finanzas -->
+            <a href="{% url 'hostal:finanzas_hostal' %}" class="nav-item">
+                <i class="fas fa-comment-dollar"></i> Finanzas
+            </a>
+        </div>
+
+        <div class="bottom-actions">
+            <a href="{% url 'usuarios:dashboard_gerente' %}" class="btn-restaurant">
+                <i class="fas fa-utensils"></i> Ir a Restaurante
+            </a>
+            <a href="{% url 'usuarios:logout' %}" class="logout-link">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+
+</html>

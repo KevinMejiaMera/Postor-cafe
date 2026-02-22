@@ -1,0 +1,96 @@
+{% extends 'usuarios/base_gerente.html' %}
+{% load static %}
+
+{% block title %}Menú - Postor Cafe San Pedro de Huaca{% endblock %}
+
+{% block active_menu %}active{% endblock %}
+
+{% block extra_head %}
+<style>
+    .btn-confirmar:hover {
+        opacity: 0.9;
+        transform: scale(1.02);
+        transition: 0.2s;
+    }
+
+    .edit-btn:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<header>
+    <h2>Gestión del Menú</h2>
+    <button hx-get="{% url 'pedidos:crear_producto' %}" hx-target="#modal-container" hx-swap="innerHTML"
+        class="btn-confirmar"
+        style="width: auto; margin: 0; background: #FF5722; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 1rem;">
+        + Nuevo Plato
+    </button>
+</header>
+
+<section class="audit-section">
+    <table class="table-custom">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Precio Venta</th>
+                <th>Costo Real</th>
+                <th>Stock (Platos)</th>
+                <th>Estado</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in productos %}
+            <tr>
+                <td>
+                    <div style="font-weight: bold;">{{ p.nombre }}</div>
+                </td>
+                <td style="color: #2e7d32; font-weight: bold;">${{ p.precio }}</td>
+                <td style="color: #777;">${{ p.costo_elaboracion|floatformat:2 }}</td>
+                <td>{{ p.stock }}</td>
+                <td>
+                    {% if p.disponible %}
+                    <span
+                        style="background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">Disponible</span>
+                    {% else %}
+                    <span
+                        style="background: #ffebee; color: #c62828; padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">No
+                        Disponible</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <button hx-get="{% url 'pedidos:editar_producto' p.id %}" hx-target="#modal-container"
+                        hx-swap="innerHTML" class="edit-btn"
+                        style="background: transparent; border: none; color: #f28500; font-weight: bold; cursor: pointer; font-size: 1rem; margin-right: 10px;">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    <button hx-get="{% url 'pedidos:gestion_receta' p.id %}" hx-target="#modal-container"
+                        hx-swap="innerHTML" class="edit-btn"
+                        style="background: transparent; border: none; color: #10B981; font-weight: bold; cursor: pointer; font-size: 1rem; margin-right: 10px;">
+                        <i class="fas fa-carrot"></i> Receta
+                    </button>
+                    <a href="{% url 'pedidos:ver_ficha_tecnica' p.id %}" class="edit-btn"
+                        style="text-decoration: none; color: #3b82f6; font-weight: bold; font-size: 1rem; margin-right: 10px;"
+                        title="Ver Ficha Técnica y Costos">
+                        <i class="fas fa-file-invoice-dollar"></i> Ficha
+                    </a>
+                    <button hx-post="{% url 'pedidos:eliminar_producto' p.id %}"
+                        hx-confirm="¿Estás seguro de eliminar el plato '{{ p.nombre }}'?"
+                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                        style="background: transparent; border: none; color: #dc2626; font-weight: bold; cursor: pointer; font-size: 1rem;"
+                        title="Eliminar Plato">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">No hay productos en el menú.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

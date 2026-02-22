@@ -1,0 +1,182 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Gerencia - Postor Cafe San Pedro de Huaca{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'usuarios/css/dashboard_gerente.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- HTMX para interactividad -->
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+
+    <style>
+        :root {
+            /* TOMATO/RED PALETTE GLOBAL */
+            --primary-color: #FF5722;
+            /* Deep Orange */
+            --secondary-color: #FF8A65;
+            /* Light Salmon */
+            --text-color: #2B3674;
+            --text-muted: #A3AED0;
+            --bg-light: #FFF5F2;
+            /* Very light reddish/warm bg instead of cream */
+            --card-shadow: 0px 18px 40px rgba(112, 144, 176, 0.12);
+
+            --success-gradient: linear-gradient(135deg, #059669 0%, #34D399 100%);
+            --danger-gradient: linear-gradient(135deg, #E11D48 0%, #FB7185 100%);
+            --info-gradient: linear-gradient(135deg, #FF6347 0%, #FF4500 100%);
+            /* Tomato -> OrangeRed */
+            --warning-gradient: linear-gradient(135deg, #F59E0B 0%, #FCD34D 100%);
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg-light) !important;
+            color: var(--text-color);
+        }
+
+        /* Sidebar override */
+        .sidebar {
+            background: white;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar .logo {
+            color: var(--primary-color);
+            font-weight: 800;
+        }
+
+        .sidebar .nav-links a {
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: all 0.3s;
+            border-radius: 10px;
+            margin: 0 10px;
+        }
+
+        .sidebar .nav-links a:hover,
+        .sidebar .nav-links a.active {
+            color: var(--primary-color);
+            background: rgba(255, 87, 34, 0.1);
+        }
+
+        .sidebar .nav-links a i {
+            width: 25px;
+        }
+
+        /* Global Card Styles matching Simulador */
+        .card,
+        .card-custom {
+            border: none;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            background: white;
+        }
+
+        /* Buttons Globally */
+        .btn-primary,
+        .btn-gradient {
+            background: var(--info-gradient) !important;
+            border: none;
+            color: white;
+        }
+
+        /* Botón Switch Hostal */
+        .btn-hostal-switch {
+            color: var(--text-muted);
+            font-weight: 500;
+            margin: 0 10px 10px 10px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .btn-hostal-switch:hover {
+            background-color: #E0E7FF;
+            /* Indigo suave */
+            color: #4338CA;
+            /* Indigo oscuro */
+            border-color: #C7D2FE;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+
+    <nav class="sidebar">
+        <div class="logo">
+            <i class="fas fa-utensils"></i> Postor Cafe
+        </div>
+        <div class="nav-links">
+            <!-- LINKS EXCLUSIVOS ADMINISTRACION -->
+            {% if user.rol == 'gerente' or user.rol == 'admin' %}
+            <a href="{% url 'usuarios:dashboard_gerente' %}" class="{% block active_dashboard %}{% endblock %}">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="{% url 'usuarios:gestion_menu' %}" class="{% block active_menu %}{% endblock %}">
+                <i class="fas fa-hamburger"></i> Menú
+            </a>
+            <a href="{% url 'usuarios:gestion_inventario' %}" class="{% block active_inventario %}{% endblock %}">
+                <i class="fas fa-boxes"></i> Inventario
+            </a>
+            <a href="{% url 'usuarios:reportes_ventas' %}" class="{% block active_reportes %}{% endblock %}">
+                <i class="fas fa-chart-line"></i> Reportes
+            </a>
+            <a href="{% url 'pedidos:reporte_tiempos_cocina' %}">
+                <i class="fas fa-stopwatch"></i> Tiempos Cocina
+            </a>
+            <a href="{% url 'usuarios:lista_usuarios' %}" class="{% block active_personal %}{% endblock %}">
+                <i class="fas fa-users"></i> Personal
+            </a>
+            <a href="{% url 'eventos:dashboard_eventos' %}">
+                <i class="fas fa-calendar-alt"></i> Eventos
+            </a>
+            <a href="{% url 'usuarios:agenda_pedidos' %}" class="{% block active_agenda %}{% endblock %}">
+                <i class="fas fa-calendar-check"></i> Agenda
+            </a>
+            {% endif %}
+
+            <!-- LINKS ACCESIBLES PARA MESERO (Ademas de Admin/Gerente) -->
+            <a href="{% url 'caja:gestion_caja' %}" class="{% block active_caja %}{% endblock %}">
+                <i class="fas fa-cash-register"></i> Caja
+            </a>
+
+            <!-- ENLACE DIRECTO AL DASHBOARD DE MESERO -->
+            {% if user.rol == 'mesero' %}
+            <a href="{% url 'usuarios:dashboard_mesero' %}">
+                <i class="fas fa-concierge-bell"></i> Mis Mesas
+            </a>
+            {% endif %}
+
+            <!-- ESPACIO FLEXIBLE -->
+            <div style="margin-top: auto;"></div>
+
+            <!-- LINK A HOSTAL (SOLO GERENTE) -->
+            {% if user.rol == 'gerente' or user.rol == 'admin' %}
+            <a href="{% url 'hostal:dashboard_hostal' %}" class="btn-hostal-switch">
+                <i class="fas fa-bed"></i> Gestión Hostal
+            </a>
+            {% endif %}
+
+            <a href="{% url 'usuarios:logout' %}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <div id="modal-container"></div>
+
+    {% block extra_scripts %}{% endblock %}
+
+</body>
+
+</html>

@@ -1,0 +1,352 @@
+{% extends 'usuarios/base_gerente.html' %}
+{% load static %}
+
+{% block title %}Agenda de Pedidos - Restaurante{% endblock %}
+
+{% block active_agenda %}active{% endblock %}
+
+{% block extra_head %}
+<!-- FullCalendar CSS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<style>
+    :root {
+        --fc-border-color: #E5E7EB;
+        --fc-button-text-color: #fff;
+        --fc-button-bg-color: var(--primary-color);
+        --fc-button-border-color: var(--primary-color);
+        --fc-button-hover-bg-color: #E64A19;
+        --fc-button-hover-border-color: #E64A19;
+        --fc-button-active-bg-color: #D84315;
+        --fc-button-active-border-color: #D84315;
+        --fc-event-bg-color: #3788d8;
+        --fc-event-border-color: #3788d8;
+        --fc-today-bg-color: rgba(255, 87, 34, 0.05) !important;
+    }
+
+    .agenda-container {
+        padding: 2rem;
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        margin: 20px;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .fc-toolbar-title {
+        font-size: 1.5rem !important;
+        font-weight: 700;
+        color: var(--text-color);
+    }
+
+    .fc-col-header-cell-cushion {
+        color: var(--text-color);
+        font-weight: 600;
+        padding: 10px 0 !important;
+    }
+
+    .fc-daygrid-day-number {
+        color: var(--text-color);
+        font-weight: 500;
+        text-decoration: none !important;
+    }
+
+    .fc-event {
+        cursor: pointer;
+        border: none !important;
+        background: transparent !important;
+        /* Let inner content handle bg */
+        padding: 0;
+        box-shadow: none;
+    }
+
+    .fc-event-content-custom {
+        background: white;
+        border-left: 4px solid var(--fc-event-border-color, #3788d8);
+        padding: 6px;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        font-family: 'DM Sans', sans-serif;
+        overflow: hidden;
+        color: #374151;
+        transition: transform 0.2s;
+    }
+
+    .fc-event:hover .fc-event-content-custom {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        background: #F9FAFB;
+    }
+
+    .fc-event-time {
+        font-size: 0.75rem;
+        color: #6B7280;
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+
+    .fc-event-main {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .event-icon {
+        color: var(--primary-color);
+        font-size: 0.8rem;
+    }
+
+    .fc-event-footer {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .badge-pax {
+        background: #EEF2FF;
+        color: #4F46E5;
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .modal-header h3 {
+        margin-top: 0;
+        color: var(--text-color);
+    }
+
+    .modal-body p {
+        margin: 10px 0;
+        color: #4B5563;
+    }
+
+    .btn-detalle {
+        display: inline-block;
+        margin-top: 15px;
+        padding: 10px 20px;
+        background: var(--primary-color);
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        text-align: center;
+        width: 100%;
+    }
+
+    .btn-detalle:hover {
+        background: #E64A19;
+        color: white;
+    }
+
+    /* Leyenda */
+    .legend {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+        padding: 10px;
+        background: var(--bg-light);
+        border-radius: 8px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        color: var(--text-color);
+    }
+
+    .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="agenda-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="color: var(--text-color); margin: 0;">📅 Agenda de Eventos</h2>
+        <a href="{% url 'eventos:dashboard_eventos' %}" class="btn-detalle"
+            style="width: auto; margin: 0; padding: 10px 20px;">
+            <i class="fas fa-plus-circle"></i> Gestionar Eventos
+        </a>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item"><span class="dot" style="background: #10B981;"></span> Eventos Confirmados</div>
+        <div class="legend-item"><span class="dot" style="background: #F59E0B;"></span> Cotizaciones/Borradores</div>
+        <div class="legend-item"><span class="dot" style="background: #3B82F6;"></span> Eventos Finalizados</div>
+    </div>
+
+    <div id='calendar'></div>
+</div>
+
+<!-- Modal Detalle Evento -->
+<div id="eventModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <div class="modal-header">
+            <h3 id="modalTitle">Detalle del Evento</h3>
+        </div>
+        <div class="modal-body">
+            <p id="modalDate" style="font-weight:bold; color:var(--primary-color); font-size:1.1em;"></p>
+            <div id="modalInfo" style="margin-top:15px; line-height:1.6;"></div>
+            <a href="#" id="modalLink" class="btn-detalle">Ver Cotización / Detalle</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+
+        // Modal Detalle
+        var modal = document.getElementById("eventModal");
+        var span = document.getElementsByClassName("close")[0];
+
+        function closeModal() {
+            modal.classList.remove('show');
+            setTimeout(() => { modal.style.display = 'none'; }, 200); // Wait for transition if needed, or simple close
+        }
+
+        span.onclick = closeModal;
+
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'es',
+            buttonText: {
+                today: 'Hoy',
+                month: 'Mes',
+                week: 'Semana',
+                day: 'Día',
+                list: 'Lista'
+            },
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listWeek'
+            },
+            navLinks: true, // can click day/week names to navigate views
+            businessHours: { // days of week. an array of zero-based day of week integers (0=Sunday)
+                daysOfWeek: [1, 2, 3, 4, 5, 6, 0], // Todos los dias
+                startTime: '10:00',
+                endTime: '22:00',
+            },
+            events: '{% url "eventos:api_eventos" %}', // Solo Eventos
+            eventContent: function (arg) {
+                let props = arg.event.extendedProps;
+                let timeText = arg.timeText || '';
+                let title = arg.event.title.split('(')[0]; // Remove (Pax) to clean title
+
+                // Icon mapping
+                let iconClass = 'fa-calendar-alt';
+                if (props.servicio.includes('Buffet')) iconClass = 'fa-utensils';
+                else if (props.servicio.includes('Plato')) iconClass = 'fa-concierge-bell';
+                else if (props.servicio.includes('Cocktail')) iconClass = 'fa-glass-cheers';
+
+                // HTML Structure
+                let html = `
+                    <div class="fc-event-content-custom">
+                        <div class="fc-event-time">${timeText}</div>
+                        <div class="fc-event-main">
+                            <i class="fas ${iconClass} event-icon"></i>
+                            <span class="event-title">${title}</span>
+                        </div>
+                        <div class="fc-event-footer">
+                            <span class="badge-pax"><i class="fas fa-users"></i> ${props.personas} Inv.</span>
+                        </div>
+                    </div>
+                `;
+                return { html: html };
+            },
+            eventClick: function (info) {
+                info.jsEvent.preventDefault(); // don't let the browser navigate
+
+                // Populate Modal
+                document.getElementById('modalTitle').textContent = info.event.title;
+
+                // Date formatting
+                let dateStr = info.event.start.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                document.getElementById('modalDate').textContent = "📅 " + dateStr;
+
+                // Extended props info
+                let props = info.event.extendedProps;
+                let extraInfo = `
+                    <div class="evt-detail-card">
+                        <h4 class="evt-title-main">${props.servicio}</h4>
+                        <div class="evt-label"><i class="fas fa-users"></i> <span><strong>Invitados:</strong> ${props.personas}</span></div>
+                        <div class="evt-label"><i class="fas fa-info-circle"></i> <span><strong>Estado:</strong> ${props.estado_texto}</span></div>
+                        <hr style="border:0; border-top:1px dashed #FDBA74; margin:15px 0;">
+                        <small style="color:#9CA3AF; display:block; text-align:right;">📅 Creado el: ${props.fecha_creacion}</small>
+                    </div>
+                `;
+
+                document.getElementById('modalInfo').innerHTML = extraInfo;
+                document.getElementById('modalLink').href = info.event.url;
+
+                // Show Modal using class for Flex display
+                modal.classList.add('show');
+                modal.style.display = 'flex'; // Explicitly override inline style if needed initially
+            }
+        });
+
+        calendar.render();
+    });
+</script>
+{% endblock %}

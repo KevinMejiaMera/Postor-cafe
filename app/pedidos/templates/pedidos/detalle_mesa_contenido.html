@@ -1,0 +1,139 @@
+<div class="main-container" style="height: 100%; width: 100%; padding: 0; box-sizing: border-box;">
+
+    <div class="left-panel">
+
+        <div class="config-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span class="label-small"><i class="fas fa-couch"></i> Detalles del Pedido</span>
+                <!-- Botón Cerrar Modal -->
+                <button onclick="document.getElementById('modal-container').innerHTML=''"
+                    style="border: none; background: transparent; cursor: pointer; color: #9CA3AF; font-size: 1.2rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            {% if mesa %}
+            <div class="mesa-selectors">
+                <div class="selector-box">
+                    <span>Mesa {{ mesa.numero }}</span>
+                    <i class="fas fa-chevron-down" style="color: #D1D5DB;"></i>
+                </div>
+                <div class="selector-box">
+                    <span style="display: flex; align-items: center; gap: 5px;">
+                        {% if mesa.estado == 'libre' %}
+                        <i class="fas fa-circle" style="font-size: 0.6rem; color: #10B981;"></i>
+                        {% else %}
+                        <i class="fas fa-circle" style="font-size: 0.6rem; color: #EF4444;"></i>
+                        {% endif %}
+                        {{ mesa.get_estado_display }}
+                    </span>
+                </div>
+            </div>
+            {% else %}
+            <!-- VISTA DELIVERY / AGENDA -->
+            <div class="mesa-selectors">
+                <div class="selector-box" style="flex: 2;">
+                    <span><i class="fas fa-user"></i> {{ pedido.cliente.nombres|default:"Cliente Casual" }}</span>
+                </div>
+                <div class="selector-box">
+                    <span><i class="fas fa-clock"></i> {{ pedido.fecha_entrega|time:"H:i" }}</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="margin-top: 20px;">
+            <div class="search-bar">
+                <i class="fas fa-search" style="color: #9CA3AF;"></i>
+                <input type="text" id="buscador-pos" class="search-input"
+                    placeholder="Buscar items (ej. Hamburguesa, Bebidas...)" onkeyup="filtrarProductosPOS()">
+            </div>
+            <div class="filter-chips">
+                <button class="chip chip-active" onclick="filtrarCategoria('todo', this)">Todo</button>
+                <button class="chip" onclick="filtrarCategoria('plato_fuerte', this)">Platos Fuertes</button>
+                <button class="chip" onclick="filtrarCategoria('bebida', this)">Bebidas</button>
+                <button class="chip" onclick="filtrarCategoria('entrada', this)">Entradas</button>
+                <button class="chip" onclick="filtrarCategoria('postre', this)">Postres</button>
+            </div>
+        </div>
+
+        <div class="menu-grid" id="gridProductos" style="margin-top: 15px; padding-bottom: 20px;">
+            {% for producto in productos %}
+            <div class="product-card item-prod" data-nombre="{{ producto.nombre|lower }}"
+                data-categoria="{{ producto.categoria }}">
+                <div>
+                    <h4 class="prod-title">{{ producto.nombre }}</h4>
+                    <span
+                        style="font-size:0.75rem; color:#6B7280; text-transform:uppercase; font-weight:600; display:block; margin-bottom:4px;">
+                        {{ producto.get_categoria_display }}
+                    </span>
+                    <p class="prod-desc">
+                        Delicioso plato preparado al momento con los mejores ingredientes.
+                    </p>
+                </div>
+
+                <div class="prod-footer">
+                    <span class="prod-price">${{ producto.precio }}</span>
+
+                    {% if producto.stock > 0 %}
+                    <button class="btn-plus" hx-post="{% url 'pedidos:agregar_producto' pedido.id producto.id %}"
+                        hx-target="#zona-pedido" hx-swap="outerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    {% else %}
+                    <span style="color: red; font-size: 0.8rem; font-weight: bold;">Agotado</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    {% include 'pedidos/partials/orden_actual.html' %}
+
+</div>
+
+<script>
+    // Variables globales para filtros
+    let categoriaActual = 'todo';
+
+    function filtrarProductosPOS() {
+        let input = document.getElementById('buscador-pos').value.toLowerCase();
+        let items = document.getElementsByClassName('item-prod');
+
+        for (let i = 0; i < items.length; i++) {
+            let nombre = items[i].getAttribute('data-nombre');
+            let categoria = items[i].getAttribute('data-categoria');
+
+            // Lógica combinada: Búsqueda de Texto AND Categoría
+            let coincideTexto = nombre.includes(input);
+            let coincideCategoria = (categoriaActual === 'todo') || (categoria === categoriaActual);
+
+            if (coincideTexto && coincideCategoria) {
+                items[i].style.display = "flex";
+            } else {
+                items[i].style.display = "none";
+            }
+        }
+    }
+
+    function filtrarCategoria(categoria, btn) {
+        categoriaActual = categoria;
+
+        // Actualizar visualmente los botones (chips)
+        let chips = document.getElementsByClassName('chip');
+        for (let c of chips) {
+            c.classList.remove('chip-active');
+            c.classList.add('chip-inactive'); // Asegurarnos de tener estilo inactivo
+            c.style.backgroundColor = "";
+            c.style.color = "";
+        }
+
+        btn.classList.add('chip-active');
+        btn.classList.remove('chip-inactive');
+
+        // Re-ejecutar el filtro principal para aplicar la categoría + texto actual
+        filtrarProductosPOS();
+    }
+</script>

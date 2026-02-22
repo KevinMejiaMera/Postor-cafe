@@ -1,0 +1,67 @@
+{% extends 'usuarios/base_gerente.html' %}
+
+{% block title %}Eventos y Cotizaciones{% endblock %}
+
+{% block content %}
+<header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h2 style="color: #2b3674; font-weight: 700; margin-bottom: 0.5rem;">Gestión de Eventos</h2>
+        <p style="color: #a3aed0;">Cotiza y gestiona presupuestos para bodas, fiestas y catering.</p>
+    </div>
+    <button hx-get="{% url 'eventos:crear_evento' %}" hx-target="#modal-container" hx-swap="innerHTML"
+        style="background: #4318ff; color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer;">
+        + Nuevo Evento
+    </button>
+</header>
+
+<div style="background: white; border-radius: 20px; padding: 24px; box-shadow: 0px 20px 50px rgba(0,0,0,0.05);">
+    <table style="width: 100%; border-collapse: separate; border-spacing: 0 10px;">
+        <thead>
+            <tr style="color: #a3aed0; text-align: left; font-size: 0.9em;">
+                <th style="padding: 10px;">Nombre Evento</th>
+                <th>Fecha</th>
+                <th>Pax</th>
+                <th>Estado</th>
+                <th>Presupuesto Total</th>
+                <th>Rentabilidad</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for evento in eventos %}
+            <tr style="background: #fcfdff; transition: 0.2s;">
+                <td style="padding: 15px; border-radius: 10px 0 0 10px; font-weight: 600; color: #2b3674;">
+                    {{ evento.nombre }}
+                </td>
+                <td style="color: #707eae;">{{ evento.fecha_evento|date:"d M Y, H:i" }}</td>
+                <td style="font-weight: 600;">{{ evento.personas }}</td>
+                <td>
+                    <span class="status-badge status-{{ evento.estado }}">
+                        {{ evento.get_estado_display }}
+                    </span>
+                </td>
+                <td style="font-weight: 700;">${{ evento.precio_venta_total|floatformat:2 }}</td>
+                <td>
+                    <span
+                        class="{% if evento.margen_ganancia > 30 %}text-margen-alto{% else %}text-margen-bajo{% endif %}">
+                        {{ evento.margen_ganancia|floatformat:1 }}%
+                    </span>
+                </td>
+                <td style="border-radius: 0 10px 10px 0;">
+                    <a href="{% url 'eventos:simulador_evento' evento.id %}"
+                        style="background: #e0e7ff; color: #4318ff; padding: 6px 12px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9em;">
+                        <i class="fas fa-calculator"></i> Cotizar
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 30px; color: #a3aed0;">
+                    No hay eventos registrados. ¡Crea el primero!
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,136 @@
+
+
+body {
+    background-color: #f4f4f4;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+/* El contenedor principal que parece una Tablet */
+.tablet-container {
+    width: 95%;
+    max-width: 1000px;
+    height: 90vh;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #ccc;
+}
+
+/* Encabezado (Título) */
+.header {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
+.header h1 { margin: 0; font-size: 1.8rem; color: #333; }
+
+/* Cuerpo principal (Dividido en 2 columnas) */
+.main-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* COLUMNA IZQUIERDA (Controles y Productos) */
+.left-panel {
+    flex: 6; /* Ocupa el 60% */
+    padding: 20px;
+    border-right: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+}
+
+.controls {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+}
+
+.control-group { margin-bottom: 15px; }
+.control-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+.control-group select, .control-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.product-list-container {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.product-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: white;
+}
+
+/* COLUMNA DERECHA (El Ticket) */
+.right-panel {
+    flex: 4; /* Ocupa el 40% */
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+}
+
+.ticket-header { font-weight: bold; font-size: 1.1rem; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 10px; }
+
+.ticket-items {
+    flex: 1;
+    overflow-y: auto;
+    list-style: none;
+    padding: 0;
+}
+.ticket-items li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed #ccc;
+}
+
+.total-section {
+    margin-top: auto;
+    border-top: 2px solid #333;
+    padding-top: 15px;
+}
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.btn-confirmar {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    background: white;
+    color: #333;
+    border: 1px solid #ccc;
+    text-align: center;
+    font-weight: bold;
+    border-radius: 10px;
+    margin-top: 20px;
+    text-decoration: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+.btn-confirmar:hover { background: #f0f0f0; }

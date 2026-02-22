@@ -1,0 +1,542 @@
+{% extends 'usuarios/base_gerente.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="report-header">
+    <div class="header-content">
+        <h1><i class="fas fa-history"></i> Métricas de Eficiencia</h1>
+        <p>Análisis detallado de tiempos de preparación en cocina</p>
+    </div>
+    <div class="header-stats">
+        <div class="mini-stat">
+            <span class="ms-label">Total Platos</span>
+            <span class="ms-value">{{ reporte|length }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid full-width" style="gap: 30px;">
+
+    <!-- Monitor en Vivo -->
+    <div class="stat-card full-width">
+        <div class="card-header">
+            <h3><i class="fas fa-stopwatch" style="color: #EF4444;"></i> Pedidos en Cocina (En Vivo)</h3>
+            <span class="live-indicator"><span class="blink-dot"></span> Monitor Activo</span>
+        </div>
+
+        <div class="live-grid">
+            {% for pedido in pedidos_en_curso %}
+            <div class="live-card">
+                <div class="lc-header">
+                    <span class="lc-mesa">Mesa {{ pedido.mesa.numero }}</span>
+                    <span class="lc-timer" data-start="{{ pedido.fecha_confirmado|date:'c' }}">
+                        Calculando...
+                    </span>
+                </div>
+                <div class="lc-body">
+                    {% for item in pedido.items.all %}
+                    <div class="lc-item">
+                        <span class="lc-qty">{{ item.cantidad }}x</span>
+                        <span class="lc-name">{{ item.producto.nombre }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="lc-footer swiper-average"
+                    data-products='[{% for item in pedido.items.all %}"{{ item.producto.nombre }}"{% if not forloop.last %},{% endif %}{% endfor %}]'>
+                    <i class="fas fa-chart-line"></i> Promedio Histórico: <span class="avg-display">--</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-live">
+                <i class="fas fa-check-circle"></i>
+                <p>No hay pedidos en curso en este momento.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Tabla Principal -->
+    <div class="stat-card">
+        <div class="card-header">
+            <h3>Tiempos por Producto (Histórico)</h3>
+            <div class="header-actions">
+                <div class="legend-item">
+                    <span class="legend-dot green"></span> Rápido
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot yellow"></span> Normal
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot red"></span> Demorado
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th width="40%">Producto</th>
+                        <th width="20%" class="text-center">Frecuencia</th>
+                        <th width="25%" class="text-right">Tiempo Promedio</th>
+                        <th width="15%" class="text-center">Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in reporte %}
+                    <tr>
+                        <td class="product-cell">
+                            <div class="p-icon"><i class="fas fa-utensils"></i></div>
+                            <span class="p-name">{{ item.producto__nombre }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge-count">{{ item.veces_pedido }} pedidos</span>
+                        </td>
+                        <td class="text-right time-cell">
+                            {{ item.tiempo_promedio|duration_format }}
+                        </td>
+                        <td class="text-center">
+                            {% if item.tiempo_promedio and item.tiempo_promedio.total_seconds > 1800 %}
+                            <span class="status-badge bad">Lento</span>
+                            {% elif item.tiempo_promedio and item.tiempo_promedio.total_seconds > 900 %}
+                            <span class="status-badge medium">Normal</span>
+                            {% else %}
+                            <span class="status-badge good">Rápido</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="empty-state">
+                            <i class="fas fa-hourglass-start"></i>
+                            <p>No hay datos suficientes para generar métricas aún.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Datos de promedios desde Django
+    const promedios = JSON.parse('{{ promedios_json|safe }}');
+
+    function updateTimers() {
+        const now = new Date();
+        document.querySelectorAll('.lc-timer').forEach(timer => {
+            const startStr = timer.getAttribute('data-start');
+            if (!startStr) return;
+
+            const start = new Date(startStr);
+            const diff = Math.floor((now - start) / 1000); // Segundos
+
+            if (diff >= 0) {
+                const minutes = Math.floor(diff / 60);
+                const seconds = diff % 60;
+                timer.innerText = `${minutes}m ${seconds}s`;
+
+                // Efecto visual si tarda mucho (>20 min)
+                if (diff > 1200) {
+                    timer.style.color = '#B91C1C';
+                    timer.classList.add('pulse-text');
+                }
+            }
+        });
+    }
+
+    function calculateOrderAverage() {
+        document.querySelectorAll('.swiper-average').forEach(el => {
+            const products = JSON.parse(el.getAttribute('data-products'));
+            let totalAvg = 0;
+            let count = 0;
+
+            products.forEach(prod => {
+                if (promedios[prod]) {
+                    totalAvg += parseFloat(promedios[prod]);
+                    count++;
+                }
+            });
+
+            if (count > 0) {
+                const avgSeconds = totalAvg / count;
+                const min = Math.floor(avgSeconds / 60);
+                const seg = Math.round(avgSeconds % 60);
+                el.querySelector('.avg-display').innerText = `${min}m ${seg}s`;
+            } else {
+                el.querySelector('.avg-display').innerText = "Nuevo";
+            }
+        });
+    }
+
+    setInterval(updateTimers, 1000);
+    updateTimers();
+    calculateOrderAverage();
+</script>
+
+<style>
+    /* Header Styles */
+    .report-header {
+        background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-content h1 {
+        font-size: 1.8rem;
+        margin: 0 0 5px 0;
+        font-weight: 800;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .header-content h1 i {
+        color: #F59E0B;
+    }
+
+    .header-content p {
+        margin: 0;
+        opacity: 0.7;
+        font-size: 0.95rem;
+    }
+
+    .header-stats {
+        display: flex;
+        gap: 20px;
+    }
+
+    .mini-stat {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 10px 20px;
+        border-radius: 10px;
+        text-align: center;
+        backdrop-filter: blur(5px);
+    }
+
+    .ms-label {
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        opacity: 0.8;
+        letter-spacing: 0.5px;
+    }
+
+    .ms-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #F59E0B;
+    }
+
+    /* Card & Table Styles */
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        border: 1px solid #E5E7EB;
+        display: block;
+        /* Asegurar que no sea flex-row */
+    }
+
+    .card-header {
+        padding: 20px 25px;
+        border-bottom: 1px solid #F3F4F6;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        color: #111827;
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 25px;
+        font-size: 0.85rem;
+        color: #6B7280;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        /* Espacio entre punto y texto */
+        background: #F9FAFB;
+        padding: 4px 10px;
+        border-radius: 20px;
+        border: 1px solid #F3F4F6;
+    }
+
+    .legend-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: block;
+        /* margin-right eliminado, usamos gap */
+    }
+
+    .legend-dot.green {
+        background: #10B981;
+    }
+
+    .legend-dot.yellow {
+        background: #F59E0B;
+    }
+
+    .legend-dot.red {
+        background: #EF4444;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .modern-table th {
+        background: #F9FAFB;
+        padding: 16px 20px;
+        text-align: left;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #6B7280;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+    }
+
+    .modern-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid #F3F4F6;
+        vertical-align: middle;
+    }
+
+    .product-cell {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .p-icon {
+        width: 36px;
+        height: 36px;
+        background: #F3F4F6;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9CA3AF;
+    }
+
+    .p-name {
+        font-weight: 600;
+        color: #1F2937;
+        font-size: 0.95rem;
+    }
+
+    .badge-count {
+        background: #EFF6FF;
+        color: #1D4ED8;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .time-cell {
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        font-size: 1rem;
+        color: #374151;
+    }
+
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .status-badge.good {
+        background: #ECFDF5;
+        color: #047857;
+    }
+
+    .status-badge.medium {
+        background: #FFFBEB;
+        color: #B45309;
+    }
+
+    .status-badge.bad {
+        background: #FEF2F2;
+        color: #B91C1C;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px !important;
+        color: #9CA3AF;
+    }
+
+    .empty-state i {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+
+    .empty-state p {
+        margin: 0;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+
+    /* Estilos Monitor en Vivo */
+    .live-indicator {
+        background: #DC2626;
+        color: white;
+        font-size: 0.75rem;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        animation: pulse-red 2s infinite;
+    }
+
+    .blink-dot {
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+        display: block;
+    }
+
+    @keyframes pulse-red {
+        0% {
+            box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+        }
+
+        70% {
+            box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+        }
+    }
+
+    .live-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 20px;
+        padding: 20px;
+        background: #FEF2F2;
+        /* Fondo rojo muy suave */
+    }
+
+    .live-card {
+        background: white;
+        border: 1px solid #FECACA;
+        border-top: 4px solid #EF4444;
+        /* Borde superior rojo */
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
+        overflow: hidden;
+    }
+
+    .lc-header {
+        padding: 12px 15px;
+        border-bottom: 1px dashed #FECACA;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #FEF2F2;
+    }
+
+    .lc-mesa {
+        font-weight: 800;
+        color: #7F1D1D;
+        font-size: 1.1rem;
+    }
+
+    .lc-timer {
+        font-family: monospace;
+        font-weight: 700;
+        color: #DC2626;
+        font-size: 1.2rem;
+        background: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        border: 1px solid #FECACA;
+    }
+
+    .pulse-text {
+        animation: blink-text 1s infinite;
+    }
+
+    .lc-body {
+        padding: 15px;
+    }
+
+    .lc-item {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 6px;
+        font-size: 0.95rem;
+        color: #374151;
+    }
+
+    .lc-qty {
+        font-weight: 700;
+        color: #EF4444;
+    }
+
+    .lc-footer {
+        padding: 10px 15px;
+        background: #F9FAFB;
+        border-top: 1px solid #F3F4F6;
+        font-size: 0.8rem;
+        color: #6B7280;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .empty-live {
+        grid-column: 1/-1;
+        text-align: center;
+        padding: 40px;
+        color: #9CA3AF;
+    }
+
+    .empty-live i {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        color: #D1D5DB;
+    }
+</style>
+{% endblock %}

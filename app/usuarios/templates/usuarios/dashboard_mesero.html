@@ -1,0 +1,823 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesas | Restaurante</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           ESTILOS GENERALES
+           ========================================= */
+        :root {
+            --primary: #FF6B00;
+            /* Naranja corporativo */
+            --bg-body: #F8F9FA;
+            --text-dark: #1F2937;
+            --text-gray: #6B7280;
+            --success-bg: #D1FAE5;
+            --success-text: #065F46;
+            --danger-bg: #FEE2E2;
+            --danger-text: #991B1B;
+            --warning-bg: #FEF3C7;
+            --warning-text: #92400E;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            margin: 0;
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* Navbar Simplificado */
+        .navbar {
+            background: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .brand {
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .user-pill {
+            background: #F3F4F6;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar-circle {
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        /* =========================================
+           LAYOUT PRINCIPAL
+           ========================================= */
+        .main-content {
+            padding: 40px;
+            max-width: 1600px;
+            /* Ancho amplio para ocupar pantalla */
+            margin: 0 auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .page-title h1 {
+            font-size: 2rem;
+            margin: 0;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        /* Filtros tipo "Tabs" */
+        .filters {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: none;
+            background: #E5E7EB;
+            color: #4B5563;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .filter-btn:hover:not(.active) {
+            background: #D1D5DB;
+        }
+
+        /* Buscador Rápido */
+        .search-simple {
+            position: relative;
+            max-width: 300px;
+            width: 100%;
+        }
+
+        .search-simple i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9CA3AF;
+        }
+
+        .search-simple input {
+            width: 100%;
+            padding: 10px 10px 10px 35px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        /* =========================================
+           GRID DE MESAS (CLAVE: 4 COLUMNAS)
+           ========================================= */
+        .mesas-grid {
+            display: grid;
+            /* Grid responsivo: mínimo 280px, rellena espacio */
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            /* Espacio limpio entre tarjetas */
+        }
+
+        /* TARJETA DE MESA */
+        .mesa-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid transparent;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 180px;
+            /* Altura fija para uniformidad */
+            position: relative;
+        }
+
+        .mesa-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: #FED7AA;
+            /* Borde naranja suave al hover */
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mesa-name {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #1F2937;
+            letter-spacing: -0.5px;
+        }
+
+        /* BADGES DE ESTADO (ESTILO PASTILLA) */
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-libre {
+            background: var(--success-bg);
+            color: var(--success-text);
+        }
+
+        .status-ocupada {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        /* Azul para ocupada según ref */
+        .status-reservada {
+            background: var(--warning-bg);
+            color: var(--warning-text);
+        }
+
+        .card-body {
+            margin-top: 10px;
+            color: var(--text-gray);
+            font-weight: 500;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* BOTÓN FLOTANTE O ACCIÓN */
+        .card-footer {
+            margin-top: auto;
+        }
+
+        .btn-card-action {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary-card {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary-card:hover {
+            background: #EA580C;
+        }
+
+        .btn-secondary-card {
+            background: white;
+            border: 1px solid #E5E7EB;
+            color: #374151;
+        }
+
+        .btn-secondary-card:hover {
+            background: #F9FAFB;
+            border-color: #D1D5DB;
+        }
+
+
+        /* =========================================
+           MODAL Y ESTILOS POS (Migrados aquí)
+           ========================================= */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .modal-content-wrapper {
+            background: white;
+            width: 95%;
+            height: 92%;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: scaleIn 0.2s ease-out;
+            position: relative;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Estilos críticos del POS para que funcione dentro del modal */
+        #pos-modal-content .main-container {
+            height: 100%;
+            overflow: hidden;
+            background: #F3F4F6;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            box-sizing: border-box;
+        }
+
+        .left-panel {
+            flex: 7;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            padding-right: 5px;
+            height: 100%;
+        }
+
+        .right-panel {
+            flex: 3;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            height: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .config-card {
+            background: white;
+            padding: 15px;
+            border-radius: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            flex-shrink: 0;
+        }
+
+        .mesa-selectors {
+            display: flex;
+            gap: 20px;
+            margin-top: 5px;
+        }
+
+        .selector-box {
+            flex: 1;
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            padding: 8px 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+
+        .search-bar {
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .search-input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            flex-shrink: 0;
+        }
+
+        .chip {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+
+        .chip-active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .chip-inactive {
+            background: white;
+            color: var(--text-gray);
+            border: 1px solid #E5E7EB;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            overflow-y: auto;
+            padding-bottom: 10px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 1px solid transparent;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 120px;
+        }
+
+        .product-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .prod-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin: 0 0 5px 0;
+        }
+
+        .prod-desc {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            margin: 0;
+            display: -webkit-box;
+            line-clamp: 2;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .prod-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .prod-price {
+            font-weight: 800;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        .btn-plus {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #FFF7ED;
+            color: var(--primary);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .btn-plus:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Orden styles */
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+        }
+
+        .order-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-right: 5px;
+        }
+
+        .order-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .qty-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            width: 28px;
+        }
+
+        .qty-btn {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: var(--text-gray);
+            font-weight: bold;
+            padding: 2px 0;
+            font-size: 0.9rem;
+            width: 100%;
+            transition: 0.2s;
+        }
+
+        .qty-btn:hover {
+            background: #e5e7eb;
+            color: var(--text-dark);
+        }
+
+        .qty-val {
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin: 2px 0;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: block;
+        }
+
+        .item-total {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .order-footer {
+            margin-top: auto;
+            border-top: 2px dashed #E5E7EB;
+            padding-top: 15px;
+            flex-shrink: 0;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: var(--text-gray);
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0 15px 0;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        .btn-confirm {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .btn-confirm:hover {
+            background: #EA580C;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-secondary {
+            flex: 1;
+            background: white;
+            border: 1px solid #E5E7EB;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-gray);
+            text-align: center;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .btn-secondary:hover {
+            background: #F9FAFB;
+        }
+    </style>
+    <script>
+        // --- GUARDIÁN DE SESIÓN (Tab Close Protection) ---
+        // 1. Si venimos del login (?init_session=true), marcamos esta pestaña como AUTORIZADA.
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('init_session')) {
+            sessionStorage.setItem('session_active', 'true');
+            // Limpiamos la URL para que no se vea feo
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // 2. Si NO tenemos la marca de 'session_active', forzamos logout.
+        // Esto pasa si: Abres el link en nueva pestaña, Restauras pestaña cerrada, Copias el link.
+        if (!sessionStorage.getItem('session_active')) {
+            window.location.href = "{% url 'usuarios:logout' %}";
+        }
+    </script>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="#" class="brand"><i class="fas fa-utensils"></i> Postor Cafe San Pedro de Huaca</a>
+
+        <!-- ENLACE DE CAJA -->
+        <a href="{% url 'caja:gestion_caja' %}"
+            style="text-decoration: none; color: #4B5563; font-weight: 600; font-size: 1.1rem; display: flex; gap: 8px; align-items: center; background: #F3F4F6; padding: 8px 16px; border-radius: 12px;">
+            <i class="fas fa-cash-register" style="color: #FF6B00;"></i> Caja
+        </a>
+
+        <div class="user-pill">
+            <span>{{ user.username }}</span>
+            <div class="user-avatar-circle">
+                {{ user.username|make_list|first|upper }}
+            </div>
+            <a href="{% url 'usuarios:logout' %}" style="color: #9CA3AF; margin-left: 5px;"><i
+                    class="fas fa-sign-out-alt"></i></a>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="main-content">
+
+        <!-- Header de Página con Filtros -->
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Gestión de Mesas</h1>
+                <p style="margin-top: 5px;">Visualiza y gestiona el estado de tus mesas</p>
+            </div>
+
+            <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                <div class="filters">
+                    <button class="filter-btn active" onclick="filtrarEstado('todas', this)">Todas</button>
+                    <button class="filter-btn" onclick="filtrarEstado('libre', this)">Libres</button>
+                    <button class="filter-btn" onclick="filtrarEstado('ocupada', this)">Ocupadas</button>
+                </div>
+
+                <div class="search-simple">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="buscador" placeholder="Buscar mesa..." onkeyup="filtrar()">
+                </div>
+            </div>
+        </div>
+
+        <!-- GRID DE MESAS ESTILO APP -->
+        <div class="mesas-grid" id="grid-mesas">
+            {% for mesa in mesas %}
+            <div class="mesa-card item-mesa {{ mesa.estado }}">
+
+                <div class="card-header">
+                    <span class="mesa-name">Mesa {{ mesa.numero|stringformat:"02d" }}</span>
+                    {% if mesa.estado == 'libre' %}
+                    <span class="status-badge status-libre">Libre</span>
+                    {% else %}
+                    <span class="status-badge status-ocupada">Ocupada</span>
+                    {% endif %}
+                </div>
+
+                <!-- Capacidad removida por solicitud de diseño -->
+                <!-- <div class="card-body">
+                    <i class="fas fa-user-group"></i> {{ mesa.capacidad }} personas
+                </div> -->
+
+                <div class="card-footer">
+                    {% if mesa.estado == 'libre' %}
+                    <button hx-get="{% url 'pedidos:detalle_mesa' mesa.id %}" hx-target="#modal-container"
+                        hx-swap="innerHTML" class="btn-card-action btn-primary-card">
+                        <i class="fas fa-plus"></i> Asignar Cliente
+                    </button>
+                    {% else %}
+                    <button hx-get="{% url 'pedidos:detalle_mesa' mesa.id %}" hx-target="#modal-container"
+                        hx-swap="innerHTML" class="btn-card-action btn-secondary-card">
+                        <i class="fas fa-eye"></i> Ver Pedido
+                    </button>
+                    {% endif %}
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- CONTENEDOR HTMX -->
+    <div id="modal-container"></div>
+
+    <!-- CONTENEDOR DE NOTIFICACIONES (Polling cada 10s) -->
+    <!-- CONTENEDOR DE NOTIFICACIONES (Polling cada 10s) -->
+    <div id="notificaciones-wrapper" hx-get="{% url 'pedidos:check_notificaciones' %}" hx-trigger="every 10s"
+        hx-swap="innerHTML">
+    </div>
+
+    <!-- SONIDO DE NOTIFICACIÓN -->
+    <audio id="notification-sound"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-crystal-software-notification-2564.mp3" preload="auto"></audio>
+
+    <script>
+        document.body.addEventListener('htmx:afterSwap', function (evt) {
+            // Solo actuar si el swap ocurrió en el wrapper de notificaciones
+            if (evt.target.id === 'notificaciones-wrapper') {
+                // Verificar si llegó contenido real (no vacío)
+                if (evt.target.innerHTML.trim().length > 10) {
+                    const audio = document.getElementById('notification-sound');
+                    // Intentar reproducir (requiere que el usuario haya interactuado antes con la página)
+                    audio.play().catch(error => {
+                        console.log("Reproducción automática bloqueada por el navegador esperando interacción:", error);
+                    });
+                }
+            }
+        });
+    </script>
+
+    <script>
+        function filtrar() {
+            let input = document.getElementById('buscador').value.toLowerCase();
+            let items = document.getElementsByClassName('item-mesa');
+
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].innerText.toLowerCase().includes(input)) {
+                    items[i].style.display = "flex";
+                } else {
+                    items[i].style.display = "none";
+                }
+            }
+        }
+
+        function filtrarEstado(estado, btn) {
+            let items = document.getElementsByClassName('item-mesa');
+            let botones = document.getElementsByClassName('filter-btn');
+
+            // Actualizar active class
+            for (let b of botones) b.classList.remove('active');
+            btn.classList.add('active');
+
+            for (let i = 0; i < items.length; i++) {
+                if (estado === 'todas') {
+                    items[i].style.display = "flex";
+                } else {
+                    if (items[i].classList.contains(estado)) {
+                        items[i].style.display = "flex";
+                    } else {
+                        items[i].style.display = "none";
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

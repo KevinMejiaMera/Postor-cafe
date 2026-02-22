@@ -1,0 +1,64 @@
+<div class="modal-backdrop" onclick="document.getElementById('modal-container').innerHTML=''">
+    <div class="modal-content-wrapper" onclick="event.stopPropagation()"
+        style="background: white; padding: 30px; border-radius: 12px; width: 500px; max-width: 95%;">
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: #1F2937;">📝 Receta: {{ producto.nombre }}</h2>
+            <button onclick="document.getElementById('modal-container').innerHTML=''"
+                style="border: none; background: transparent; cursor: pointer; font-size: 1.5rem;">&times;</button>
+        </div>
+
+        <!-- LISTA DE INGREDIENTES ACTUALES -->
+        <h4 style="margin-bottom: 10px; color: #4B5563;">Ingredientes Actuales:</h4>
+        <div
+            style="background: #F3F4F6; padding: 15px; border-radius: 8px; margin-bottom: 20px; max-height: 200px; overflow-y: auto;">
+            {% for receta in recetas %}
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E5E7EB; padding-bottom: 8px; margin-bottom: 8px;">
+                <div>
+                    <strong>{{ receta.insumo.nombre }}</strong>
+                    <div style="font-size: 0.85rem; color: #6B7280;">
+                        {{ receta.cantidad_necesaria|floatformat:"-3" }} {{ receta.insumo.get_unidad_medida_display }}
+                    </div>
+                </div>
+                <!-- BOTÓN ELIMINAR INGREDIENTE -->
+                <button hx-post="{% url 'pedidos:eliminar_ingrediente' receta.id %}" hx-target="#modal-container"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                    style="color: #EF4444; background: none; border: none; cursor: pointer;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            {% empty %}
+            <p style="color: #6B7280; font-style: italic; text-align: center;">Este plato no tiene receta configurada.
+            </p>
+            {% endfor %}
+        </div>
+
+        <!-- FORMULARIO PARA AÑADIR INGREDIENTE -->
+        <h4 style="margin-bottom: 10px; color: #4B5563;">➕ Añadir Ingrediente:</h4>
+        <form hx-post="{% url 'pedidos:gestion_receta' producto.id %}" hx-target="#modal-container">
+            {% csrf_token %}
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 5px;">Seleccionar
+                    Insumo:</label>
+                {{ form.insumo }}
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 5px;">Cantidad
+                    Necesaria:</label>
+                {{ form.cantidad_necesaria }}
+                <small style="color: #6B7280; display: block; margin-top: 3px;">
+                    Ayuda: Si es Kilo/Litro, usa decimales (Ej: 0.200 = 200g). Si es Unidad, usa enteros (Ej: 1).
+                </small>
+            </div>
+
+            <button type="submit"
+                style="width: 100%; background: #10B981; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                Guardar Ingrediente
+            </button>
+        </form>
+
+    </div>
+</div>

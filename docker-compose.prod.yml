@@ -1,0 +1,30 @@
+# docker-compose.prod.yml — Configuración exclusiva para PRODUCCIÓN
+# Usar con: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+
+  app:
+    # En producción no montamos el código fuente localmente
+    # El código ya está baked en la imagen
+    volumes:
+      - postor_static_volume:/app/staticfiles
+      - postor_media_volume:/app/media
+    env_file:
+      - .env.production
+    # Workers ajustados a producción (formula: 2*CPUs + 1)
+    command: gunicorn restaurante.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120 --access-logfile - --error-logfile -
+
+  db:
+    env_file:
+      - .env.production
+
+  nginx:
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - postor_static_volume:/app/staticfiles:ro
+      - postor_media_volume:/app/media:ro
+      # Descomentar cuando tengas certificados SSL:
+      # - /etc/letsencrypt:/etc/letsencrypt:ro

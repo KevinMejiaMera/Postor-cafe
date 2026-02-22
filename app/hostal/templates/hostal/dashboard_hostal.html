@@ -1,0 +1,498 @@
+{% extends 'hostal/base_hostal.html' %}
+{% block title %}Recepción - Hostal{% endblock %}
+{% block active_dashboard %}active{% endblock %}
+
+{% block content %}
+<style>
+    /* Dashboard specific overrides */
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .page-subtitle {
+        color: var(--text-light);
+        font-size: 0.95rem;
+    }
+
+    /* KPI Cards */
+    .kpi-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .kpi-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        border: 1px solid #f3f4f6;
+    }
+
+    .kpi-info h6 {
+        color: var(--text-light);
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+        letter-spacing: 0.5px;
+    }
+
+    .kpi-info h2 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin: 0;
+        line-height: 1;
+    }
+
+    .kpi-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    /* Room Grid */
+    .room-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .room-card {
+        background: white;
+        border-radius: 24px;
+        padding: 1.5rem;
+        border: 1px solid #f3f4f6;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 250px;
+    }
+
+    .room-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .room-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .room-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .status-badge {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-badge.disponible {
+        background: #D1FAE5;
+        color: #059669;
+    }
+
+    .status-badge.ocupada {
+        background: #FEE2E2;
+        color: #DC2626;
+    }
+
+    .status-badge.mantenimiento {
+        background: #FEF3C7;
+        color: #D97706;
+    }
+
+    .room-type {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-light);
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+    }
+
+    .price-tag {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--hostal-primary);
+        margin-bottom: 0.25rem;
+    }
+
+    .price-period {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        font-weight: 400;
+    }
+
+    .guest-info {
+        background: #F9FAFB;
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 1.25rem;
+    }
+
+    .guest-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+        color: var(--text-dark);
+    }
+
+    .guest-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .guest-row i {
+        color: #9CA3AF;
+        width: 16px;
+    }
+
+    .w-100 {
+        width: 100%;
+    }
+</style>
+
+<div class="header-section">
+    <div>
+        <h1 class="page-title">Recepción & Rack</h1>
+        <p class="page-subtitle">Vista en tiempo real del estado de habitaciones.</p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+        <button class="btn-outline-hostal" data-bs-toggle="modal" data-bs-target="#createRoomModal">
+            <i class="fas fa-plus"></i> Nueva Habitación
+        </button>
+        <a href="{% url 'hostal:crear_reserva' %}" class="btn-primary-hostal" style="text-decoration: none;">
+            <i class="fas fa-calendar-plus"></i> Nueva Reserva
+        </a>
+    </div>
+</div>
+
+<!-- KPI Review -->
+<div class="kpi-row">
+    <!-- Ocupación -->
+    <div class="kpi-card">
+        <div class="kpi-info">
+            <h6>OCUPACIÓN</h6>
+            <h2>{{ ocupacion_pct }}%</h2>
+        </div>
+        <!-- Using a simple progress circle simulation for now, can be replaced with chart -->
+        <div
+            style="position: relative; width: 60px; height: 60px; border-radius: 50%; background: conic-gradient(var(--hostal-primary) {{ ocupacion_pct }}%, #E5E7EB 0);">
+            <div
+                style="position: absolute; width: 44px; height: 44px; background: white; border-radius: 50%; top: 8px; left: 8px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-chart-pie" style="color: var(--hostal-primary);"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entradas -->
+    <div class="kpi-card">
+        <div class="kpi-info">
+            <h6>ENTRADAS HOY</h6>
+            <h2>{{ entradas }}</h2>
+        </div>
+        <div class="kpi-icon" style="background: #D1FAE5; color: #059669;">
+            <i class="fas fa-sign-in-alt"></i>
+        </div>
+    </div>
+
+    <!-- Salidas -->
+    <div class="kpi-card">
+        <div class="kpi-info">
+            <h6>SALIDAS HOY</h6>
+            <h2>{{ salidas }}</h2>
+        </div>
+        <div class="kpi-icon" style="background: #FEF3C7; color: #D97706;">
+            <i class="fas fa-sign-out-alt"></i>
+        </div>
+    </div>
+</div>
+
+<h3 style="font-weight: 700; margin-bottom: 1.5rem;">Habitaciones</h3>
+
+<div class="room-grid">
+    {% for hab in habitaciones %}
+    <div class="room-card">
+        {% if hab.estado == 'disponible' %}
+        <!-- Top Badges -->
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h3 class="fw-bold mb-0" style="color: var(--text-dark);">{{ hab.numero }}</h3>
+                <small class="text-muted"><i class="fas fa-bed me-1"></i> {{ hab.tipo.nombre }}</small>
+            </div>
+            <div class="d-flex flex-column align-items-end gap-1">
+                <span class="badge rounded-pill bg-success-subtle text-success">Disponible</span>
+                {% if hab.proxima_reserva %}
+                {% if hab.proxima_reserva.fecha_checkin|date:"Y-m-d" == now|date:"Y-m-d" %}
+                <!-- Logic to check if today, simplistic -->
+                <span class="badge rounded-pill bg-warning-subtle text-warning"><i class="far fa-calendar-alt me-1"></i>
+                    RESERVA HOY</span>
+                {% else %}
+                <span class="badge rounded-pill bg-info-subtle text-info"><i class="far fa-calendar-alt me-1"></i>
+                    RESERVADA</span>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Reservation Info Card -->
+        {% if hab.proxima_reserva %}
+        <div class="p-3 mb-3 rounded-4" style="background-color: #F8FAFC; border: 1px solid #F1F5F9;">
+            <!-- DEBUG: VERIFICANDO CAMBIOS -->
+            <div class="d-flex align-items-center mb-2">
+                <div style="width: 8px; height: 8px; background-color: #F59E0B; border-radius: 50%; margin-right: 8px;">
+                </div>
+                <small class="fw-bold text-muted" style="font-size: 0.7rem; letter-spacing: 0.5px;">COMPROMETIDA
+                    PRONTO</small>
+
+                <a href="{% url 'hostal:cancelar_reserva' hab.proxima_reserva.id %}"
+                    onclick="return confirm('¿Cancelar reserva?');" class="ms-auto text-danger" title="Cancelar">
+                    <i class="fas fa-times"></i>
+                </a>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <i class="far fa-user text-muted"></i>
+                {% with guest_name=hab.proxima_reserva.huesped.nombre_completo|truncatechars:18 %}
+                <span class="fw-bold text-dark" style="font-size: 0.95rem;">{{ guest_name }}</span>
+                {% endwith %}
+            </div>
+            <div class="text-muted ps-4" style="font-size: 0.8rem;">
+                Llegada estimada: {{ hab.proxima_reserva.fecha_checkin|date:"d M" }}
+            </div>
+        </div>
+        {% else %}
+        <!-- Spacer to keep heights consistent if needed, or just nothing -->
+        <div class="mb-4"></div>
+        {% endif %}
+
+        <!-- Price and Action -->
+        <div class="mt-auto">
+            <div class="mb-3">
+                <span class="fw-bold text-primary fs-4">${{ hab.precio_actual|floatformat:2 }}</span>
+                <span class="text-muted small">/ noche</span>
+                <div class="small text-muted fst-italic">{{ hab.tipo.capacidad_personas }} Pers. máx</div>
+            </div>
+
+            <button class="btn-primary-hostal w-100 py-2 rounded-3"
+                onclick="abrirCheckIn('{{ hab.id }}', '{{ hab.numero }}')">
+                <i class="fas fa-check-circle me-2"></i> Check-in
+            </button>
+        </div>
+        {% elif hab.estado == 'ocupada' %}
+        <!-- Header for Occupied -->
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h3 class="fw-bold mb-0" style="color: var(--text-dark);">{{ hab.numero }}</h3>
+                <small class="text-muted"><i class="fas fa-bed me-1"></i> {{ hab.tipo.nombre }}</small>
+            </div>
+            <span class="badge rounded-pill bg-danger-subtle text-danger">Ocupada</span>
+        </div>
+
+        <div class="guest-info">
+            <div class="guest-row">
+                <i class="fas fa-user"></i>
+                {% with huesped_nombre=hab.reserva_actual.huesped.nombre_completo %}
+                <span style="font-weight: 600;">{{ huesped_nombre|default:"Huésped" }}</span>
+                {% endwith %}
+            </div>
+            <div class="guest-row">
+                <i class="fas fa-clock"></i>
+                <span>Salida: {{ hab.reserva_actual.fecha_checkout|date:"d M, H:i" }}</span>
+            </div>
+        </div>
+
+        <div class="mt-auto">
+            <a href="{% url 'hostal:realizar_checkout' hab.id %}"
+                onclick="return confirm('¿Confirmar Check-Out y liberar habitación?');" class="btn-primary-hostal w-100"
+                style="background-color: #EF4444; border-color: #EF4444; text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 10px;">
+                <i class="fas fa-sign-out-alt me-2"></i> Check-Out
+            </a>
+            <div class="mt-2 text-center">
+                <a href="{% url 'hostal:procesar_checkin' %}?habitacion={{ hab.id }}" class="text-muted small"
+                    style="text-decoration: none;">Ver Detalles</a>
+            </div>
+        </div>
+        {% else %}
+        <!-- Header for Maintenance -->
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h3 class="fw-bold mb-0" style="color: var(--text-dark);">{{ hab.numero }}</h3>
+                <small class="text-muted"><i class="fas fa-bed me-1"></i> {{ hab.tipo.nombre }}</small>
+            </div>
+            <span class="badge rounded-pill bg-light text-dark border"> Mantenimiento</span>
+        </div>
+
+        <div class="d-flex flex-column align-items-center justify-content-center h-100"
+            style="min-height: 80px; color: var(--text-light);">
+            <i class="fas fa-broom fa-2x mb-2 text-warning"></i>
+            <small>En Limpieza</small>
+        </div>
+        <div class="mt-auto">
+            <a href="{% url 'hostal:finalizar_limpieza' hab.id %}" class="btn-outline-hostal w-100"
+                style="text-align: center; text-decoration: none;">
+                <i class="fas fa-check me-1"></i> Habilitar
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div style="grid-column: 1 / -1; text-align: center; padding: 4rem;">
+        <i class="fas fa-bed" style="font-size: 3rem; color: #E5E7EB; margin-bottom: 1rem;"></i>
+        <p class="text-muted">No hay habitaciones registradas aún.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal Crear Habitación -->
+<div class="modal fade" id="createRoomModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 20px; border: none;">
+            <form method="post" action="{% url 'hostal:crear_habitacion' %}">
+                {% csrf_token %}
+                <div class="modal-header border-bottom-0" style="padding: 1.5rem 1.5rem 0.5rem;">
+                    <h5 class="modal-title fw-bold text-dark">Nueva Habitación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="padding: 1.5rem;">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">NÚMERO DE HABITACIÓN</label>
+                        <input type="text" name="numero" class="form-control form-control-lg fw-bold"
+                            placeholder="Ej: 405" required style="background: #F9FAFB; border: none;">
+                        <div class="form-text">Debe ser único.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">TIPO DE HABITACIÓN</label>
+                        <select name="tipo" class="form-select" required
+                            style="background: #F9FAFB; border: none; padding: 12px;">
+                            {% for t in tipos %}
+                            <option value="{{ t.id }}">{{ t.nombre }} - ${{ t.precio_noche }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">PRECIO POR NOCHE (Opcional)</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-0" style="background: #F9FAFB;">$</span>
+                            <input type="number" step="0.01" name="precio" class="form-control border-0"
+                                style="background: #F9FAFB;" placeholder="Dejar vacío para usar precio del tipo">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0" style="padding: 0 1.5rem 1.5rem;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"
+                        style="border-radius: 10px;">Cancelar</button>
+                    <button type="submit" class="btn-primary-hostal" style="padding: 10px 24px;">Crear
+                        Habitación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Check-CheckIn (Mantener funcionalidad original con diseño limpio) -->
+<div class="modal fade" id="checkInModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 20px; border: none;">
+            <form method="post" action="{% url 'hostal:procesar_checkin' %}">
+                {% csrf_token %}
+                <div class="modal-header border-bottom-0"
+                    style="background: var(--hostal-primary); color: white; border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title"><i class="fas fa-key me-2"></i>Check-In Rápido</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="padding: 1.5rem;">
+                    <input type="hidden" name="habitacion_id" id="modal_habitacion_id">
+
+                    <h4 class="mb-4 text-center">Habitación <span id="modal_habitacion_numero"
+                            class="fw-bold text-primary">...</span></h4>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">DOCUMENTO (DNI/PASAPORTE)</label>
+                        <input type="text" name="documento" class="form-control" required placeholder="Ej: 12345678"
+                            style="background: #F9FAFB; border: 1px solid #E5E7EB;">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">NOMBRE DEL HUÉSPED</label>
+                        <input type="text" name="nombre_completo" class="form-control" required
+                            placeholder="Nombre completo" style="background: #F9FAFB; border: 1px solid #E5E7EB;">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold text-muted">NOCHES</label>
+                            <input type="number" name="noches" class="form-control" value="1" min="1" required
+                                style="background: #F9FAFB; border: 1px solid #E5E7EB;">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold text-muted">PERSONAS</label>
+                            <input type="number" name="personas" class="form-control" value="1" min="1" required
+                                style="background: #F9FAFB; border: 1px solid #E5E7EB;">
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label small fw-bold text-muted">PRECIO POR NOCHE (ACORDADO)</label>
+                            <div class="input-group">
+                                <span class="input-group-text"
+                                    style="background: #F9FAFB; border: 1px solid #E5E7EB;">$</span>
+                                <input type="number" step="0.01" name="precio_manual" class="form-control"
+                                    placeholder="Dejar vacío para usar precio estándar"
+                                    style="background: #F9FAFB; border: 1px solid #E5E7EB;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0" style="padding: 0 1.5rem 1.5rem;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"
+                        style="border-radius: 10px;">Cancelar</button>
+                    <button type="submit" class="btn-primary-hostal" style="width: 100%;">Confirmar Ingreso</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function abrirCheckIn(id, numero) {
+        document.getElementById('modal_habitacion_id').value = id;
+        document.getElementById('modal_habitacion_numero').innerText = numero;
+        var myModal = new bootstrap.Modal(document.getElementById('checkInModal'));
+        myModal.show();
+    }
+</script>
+
+{% endblock %}

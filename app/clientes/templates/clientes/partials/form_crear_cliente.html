@@ -1,0 +1,47 @@
+<div style="background: #F9FAFB; padding: 20px; border-radius: 12px; border: 1px solid #E5E7EB;">
+    <h4 style="margin-top: 0; color: #FF6B00; margin-bottom: 15px;">
+        <i class="fas fa-user-plus"></i> Nuevo Cliente
+    </h4>
+
+    {% if error %}
+    <div
+        style="background: #FEE2E2; color: #991B1B; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem;">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form hx-post="{% url 'clientes:modal_crear' %}" hx-target="#resultados-clientes">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <input type="text" name="nombres" placeholder="Nombres Completo" required
+                style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #D1D5DB;">
+
+            <input type="text" name="cedula_o_ruc" placeholder="Cédula / RUC" required
+                style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #D1D5DB;">
+        </div>
+
+        <div style="margin-bottom: 10px;">
+            <input type="text" name="direccion" placeholder="Dirección" required
+                style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #D1D5DB;">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+            <input type="text" name="telefono" placeholder="Teléfono" required
+                style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #D1D5DB;">
+
+            <input type="email" name="email" placeholder="Email (Opcional)"
+                style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #D1D5DB;">
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button type="button" onclick="document.getElementById('resultados-clientes').innerHTML=''"
+                style="flex: 1; padding: 10px; background: white; border: 1px solid #D1D5DB; border-radius: 6px; cursor: pointer;">
+                Cancelar
+            </button>
+            <button type="submit"
+                style="flex: 2; padding: 10px; background: #FF6B00; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                Guardar Cliente
+            </button>
+        </div>
+    </form>
+</div>

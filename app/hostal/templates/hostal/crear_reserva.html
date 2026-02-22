@@ -1,0 +1,404 @@
+{% extends 'hostal/base_hostal.html' %}
+{% load static %}
+
+{% block title %}Nueva Reserva - Hostal{% endblock %}
+
+{% block content %}
+<style>
+    /* Scoped styles for this page */
+    .reservation-container {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    @media (max-width: 992px) {
+        .reservation-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-section {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        color: var(--hostal-primary);
+        font-weight: 700;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control,
+    .form-select {
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        border: 1px solid #E5E7EB;
+        background-color: #F9FAFB;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--hostal-primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        background-color: white;
+    }
+
+    .summary-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        position: sticky;
+        top: 20px;
+        height: fit-content;
+    }
+
+    .summary-title {
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+        color: var(--text-dark);
+    }
+
+    .summary-item {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #F3F4F6;
+    }
+
+    .summary-icon {
+        width: 40px;
+        height: 40px;
+        background: #F3E8FF;
+        color: var(--hostal-primary);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    .summary-text h6 {
+        font-weight: 700;
+        margin: 0 0 4px 0;
+        font-size: 0.95rem;
+    }
+
+    .summary-text p {
+        margin: 0;
+        color: var(--text-light);
+        font-size: 0.85rem;
+    }
+
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 2px solid #F3F4F6;
+        font-weight: 800;
+        font-size: 1.4rem;
+        color: var(--hostal-primary);
+    }
+
+    .btn-confirm {
+        background: var(--hostal-primary);
+        color: white;
+        width: 100%;
+        padding: 1rem;
+        border-radius: 12px;
+        font-weight: 700;
+        border: none;
+        margin-top: 1.5rem;
+        font-size: 1rem;
+        transition: 0.2s;
+    }
+
+    .btn-confirm:hover {
+        background: #4F46E5;
+        transform: translateY(-2px);
+    }
+
+    .cancel-link {
+        display: block;
+        text-align: center;
+        margin-top: 1rem;
+        color: var(--text-light);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .cancel-link:hover {
+        color: var(--text-dark);
+    }
+</style>
+
+<div class="mb-4">
+    <h1 class="fw-bold mb-1" style="color: var(--text-dark);">Nueva Reserva</h1>
+    <p class="text-muted">Ingresa los detalles del huésped y la estancia para crear una nueva reserva.</p>
+</div>
+
+<form method="post" id="reservationForm">
+    {% csrf_token %}
+    <div class="reservation-container">
+        <!-- LEFT COLUMN: Forms -->
+        <div>
+            <!-- Guest Info -->
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-user"></i> Información del Huésped
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nombre Completo</label>
+                        <input type="text" class="form-control" name="nombre_completo" placeholder="Ej: Juan Pérez"
+                            required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">DNI / Pasaporte</label>
+                        <input type="text" class="form-control" name="documento" placeholder="Ej: 12345678" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email (Opcional)</label>
+                        <input type="email" class="form-control" name="email" placeholder="juan@ejemplo.com">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Teléfono (Opcional)</label>
+                        <input type="text" class="form-control" name="telefono" placeholder="+58 414 000 0000">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stay Details -->
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-bed"></i> Detalles de la Estancia
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Fecha Check-in</label>
+                        <input type="date" class="form-control" name="fecha_checkin" id="checkin" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Fecha Check-out</label>
+                        <input type="date" class="form-control" name="fecha_checkout" id="checkout" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Tipo de Habitación</label>
+                        <select class="form-select" name="tipo_habitacion" id="tipoSelect" required>
+                            <option value="">Seleccionar tipo...</option>
+                            {% for t in tipos %}
+                            <option value="{{ t.id }}" data-precio="{{ t.precio_noche }}">{{ t.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Habitación Específica</label>
+                        <select class="form-select" name="habitacion_id" id="habitacionSelect">
+                            <option value="" selected>Asignación Automática</option>
+                            {% for h in habitaciones %}
+                            {% if h.estado == 'disponible' %}
+                            <option value="{{ h.id }}" data-tipo="{{ h.tipo.id }}">Hab. {{ h.numero }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Número de Huéspedes</label>
+                        <input type="number" class="form-control" name="cantidad_personas" value="1" min="1" max="10"
+                            required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Precio por Noche (Acordado)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" class="form-control" name="precio_manual" id="precioManual"
+                                placeholder="Auto">
+                        </div>
+                        <small class="text-muted">Dejar vacío para usar precio de lista</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Summary -->
+        <div>
+            <div class="summary-card">
+                <div class="summary-title">Resumen de Reserva</div>
+
+                <div class="summary-item">
+                    <div class="summary-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="summary-text">
+                        <h6 id="summaryDates">Selecciona fechas</h6>
+                        <p id="summaryNights">0 Noches</p>
+                    </div>
+                </div>
+
+                <div class="summary-item">
+                    <div class="summary-icon">
+                        <i class="fas fa-bed"></i>
+                    </div>
+                    <div class="summary-text">
+                        <h6 id="summaryRoom">Sin asignar</h6>
+                        <p id="summaryGuests">1 Huésped</p>
+                    </div>
+                </div>
+
+                <div class="price-row">
+                    <span>Precio por noche</span>
+                    <span id="ratePrice">$0.00</span>
+                </div>
+                <div class="price-row">
+                    <span>Subtotal</span>
+                    <span id="subtotalPrice">$0.00</span>
+                </div>
+                <!-- Optional: Taxes or Cleaning fees can be added later -->
+
+                <div class="total-row">
+                    <span>Total</span>
+                    <span id="totalPrice">$0.00</span>
+                </div>
+
+                <button type="submit" class="btn-confirm">
+                    Confirmar Reserva <i class="fas fa-arrow-right ms-2"></i>
+                </button>
+                <a href="{% url 'hostal:dashboard_hostal' %}" class="cancel-link">Cancelar</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkinInput = document.getElementById('checkin');
+        const checkoutInput = document.getElementById('checkout');
+        const tipoSelect = document.getElementById('tipoSelect');
+        const habitacionSelect = document.getElementById('habitacionSelect');
+
+        // Summary Elements
+        const summaryDates = document.getElementById('summaryDates');
+        const summaryNights = document.getElementById('summaryNights');
+        const summaryRoom = document.getElementById('summaryRoom');
+        const ratePrice = document.getElementById('ratePrice');
+        const subtotalPrice = document.getElementById('subtotalPrice');
+        const totalPrice = document.getElementById('totalPrice');
+        const precioManualInput = document.getElementById('precioManual');
+
+        // Set min date to today
+        const today = new Date().toISOString().split('T')[0];
+        checkinInput.min = today;
+        checkoutInput.min = today;
+
+        function updateSummary() {
+            // Calculate Nights
+            const d1 = new Date(checkinInput.value);
+            const d2 = new Date(checkoutInput.value);
+            let nights = 0;
+
+            if (checkinInput.value && checkoutInput.value && d2 > d1) {
+                const diffTime = Math.abs(d2 - d1);
+                nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                // Format Date Range
+                const options = { month: 'short', day: 'numeric' };
+                summaryDates.innerText = `${d1.toLocaleDateString('es-ES', options)} - ${d2.toLocaleDateString('es-ES', options)}`;
+                summaryNights.innerText = `${nights} Noche${nights !== 1 ? 's' : ''}`;
+            } else {
+                summaryDates.innerText = "Selecciona fechas";
+                summaryNights.innerText = "0 Noches";
+            }
+
+            // Get Rate
+            const selectedOption = tipoSelect.options[tipoSelect.selectedIndex];
+            const pricePerNight = selectedOption.dataset.precio ? parseFloat(selectedOption.dataset.precio) : 0;
+            const roomName = selectedOption.value ? selectedOption.innerText : "Sin asignar";
+
+            summaryRoom.innerText = roomName;
+
+            // Determine effective rate
+            const manualRate = parseFloat(precioManualInput.value);
+            let effectiveRate = pricePerNight;
+
+            if (!isNaN(manualRate) && manualRate >= 0) {
+                effectiveRate = manualRate;
+                ratePrice.innerText = `$${effectiveRate.toFixed(2)} (Manual)`;
+            } else {
+                ratePrice.innerText = `$${effectiveRate.toFixed(2)}`;
+            }
+
+            let total = effectiveRate * nights;
+            subtotalPrice.innerText = `$${total.toFixed(2)}`;
+            totalPrice.innerText = `$${total.toFixed(2)}`;
+        }
+
+        function filterRooms() {
+            const selectedType = tipoSelect.value;
+            // Show only rooms of selected type
+            for (let i = 0; i < habitacionSelect.options.length; i++) {
+                const opt = habitacionSelect.options[i];
+                if (opt.value === "") continue; // Skip default option
+
+                if (selectedType === "" || opt.dataset.tipo === selectedType) {
+                    opt.style.display = "";
+                } else {
+                    opt.style.display = "none";
+                }
+            }
+            // Reset room selection if currently hidden
+            const currentRoomOpt = habitacionSelect.options[habitacionSelect.selectedIndex];
+            if (currentRoomOpt && currentRoomOpt.style.display === "none") {
+                habitacionSelect.value = "";
+            }
+        }
+
+        checkinInput.addEventListener('change', updateSummary);
+        checkoutInput.addEventListener('change', updateSummary);
+        tipoSelect.addEventListener('change', function () {
+            filterRooms();
+            updateSummary();
+        });
+        precioManualInput.addEventListener('input', updateSummary);
+
+        // Initialize
+        updateSummary();
+    });
+</script>
+{% endblock %}
