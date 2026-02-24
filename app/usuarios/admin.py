@@ -21,14 +21,38 @@ class CustomUserAdmin(UserAdmin):
     list_filter = ('rol', 'is_active')
     search_fields = ('username', 'email', 'cedula')
 
-    # 2. PANTALLA DE EDICIÓN (Aquí SÍ mostramos todos tus campos personalizados)
-    fieldsets = UserAdmin.fieldsets + (
-        ('Información del Restaurante', {'fields': ('rol', 'cedula', 'telefono', 'direccion')}),
+    # 2. PANTALLA DE EDICIÓN (Cambiar a Pestañas)
+    fieldsets = (
+        ('Datos de Acceso', {
+            'fields': ('username', 'password')
+        }),
+        ('Informacion Personal', {
+            'fields': ('first_name', 'last_name', 'email')
+        }),
+        ('Informacion del Restaurante', {
+            'fields': ('rol', 'cedula', 'telefono', 'direccion')
+        }),
+        ('Permisos y Seguridad', {
+            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')
+        }),
+        ('Fechas Importantes', {
+            'fields': ('last_login', 'date_joined')
+        }),
     )
     
-    # 3. PANTALLA DE CREACIÓN (ADD USER)
-    # Usamos la configuración original de Django (Solo Usuario y Pass) para evitar errores.
-    add_fieldsets = UserAdmin.add_fieldsets
+    # 3. PANTALLA DE CREACIÓN (Usar pestañas también aquí)
+    add_fieldsets = (
+        ('General', {
+            'classes': ('wide',),
+            'fields': ('username', 'password1', 'password2'),
+        }),
+        ('Informacion Personal', {
+            'fields': ('first_name', 'last_name', 'email'),
+        }),
+        ('Detalles del Empleado', {
+            'fields': ('rol', 'cedula', 'telefono', 'direccion'),
+        }),
+    )
 
     # --- AUDITORÍA AUTOMÁTICA AL GUARDAR/EDITAR ---
     def save_model(self, request, obj, form, change):

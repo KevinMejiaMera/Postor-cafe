@@ -8,6 +8,45 @@
     <link rel="stylesheet" href="{% static 'usuarios/css/dashboard_gerente.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
+        /* Estilos para las Pestañas */
+        .tabs-header {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6B7280;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #FF6B00;
+            border-bottom: 2px solid #FF6B00;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .form-container {
             background: white;
             padding: 30px;
@@ -96,84 +135,118 @@
         </header>
 
         <section class="form-container">
-            <form method="post">
+            <!-- Encabezado de Pestañas -->
+            <div class="tabs-header">
+                <button type="button" class="tab-btn active" onclick="showTab('perfil')">Perfil</button>
+                <button type="button" class="tab-btn" onclick="showTab('restaurante')">Restaurante</button>
+                <button type="button" class="tab-btn" onclick="showTab('seguridad')">Seguridad</button>
+            </div>
+
+            <form method="post" id="userForm">
                 {% csrf_token %}
 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Nombre de Usuario</label>
-                        {{ form.username }}
-                        {% if form.username.errors %}
-                        <ul class="error-list">{% for error in form.username.errors %}<li>{{ error }}</li>{% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
+                <!-- Pestaña 1: Perfil -->
+                <div id="perfil" class="tab-content active">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nombre de Usuario</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                            <ul class="error-list">{% for error in form.username.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
 
-                    <div class="form-group">
-                        <label>Email</label>
-                        {{ form.email }}
-                        {% if form.email.errors %}
-                        <ul class="error-list">{% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-                        {% endif %}
-                    </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                            <ul class="error-list">{% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
 
-                    <div class="form-group">
-                        <label>Rol</label>
-                        {{ form.rol }}
-                    </div>
+                        <div class="form-group">
+                            <label>Nombres</label>
+                            {{ form.first_name }}
+                        </div>
 
-                    <div class="form-group">
-                        <label>Cédula</label>
-                        {{ form.cedula }}
-                    </div>
-
-                    <div class="form-group">
-                        <label>Nombres</label>
-                        {{ form.first_name }}
-                    </div>
-
-                    <div class="form-group">
-                        <label>Apellidos</label>
-                        {{ form.last_name }}
-                    </div>
-
-                    <div class="form-group">
-                        <label>Teléfono</label>
-                        {{ form.telefono }}
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label>Dirección</label>
-                        {{ form.direccion }}
-                    </div>
-
-                    <div class="form-group full-width"
-                        style="margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 10px;">
-                        <h4 style="margin: 0 0 10px 0; color: #555;">Seguridad</h4>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Contraseña</label>
-                        {{ form.password_1 }}
-                        <small style="color: #888;">Ingresa una contraseña segura.</small>
-                        {% if form.password_1.errors %}
-                        <ul class="error-list">{% for error in form.password_1.errors %}<li>{{ error }}</li>{% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
-
-                    <div class="form-group">
-                        <label>Confirmar Contraseña</label>
-                        {{ form.password_2 }}
+                        <div class="form-group">
+                            <label>Apellidos</label>
+                            {{ form.last_name }}
+                        </div>
                     </div>
                 </div>
 
-                <button type="submit" class="btn-submit">
-                    <i class="fas fa-save"></i> Guardar Empleado
-                </button>
+                <!-- Pestaña 2: Restaurante -->
+                <div id="restaurante" class="tab-content">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Rol</label>
+                            {{ form.rol }}
+                        </div>
+
+                        <div class="form-group">
+                            <label>Cédula</label>
+                            {{ form.cedula }}
+                        </div>
+
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            {{ form.telefono }}
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Dirección</label>
+                            {{ form.direccion }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pestaña 3: Seguridad -->
+                <div id="seguridad" class="tab-content">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Contraseña</label>
+                            {{ form.password_1 }}
+                            <small style="color: #888;">Mínimo 10 caracteres.</small>
+                            {% if form.password_1.errors %}
+                            <ul class="error-list">{% for error in form.password_1.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label>Confirmar Contraseña</label>
+                            {{ form.password_2 }}
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-save"></i> Guardar Empleado
+                    </button>
+                </div>
             </form>
         </section>
     </main>
-</body>
 
+    <script>
+        function showTab(tabId) {
+            // Ocultar todos los contenidos
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Desactivar todos los botones
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Activar la pestaña seleccionada
+            document.getElementById(tabId).classList.add('active');
+            
+            // Activar el botón correspondiente
+            event.currentTarget.classList.add('active');
+        }
+    </script>
+</body>
 </html>

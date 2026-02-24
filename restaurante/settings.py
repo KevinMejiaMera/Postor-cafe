@@ -221,7 +221,9 @@ JAZZMIN_SETTINGS = {
 
     # Opciones de interfaz
     "show_ui_builder": True,
-    "show_sidebar_logout": True, # <-- Añadimos esto para que sea más visible
+    "show_sidebar_logout": True,
+    "changeform_format": "horizontal_tabs",
+    "custom_js": "usuarios/js/admin_tabs_fix.js", # <-- Cargamos nuestro arreglo
 }
 JAZZMIN_UI_TWEAKS = {
     "theme": "litera",
