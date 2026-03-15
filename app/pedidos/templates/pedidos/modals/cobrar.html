@@ -7,25 +7,43 @@
             {% csrf_token %}
 
             <div class="modal-header">
-                <h3><i class="fas fa-cash-register"></i> Finalizar Cuenta</h3>
+                <div style="display: flex; flex-direction: column;">
+                    <h3 style="margin: 0; color: #111827;"><i class="fas fa-cash-register"></i> Facturación y Cobro</h3>
+                    <small style="color: #6B7280;">Pedido #{{ pedido.id }} - Mesa {{ pedido.mesa.numero|default:"Directo" }}</small>
+                </div>
                 <button type="button" class="btn-close" onclick="cerrarModal()"><i class="fas fa-times"></i></button>
             </div>
 
-            <div class="modal-body">
+            <div class="modal-body" style="background: #F8F9FA;">
 
-                <div class="resumen-pago">
-                    <span>Total a Pagar:</span>
-                    <span class="monto-total" id="monto_a_pagar_label" data-total="{{ pedido.total }}">${{ pedido.total|floatformat:2 }}</span>
+                <!-- 1. DATOS DEL CLIENTE (TOP) -->
+                <div class="section-card">
+                    <label class="section-label"><i class="fas fa-user-tag"></i> Cliente / Facturación</label>
+                    <input type="hidden" id="cliente_seleccionado_id" name="cliente_id" value="">
+                    
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <div class="search-box-modern" style="flex: 1;">
+                            <i class="fas fa-search"></i>
+                            <input type="text" name="q" placeholder="Buscar por Nombre o Cédula..." autocomplete="off"
+                                hx-get="{% url 'clientes:buscar' %}" hx-trigger="keyup changed delay:300ms"
+                                hx-target="#resultados-clientes">
+                        </div>
+                        <button type="button" class="btn-new-square" hx-get="{% url 'clientes:pos_crear_fields' %}"
+                            hx-target="#resultados-clientes" hx-swap="innerHTML">
+                            <i class="fas fa-plus"></i> Nuevo
+                        </button>
+                    </div>
+
+                    <div id="resultados-clientes" class="results-area custom-scroll">
+                        {% include 'clientes/partials/resultados_busqueda.html' with clientes=None %}
+                    </div>
                 </div>
 
-                <!-- SELECTOR DE MESA (Si el pedido no tiene mesa asignada) -->
+                <!-- 2. ASIGNACIÓN (Si no tiene mesa) -->
                 {% if not pedido.mesa %}
-                <div style="margin-bottom: 20px;">
-                    <label
-                        style="font-weight: 600; font-size: 0.9rem; color: #374151; display: block; margin-bottom: 8px;"><i
-                            class="fas fa-chair"></i> Asignar Mesa (Opcional):</label>
-                    <select name="mesa_id" class="search-box"
-                        style="width: 100%; border: 2px solid #E5E7EB; padding: 12px; border-radius: 10px; outline: none; background: white; color: #1F2937;">
+                <div class="section-card">
+                    <label class="section-label"><i class="fas fa-chair"></i>Asignar a Mesa</label>
+                    <select name="mesa_id" class="custom-select">
                         <option value="">🏠 Para Llevar / Directo</option>
                         {% for m in mesas_libres %}
                         <option value="{{ m.id }}">Mesa {{ m.numero }}</option>
@@ -34,48 +52,46 @@
                 </div>
                 {% endif %}
 
-                <!-- CALCULADORA DE VUELTO -->
-                <div
-                    style="margin-bottom: 20px; background: #F9FAFB; padding: 15px; border-radius: 12px; border: 1px solid #E5E7EB;">
-                    <label
-                        style="font-weight: 600; font-size: 0.9rem; color: #374151; display: block; margin-bottom: 8px;"><i
-                            class="fas fa-money-bill-wave"></i> Efectivo Recibido:</label>
-                    <input type="number" id="efectivo_recibido" class="search-box"
-                        style="width: 100%; font-size: 1.2rem; font-weight: bold; border: 2px solid #D1D5DB; padding: 10px; border-radius: 8px; box-sizing: border-box; background: white;"
-                        placeholder="$ 0.00" step="0.01" onkeyup="calcularVuelto()">
+                <!-- 3. CALCULADORA DE VUELTO (INTERACTIVA) -->
+                <div class="section-card calculator-card">
+                    <label class="section-label" style="color: #4338CA;"><i class="fas fa-calculator"></i> Calculadora</label>
+                    
+                    <div class="calc-grid">
+                        <div class="input-side">
+                            <small>RECIBIDO</small>
+                            <div class="money-input">
+                                <span>$</span>
+                                <input type="number" id="efectivo_recibido" placeholder="0.00" step="0.01" onkeyup="calcularVuelto()">
+                            </div>
+                        </div>
 
-                    <div
-                        style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 1.1rem; font-weight: 700;">
-                        <span style="color: #4B5563;">Cambio / Vuelto:</span>
-                        <span id="vuelto_label" style="color: #10B981;">$ 0.00</span>
+                        <div class="vuelto-side">
+                            <small>CAMBIO</small>
+                            <h2 id="vuelto_label">$ 0.00</h2>
+                        </div>
+                    </div>
+
+                    <div class="quick-cash">
+                        <button type="button" onclick="setCash({{ pedido.total|floatformat:2 }})">Monto Exacto</button>
+                        <button type="button" onclick="addCash(5)">+5</button>
+                        <button type="button" onclick="addCash(10)">+10</button>
+                        <button type="button" onclick="addCash(20)">+20</button>
                     </div>
                 </div>
 
-                <p style="margin-bottom: 10px; font-weight: 600; color: #374151;">Datos de Facturación Opcional:</p>
-
-                <input type="hidden" id="cliente_seleccionado_id" name="cliente_id" value="">
-
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" name="q" placeholder="Buscar (Escribe despacio)..." autocomplete="off"
-                        hx-get="{% url 'clientes:buscar' %}" hx-trigger="keyup changed"
-                        hx-target="#resultados-clientes">
-                </div>
-
-                <div id="resultados-clientes" class="results-area">
-                    {% include 'clientes/partials/resultados_busqueda.html' with clientes=None %}
+                <!-- 4. TOTAL (AL FINAL ANTES DE BOTÓN) -->
+                <div class="payment-total-section">
+                    <div class="summary-line total-highlight">
+                        <span>TOTAL A COBRAR:</span>
+                        <span id="monto_a_pagar_label" data-total="{{ pedido.total }}">${{ pedido.total|floatformat:2 }}</span>
+                    </div>
                 </div>
 
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn-new-client" hx-get="{% url 'clientes:modal_crear' %}"
-                    hx-target="#resultados-clientes" hx-swap="innerHTML">
-                    <i class="fas fa-user-plus"></i> Nuevo
-                </button>
-
-                <button type="submit" class="btn-pay">
-                    <i class="fas fa-file-invoice-dollar"></i> FACTURAR
+                <button type="submit" class="btn-primary-pay">
+                    <i class="fas fa-check-circle"></i> CONFIRMAR Y FACTURAR
                 </button>
             </div>
         </form>
@@ -83,34 +99,50 @@
 </div>
 
 <script>
+    function setCash(val) {
+        document.getElementById('efectivo_recibido').value = val.toFixed(2);
+        calcularVuelto();
+    }
+
+    function addCash(amount) {
+        let input = document.getElementById('efectivo_recibido');
+        let current = parseFloat(input.value) || 0;
+        input.value = (current + amount).toFixed(2);
+        calcularVuelto();
+    }
+
     function calcularVuelto() {
-        let total = parseFloat(document.getElementById('monto_a_pagar_label').getAttribute('data-total')) || 0;
-        let recibido = parseFloat(document.getElementById('efectivo_recibido').value);
+        let totalElement = document.getElementById('monto_a_pagar_label');
+        if (!totalElement) return;
+
+        let total = parseFloat(totalElement.getAttribute('data-total')) || 0;
+        let recibido = parseFloat(document.getElementById('efectivo_recibido').value) || 0;
         let vueltoLabel = document.getElementById('vuelto_label');
 
-        if (isNaN(recibido) || recibido < total) {
-            vueltoLabel.innerText = "Faltan fondos";
-            vueltoLabel.style.color = "#EF4444"; // rojo
+        if (recibido === 0) {
+            vueltoLabel.innerText = "$ 0.00";
+            vueltoLabel.style.color = "#9CA3AF";
+            return;
+        }
+
+        if (recibido < total) {
+            vueltoLabel.innerText = "Falta: $" + (total - recibido).toFixed(2);
+            vueltoLabel.style.color = "#EF4444";
         } else {
             let vuelto = recibido - total;
             vueltoLabel.innerText = "$ " + vuelto.toFixed(2);
-            vueltoLabel.style.color = "#10B981"; // verde
+            vueltoLabel.style.color = "#10B981";
         }
     }
 
     function seleccionarCliente(id, nombre, ruc) {
-        // 1. Guardar el ID en el input oculto
         document.getElementById('cliente_seleccionado_id').value = id ? id : '';
-
-        // 2. Efecto visual (clase .selected)
         document.querySelectorAll('.cliente-item').forEach(el => el.classList.remove('selected'));
-
-        // Se la ponemos al que dimos click
-        if (event && event.currentTarget) {
-            event.currentTarget.classList.add('selected');
+        
+        let target = event.currentTarget;
+        if (target) {
+            target.classList.add('selected');
         }
-
-        console.log("Cliente seleccionado ID:", id, "Nombre:", nombre);
     }
 
     function cerrarModal() {
@@ -120,226 +152,114 @@
 
 <style>
     .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(4px);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        animation: fadeIn 0.3s;
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(4px);
+        display: flex; justify-content: center; align-items: center; z-index: 9999;
+        animation: fadeIn 0.2s ease-out;
     }
 
     .modal-content {
-        background: white;
-        width: 500px;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        overflow: hidden;
-        animation: slideUp 0.3s;
-        display: flex;
-        flex-direction: column;
-        max-height: 90vh;
+        background: white; width: 520px; border-radius: 20px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        overflow: hidden; max-height: 90vh; display: flex; flex-direction: column;
+        animation: slideUp 0.3s ease-out;
     }
 
     .modal-header {
-        padding: 20px;
-        border-bottom: 1px solid #E5E7EB;
-        background: #F9FAFB;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        padding: 20px 25px; border-bottom: 1px solid #E5E7EB;
+        display: flex; justify-content: space-between; align-items: center;
     }
 
-    .modal-header h3 {
-        margin: 0;
-        color: #111827;
-        font-size: 1.25rem;
+    .btn-close { background: none; border: none; font-size: 1.25rem; color: #9CA3AF; cursor: pointer; transition: 0.2s; }
+    .btn-close:hover { color: #111827; transform: rotate(90deg); }
+
+    .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+
+    .section-card {
+        background: white; border: 1px solid #E5E7EB; border-radius: 16px;
+        padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
 
-    .btn-close {
-        background: none;
-        border: none;
-        font-size: 1.2rem;
-        cursor: pointer;
-        color: #6B7280;
+    .section-label {
+        display: block; font-size: 0.75rem; font-weight: 800; color: #6B7280;
+        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
     }
 
-    .modal-body {
-        padding: 25px;
-        overflow-y: auto;
+    .search-box-modern {
+        background: #F9FAFB; border: 1px solid #D1D5DB; border-radius: 10px;
+        padding: 8px 12px; display: flex; align-items: center; gap: 10px; transition: 0.2s;
     }
+    .search-box-modern:focus-within { border-color: #4338CA; box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.1); background: white; }
+    .search-box-modern input { border: none; outline: none; background: transparent; width: 100%; font-size: 0.95rem; }
 
-    .resumen-pago {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #ECFDF5;
-        color: #065F46;
-        padding: 15px;
-        border-radius: 12px;
-        margin-bottom: 25px;
-        border: 1px solid #10B981;
-        font-weight: bold;
+    .btn-new-square {
+        background: white; border: 1px solid #D1D5DB; border-radius: 10px;
+        padding: 0 15px; color: #4B5563; font-weight: 600; cursor: pointer; transition: 0.2s;
     }
+    .btn-new-square:hover { border-color: #4338CA; color: #4338CA; background: #EEF2FF; }
 
-    .monto-total {
-        font-size: 1.5rem;
-    }
-
-    .search-box {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        border: 2px solid #E5E7EB;
-        border-radius: 10px;
-        padding: 12px;
-        margin-bottom: 15px;
-        transition: 0.2s;
-    }
-
-    .search-box:focus-within {
-        border-color: #F97316;
-    }
-
-    .search-box input {
-        border: none;
-        outline: none;
-        width: 100%;
-        font-size: 1rem;
-    }
-
-    .results-area {
-        max-height: 250px;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
+    .results-area { max-height: 180px; overflow-y: auto; margin-top: 10px; }
+    
     .cliente-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px;
-        border: 1px solid #E5E7EB;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: 0.2s;
+        padding: 10px 12px; border-radius: 10px; border: 1px solid transparent;
+        display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s;
+    }
+    .cliente-item:hover { background: #F3F4F6; }
+    .cliente-item.selected { background: #EEF2FF; border-color: #6366F1; }
+
+    .icon-avatar { width: 36px; height: 36px; background: #E5E7EB; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #6B7280; }
+    .cliente-item.selected .icon-avatar { background: #6366F1; color: white; }
+
+    .info strong { display: block; font-size: 0.9rem; color: #1F2937; }
+    .info small { font-size: 0.75rem; color: #6B7280; }
+
+    .check-icon { margin-left: auto; color: #6366F1; display: none; font-size: 1.2rem; }
+    .cliente-item.selected .check-icon { display: block; }
+
+    .custom-select {
+        width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 10px;
+        outline: none; background: white; cursor: pointer;
     }
 
-    .cliente-item:hover {
-        background: #F3F4F6;
+    .calculator-card { background: #F5F3FF; border-color: #C4B5FD; }
+
+    .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+    .input-side, .vuelto-side { background: white; padding: 12px; border-radius: 12px; border: 1px solid #DDD6FE; }
+
+    .money-input { display: flex; align-items: center; gap: 5px; margin-top: 5px; }
+    .money-input span { font-weight: 800; font-size: 1.2rem; color: #4B5563; }
+    .money-input input { width: 100%; border: none; outline: none; font-size: 1.5rem; font-weight: 800; color: #1F2937; }
+
+    .vuelto-side h2 { margin: 5px 0 0 0; font-size: 1.5rem; font-weight: 800; color: #10B981; }
+
+    .quick-cash { display: flex; gap: 8px; flex-wrap: wrap; }
+    .quick-cash button {
+        background: white; border: 1px solid #DDD6FE; padding: 6px 12px;
+        border-radius: 8px; font-size: 0.8rem; font-weight: 700; color: #6D28D9;
+        cursor: pointer; transition: 0.2s;
     }
+    .quick-cash button:hover { background: #8B5CF6; color: white; border-color: #8B5CF6; }
 
-    .cliente-item.selected {
-        border-color: #F97316;
-        background: #FFF7ED;
+    .payment-total-section { padding: 10px 5px; }
+    .total-highlight {
+        display: flex; justify-content: space-between; align-items: center;
+        background: #111827; color: white; padding: 15px 20px; border-radius: 12px;
     }
+    .total-highlight span:first-child { font-size: 0.85rem; font-weight: 700; opacity: 0.8; }
+    .total-highlight span:last-child { font-size: 1.8rem; font-weight: 900; }
 
-    .icon-avatar {
-        width: 35px;
-        height: 35px;
-        background: #E5E7EB;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #6B7280;
+    .modal-footer { padding: 20px 25px; background: #F9FAFB; border-top: 1px solid #E5E7EB; }
+    .btn-primary-pay {
+        width: 100%; padding: 14px; border: none; border-radius: 12px;
+        background: #10B981; color: white; font-weight: 800; font-size: 1.1rem;
+        cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+        transition: 0.2s; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
     }
+    .btn-primary-pay:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3); }
 
-    .cliente-item.selected .icon-avatar {
-        background: #F97316;
-        color: white;
-    }
+    .custom-scroll::-webkit-scrollbar { width: 5px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
 
-    .info {
-        flex: 1;
-    }
-
-    .info strong {
-        display: block;
-        font-size: 0.95rem;
-        color: #1F2937;
-    }
-
-    .info small {
-        color: #6B7280;
-    }
-
-    .check-icon {
-        color: #F97316;
-        display: none;
-    }
-
-    .cliente-item.selected .check-icon {
-        display: block;
-    }
-
-    .modal-footer {
-        padding: 20px;
-        border-top: 1px solid #E5E7EB;
-        background: #F9FAFB;
-        display: flex;
-        gap: 10px;
-    }
-
-    .btn-new-client {
-        flex: 1;
-        padding: 12px;
-        border: 1px solid #D1D5DB;
-        background: white;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 600;
-    }
-
-    .btn-new-client:hover {
-        background: #F3F4F6;
-    }
-
-    .btn-pay {
-        flex: 2;
-        padding: 12px;
-        border: none;
-        background: #111827;
-        color: white;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    }
-
-    .btn-pay:hover {
-        background: #000;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-
-        to {
-            opacity: 1;
-        }
-    }
-
-    @keyframes slideUp {
-        from {
-            transform: translateY(20px);
-            opacity: 0;
-        }
-
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 </style>

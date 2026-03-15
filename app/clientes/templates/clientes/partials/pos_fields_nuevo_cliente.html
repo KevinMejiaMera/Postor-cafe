@@ -1,0 +1,59 @@
+<div style="background: #EEF2FF; padding: 18px; border-radius: 12px; border: 1px solid #C7D2FE; margin-bottom: 10px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h4 style="margin: 0; color: #4338CA; font-size: 1rem;">
+            <i class="fas fa-user-plus"></i> Datos del Nuevo Cliente
+        </h4>
+        <button type="button" 
+            onclick="document.getElementById('resultados-clientes').innerHTML=''"
+            style="background: none; border: none; color: #6B7280; cursor: pointer;">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- Indicador para el backend -->
+    <input type="hidden" name="es_nuevo_cliente" value="true">
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+        <div class="input-group">
+            <small style="font-size: 0.7rem; font-weight: 700; color: #6B7280;">NOMBRES *</small>
+            <input type="text" name="nuevo_nombres" placeholder="Ej: Juan Perez" required
+                style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #D1D5DB; font-size: 0.85rem;">
+        </div>
+
+        <div class="input-group">
+            <small style="font-size: 0.7rem; font-weight: 700; color: #6B7280;">CÉDULA / RUC *</small>
+            <input type="text" name="nuevo_cedula" placeholder="10xxxxxxxx" required
+                style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #D1D5DB; font-size: 0.85rem;">
+        </div>
+    </div>
+
+    <div style="margin-bottom: 10px;">
+        <small style="font-size: 0.7rem; font-weight: 700; color: #6B7280;">DIRECCIÓN *</small>
+        <input type="text" name="nuevo_direccion" placeholder="Av. Principal..." required
+            style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #D1D5DB; font-size: 0.85rem;">
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="input-group">
+            <small style="font-size: 0.7rem; font-weight: 700; color: #6B7280;">TELÉFONO *</small>
+            <input type="text" name="nuevo_telefono" placeholder="09xxxxxxxx" required
+                style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #D1D5DB; font-size: 0.85rem;">
+        </div>
+
+        <div class="input-group">
+            <small style="font-size: 0.7rem; font-weight: 700; color: #6B7280;">EMAIL (OPCIONAL)</small>
+            <input type="email" name="nuevo_email" placeholder="cliente@correo.com"
+                style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #D1D5DB; font-size: 0.85rem;">
+        </div>
+    </div>
+
+    <div style="margin-top: 15px; font-size: 0.8rem; color: #4338CA; background: white; padding: 10px; border-radius: 8px; border: 1px solid #C7D2FE; display: flex; align-items: start; gap: 10px;">
+        <i class="fas fa-info-circle" style="margin-top: 2px;"></i>
+        <span>Este cliente se guardará automáticamente al hacer clic en <b>CONFIRMAR Y FACTURAR</b>.</span>
+    </div>
+</div>
+
+<script>
+    // Limpiamos selección previa para que mande solo lo nuevo
+    document.getElementById('cliente_seleccionado_id').value = '';
+</script>

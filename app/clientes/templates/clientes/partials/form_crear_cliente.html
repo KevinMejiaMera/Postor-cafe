@@ -10,7 +10,7 @@
     </div>
     {% endif %}
 
-    <form hx-post="{% url 'clientes:modal_crear' %}" hx-target="#resultados-clientes">
+    <form hx-post="{% url 'clientes:modal_crear' %}" hx-target="#modal-container" hx-swap="innerHTML">
         {% csrf_token %}
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
             <input type="text" name="nombres" placeholder="Nombres Completo" required
@@ -34,7 +34,7 @@
         </div>
 
         <div style="display: flex; gap: 10px;">
-            <button type="button" onclick="document.getElementById('resultados-clientes').innerHTML=''"
+            <button type="button" onclick="document.getElementById('modal-container').innerHTML=''"
                 style="flex: 1; padding: 10px; background: white; border: 1px solid #D1D5DB; border-radius: 6px; cursor: pointer;">
                 Cancelar
             </button>

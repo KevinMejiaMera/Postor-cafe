@@ -134,7 +134,10 @@
             </a>
 
             <a href="{% url 'usuarios:lista_usuarios' %}" class="{% block active_personal %}{% endblock %}">
-                <i class="fas fa-users"></i> Personal
+                <i class="fas fa-users-cog"></i> Personal
+            </a>
+            <a href="{% url 'clientes:lista' %}" class="{% block active_clientes %}{% endblock %}">
+                <i class="fas fa-users"></i> Clientes
             </a>
             <a href="{% url 'eventos:dashboard_eventos' %}">
                 <i class="fas fa-calendar-alt"></i> Eventos

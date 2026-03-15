@@ -307,10 +307,36 @@ def procesar_pago(request, pedido_id):
             pedido.mesa = mesa_seleccionada
             pedido.save()
             
-        # 1. Obtener Cliente (si enviaron uno)
+        # 1. Obtener o Crear Cliente
         cliente = None
-        if cliente_id:
+        
+        # Comprobar si es un cliente nuevo enviado desde el formulario
+        if request.POST.get('es_nuevo_cliente') == 'true':
+            nombres = request.POST.get('nuevo_nombres')
+            cedula = request.POST.get('nuevo_cedula')
+            direccion = request.POST.get('nuevo_direccion')
+            telefono = request.POST.get('nuevo_telefono')
+            email = request.POST.get('nuevo_email')
+            
+            if nombres and cedula:
+                # Intentamos obtenerlo si ya existe por cédula para evitar duplicados
+                cliente, created = Cliente.objects.get_or_create(
+                    cedula_o_ruc=cedula,
+                    defaults={
+                        'nombres': nombres,
+                        'direccion': direccion,
+                        'telefono': telefono,
+                        'email': email
+                    }
+                )
+        
+        # Si no es nuevo, buscarlo por ID si se seleccionó uno existente
+        if not cliente and cliente_id:
             cliente = get_object_or_404(Cliente, pk=cliente_id)
+            
+        if cliente:
+            pedido.cliente = cliente
+            pedido.save()
             
         # 2. Crear la Factura (Snapshot de datos)
         # Si no hay cliente, usamos datos genéricos de Consumidor Final
