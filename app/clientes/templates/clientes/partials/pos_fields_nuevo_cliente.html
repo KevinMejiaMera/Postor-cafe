@@ -1,0 +1,104 @@
+<style>
+    .pos-input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 2px solid var(--bg-cream);
+        font-size: 0.9rem;
+        background: white;
+        transition: 0.3s;
+        outline: none;
+        color: var(--primary-color);
+        font-weight: 500;
+    }
+    .pos-input::placeholder {
+        color: #A0AEC0;
+    }
+    .pos-input:focus {
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 3px rgba(97, 111, 57, 0.1);
+    }
+    .pos-label {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin-bottom: 5px;
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .btn-close-nuevo {
+        background: var(--bg-cream);
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: 0.2s;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-close-nuevo:hover {
+        background: #FEE2E2;
+        color: #EF4444;
+        transform: rotate(90deg);
+    }
+</style>
+
+<div style="background: var(--bg-light); padding: 20px; border-radius: 15px; border: 2px dashed var(--secondary-color); margin-bottom: 10px; animation: fadeIn 0.3s ease-out; position: relative;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--bg-cream); padding-bottom: 10px;">
+        <h4 style="margin: 0; color: var(--secondary-color); font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-user-plus"></i> Datos del Nuevo Cliente
+        </h4>
+        <button type="button" class="btn-close-nuevo"
+            onclick="document.getElementById('resultados-clientes').innerHTML=''; var inp = document.querySelector('#resultados-clientes ~ * input, .search-box input'); if(inp) inp.focus();">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- Indicador para el backend -->
+    <input type="hidden" name="es_nuevo_cliente" value="true">
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+        <div class="input-group">
+            <label class="pos-label">Nombres *</label>
+            <input type="text" name="nuevo_nombres" class="pos-input" placeholder="Ej: Juan Perez" required>
+        </div>
+
+        <div class="input-group">
+            <label class="pos-label">Cédula / RUC *</label>
+            <input type="text" name="nuevo_cedula" class="pos-input" placeholder="10xxxxxxxx" required>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label class="pos-label">Dirección *</label>
+        <input type="text" name="nuevo_direccion" class="pos-input" placeholder="Av. Principal..." required>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="input-group">
+            <label class="pos-label">Teléfono *</label>
+            <input type="text" name="nuevo_telefono" class="pos-input" placeholder="09xxxxxxxx" required>
+        </div>
+
+        <div class="input-group">
+            <label class="pos-label">Email (Opcional)</label>
+            <input type="email" name="nuevo_email" class="pos-input" placeholder="cliente@correo.com">
+        </div>
+    </div>
+
+    <div style="margin-top: 20px; font-size: 0.85rem; color: var(--secondary-color); background: rgba(97, 111, 57, 0.1); padding: 12px 15px; border-radius: 10px; border: 1px solid rgba(97, 111, 57, 0.2); display: flex; align-items: center; gap: 12px; font-weight: 600;">
+        <i class="fas fa-info-circle fa-lg"></i>
+        <span>Este cliente se guardará automáticamente al hacer clic en <b>FINALIZAR VENTA</b>.</span>
+    </div>
+</div>
+
+<script>
+    // Limpiamos selección previa para que mande solo lo nuevo
+    document.getElementById('cliente_seleccionado_id').value = '';
+    // Hacemos scroll hacia abajo para que se vea completo
+    document.getElementById('resultados-clientes').scrollTop = document.getElementById('resultados-clientes').scrollHeight;
+</script>

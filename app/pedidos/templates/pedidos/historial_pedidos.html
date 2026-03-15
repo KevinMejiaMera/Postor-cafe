@@ -1,0 +1,584 @@
+{% extends 'usuarios/base_gerente.html' %}
+{% load static %}
+
+{% block title %}Historial de Pedidos - Postor Cafe{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* ============================
+       HISTORIAL DE PEDIDOS - STYLES
+       ============================ */
+    .historial-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .historial-header h2 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--primary-color);
+    }
+
+    .historial-header h2 span {
+        color: var(--secondary-color);
+    }
+
+    /* ---- STAT CARDS ---- */
+    .stat-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .mini-stat {
+        background: white;
+        border-radius: 16px;
+        padding: 18px 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        transition: transform 0.2s;
+    }
+
+    .mini-stat:hover {
+        transform: translateY(-2px);
+    }
+
+    .mini-stat-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .icon-orange { background: var(--bg-cream); color: var(--primary-color); }
+    .icon-green  { background: #ECFDF5; color: var(--secondary-color); }
+    .icon-blue   { background: #EEF2FF; color: #4338CA; }
+
+    .mini-stat-info p {
+        margin: 0;
+        font-size: 0.75rem;
+        color: #6B7280;
+        font-weight: 500;
+    }
+
+    .mini-stat-info strong {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #1F2937;
+    }
+
+    /* ---- FILTER CARD ---- */
+    .filter-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+
+    .filter-card form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+        min-width: 140px;
+    }
+
+    .filter-group label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6B7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .filter-group input,
+    .filter-group select {
+        padding: 9px 13px;
+        border: 1px solid #E5E7EB;
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.2s;
+        background: #FAFAFA;
+    }
+
+    .filter-group input:focus,
+    .filter-group select:focus {
+        border-color: var(--secondary-color);
+        background: white;
+    }
+
+    .btn-filter {
+        padding: 9px 20px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        transition: background 0.2s;
+        white-space: nowrap;
+        align-self: flex-end;
+    }
+
+    .btn-filter:hover { background: var(--secondary-color); }
+
+    .btn-clear {
+        padding: 9px 16px;
+        background: #F3F4F6;
+        color: #6B7280;
+        border: none;
+        border-radius: 10px;
+        font-family: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.2s;
+        white-space: nowrap;
+        align-self: flex-end;
+    }
+
+    .btn-clear:hover { background: #E5E7EB; color: #374151; }
+
+    /* ---- TABLE CARD ---- */
+    .table-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .table-card-header {
+        padding: 18px 24px;
+        border-bottom: 1px solid #F3F4F6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-card-header h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1F2937;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .count-badge {
+        background: var(--bg-cream);
+        color: var(--primary-color);
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 2px 10px;
+        border-radius: 20px;
+    }
+
+    .historial-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    .historial-table thead th {
+        background: #F9FAFB;
+        padding: 12px 20px;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6B7280;
+        border-bottom: 1px solid #F3F4F6;
+        white-space: nowrap;
+    }
+
+    .historial-table tbody tr {
+        border-bottom: 1px solid #F9FAFB;
+        transition: background 0.15s;
+    }
+
+    .historial-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .historial-table tbody tr:hover {
+        background: var(--bg-light);
+    }
+
+    .historial-table td {
+        padding: 14px 20px;
+        vertical-align: middle;
+        color: #374151;
+    }
+
+    .pedido-id {
+        font-weight: 800;
+        color: var(--primary-color);
+        font-size: 0.95rem;
+    }
+
+    .mesa-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #F3F4F6;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.83rem;
+        color: #374151;
+    }
+
+    /* ---- Estado Badges ---- */
+    .estado-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .estado-confirmado { background: #DBEAFE; color: #1D4ED8; }
+    .estado-pagado     { background: #D1FAE5; color: #065F46; }
+    .estado-listo      { background: #FEF3C7; color: #92400E; }
+    .estado-entregado  { background: #EDE9FE; color: #5B21B6; }
+    .estado-cancelado  { background: #FEE2E2; color: #991B1B; }
+    .estado-borrador   { background: #F3F4F6; color: #6B7280; }
+
+    .total-cell {
+        font-weight: 800;
+        color: #1F2937;
+        font-size: 1rem;
+    }
+
+    .items-preview {
+        font-size: 0.8rem;
+        color: #6B7280;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .btn-ver-ticket {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 12px;
+        background: var(--bg-cream);
+        color: var(--primary-color);
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: background 0.2s;
+        border: 1px solid var(--accent-color);
+    }
+
+    .btn-ver-ticket:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    /* ---- Empty State ---- */
+    .empty-state {
+        padding: 60px 20px;
+        text-align: center;
+        color: #9CA3AF;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 16px;
+        display: block;
+        color: #D1D5DB;
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+        .historial-table thead { display: none; }
+        .historial-table tbody tr {
+            display: block;
+            border: 1px solid #F3F4F6;
+            border-radius: 12px;
+            margin: 10px;
+            padding: 12px;
+        }
+        .historial-table td {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 8px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HEADER -->
+<div class="historial-header">
+    <div>
+        <h4 style="margin: 0; color: #9CA3AF; font-weight: 500; font-size: 0.9rem;">Panel Gerente</h4>
+        <h2>Historial de <span>Pedidos</span></h2>
+    </div>
+    <div style="background: white; padding: 6px 16px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-history" style="color: var(--secondary-color);"></i>
+        <span style="font-weight: 700; color: var(--text-color); font-size: 0.9rem;">Registro completo de ventas</span>
+    </div>
+</div>
+
+<!-- MINI STATS -->
+<div class="stat-row">
+    <div class="mini-stat">
+        <div class="mini-stat-icon icon-orange">
+            <i class="fas fa-receipt"></i>
+        </div>
+        <div class="mini-stat-info">
+            <p>Pedidos Hoy</p>
+            <strong>{{ pedidos_hoy_count }}</strong>
+        </div>
+    </div>
+    <div class="mini-stat">
+        <div class="mini-stat-icon icon-green">
+            <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="mini-stat-info">
+            <p>Ventas Hoy (Pagado)</p>
+            <strong>${{ total_ventas_hoy|floatformat:2 }}</strong>
+        </div>
+    </div>
+    <div class="mini-stat">
+        <div class="mini-stat-icon icon-blue">
+            <i class="fas fa-filter"></i>
+        </div>
+        <div class="mini-stat-info">
+            <p>Resultados Filtrados</p>
+            <strong>{{ total_pedidos }}</strong>
+        </div>
+    </div>
+</div>
+
+<!-- FILTROS -->
+<div class="filter-card">
+    <form method="GET" action="">
+        <div class="filter-group">
+            <label><i class="fas fa-search"></i> Buscar</label>
+            <input type="text" name="q" value="{{ busqueda }}" placeholder="ID, mesa, mesero, cliente...">
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-tag"></i> Estado</label>
+            <select name="estado">
+                <option value="">Todos los estados</option>
+                {% for valor, nombre in estados %}
+                <option value="{{ valor }}" {% if estado_filtro == valor %}selected{% endif %}>{{ nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-calendar-alt"></i> Desde</label>
+            <input type="date" name="fecha_desde" value="{{ fecha_desde }}">
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-calendar-alt"></i> Hasta</label>
+            <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}">
+        </div>
+        <button type="submit" class="btn-filter">
+            <i class="fas fa-search"></i> Filtrar
+        </button>
+        <a href="{% url 'pedidos:historial_pedidos' %}" class="btn-clear">
+            <i class="fas fa-times"></i> Limpiar
+        </a>
+    </form>
+</div>
+
+<!-- TABLA DE PEDIDOS -->
+<div class="table-card">
+    <div class="table-card-header">
+        <h3>
+            <i class="fas fa-list-ul" style="color: var(--secondary-color);"></i>
+            Pedidos Registrados
+            <span class="count-badge">{{ total_pedidos }}</span>
+        </h3>
+    </div>
+
+    {% if pedidos %}
+    <div style="overflow-x: auto;">
+        <table class="historial-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Fecha y Hora</th>
+                    <th>Mesa / Tipo</th>
+                    <th>Mesero</th>
+                    <th>Cliente</th>
+                    <th>Productos</th>
+                    <th>Estado</th>
+                    <th>Total</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in pedidos %}
+                <tr>
+                    <!-- ID -->
+                    <td class="pedido-id">#{{ pedido.id }}</td>
+
+                    <!-- Fecha -->
+                    <td>
+                        <div style="font-weight: 600; color: #1F2937;">{{ pedido.created_at|date:"d M Y" }}</div>
+                        <div style="font-size: 0.78rem; color: #9CA3AF;">{{ pedido.created_at|date:"H:i" }}</div>
+                    </td>
+
+                    <!-- Mesa -->
+                    <td>
+                        {% if pedido.mesa %}
+                        <span class="mesa-tag">
+                            <i class="fas fa-chair" style="font-size: 0.7rem;"></i>
+                            Mesa {{ pedido.mesa.numero|stringformat:"02d" }}
+                        </span>
+                        {% elif pedido.fecha_entrega %}
+                        <span class="mesa-tag" style="background: #EDE9FE; color: #5B21B6;">
+                            <i class="fas fa-calendar" style="font-size: 0.7rem;"></i>
+                            Reserva
+                        </span>
+                        {% else %}
+                        <span class="mesa-tag" style="background: #D1FAE5; color: #065F46;">
+                            <i class="fas fa-store" style="font-size: 0.7rem;"></i>
+                            POS Directo
+                        </span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Mesero -->
+                    <td>
+                        {% if pedido.mesero %}
+                        <div style="display: flex; align-items: center; gap: 7px;">
+                            <img src="https://ui-avatars.com/api/?name={{ pedido.mesero.username }}&background=f28500&color=fff&size=28"
+                                 style="border-radius: 50%; width: 26px; height: 26px; flex-shrink:0;">
+                            <span style="font-weight: 600; font-size: 0.88rem;">{{ pedido.mesero.get_full_name|default:pedido.mesero.username }}</span>
+                        </div>
+                        {% else %}
+                        <span style="color: #9CA3AF;">—</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Cliente -->
+                    <td>
+                        {% if pedido.cliente %}
+                        <span style="font-weight: 600; color: #374151;">{{ pedido.cliente.nombres }}</span>
+                        {% else %}
+                        <span style="color: #9CA3AF; font-size: 0.85rem;">Consumidor Final</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Productos -->
+                    <td>
+                        <div class="items-preview" title="{% for item in pedido.items.all %}{{ item.cantidad }}x {{ item.producto.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                            {% for item in pedido.items.all %}
+                                {{ item.cantidad }}x {{ item.producto.nombre }}{% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                                <span style="color: #D1D5DB;">Sin ítems</span>
+                            {% endfor %}
+                        </div>
+                        {% with count=pedido.items.count %}
+                        {% if count > 0 %}
+                        <div style="font-size: 0.75rem; color: #9CA3AF; margin-top: 2px;">{{ count }} producto{{ count|pluralize }}</div>
+                        {% endif %}
+                        {% endwith %}
+                    </td>
+
+                    <!-- Estado -->
+                    <td>
+                        {% if pedido.estado == 'pagado' %}
+                        <span class="estado-badge estado-pagado"><i class="fas fa-check-circle"></i> Pagado</span>
+                        {% elif pedido.estado == 'confirmado' %}
+                        <span class="estado-badge estado-confirmado"><i class="fas fa-fire"></i> En Cocina</span>
+                        {% elif pedido.estado == 'listo' %}
+                        <span class="estado-badge estado-listo"><i class="fas fa-bell"></i> Listo</span>
+                        {% elif pedido.estado == 'entregado' %}
+                        <span class="estado-badge estado-entregado"><i class="fas fa-concierge-bell"></i> Entregado</span>
+                        {% elif pedido.estado == 'cancelado' %}
+                        <span class="estado-badge estado-cancelado"><i class="fas fa-times-circle"></i> Cancelado</span>
+                        {% else %}
+                        <span class="estado-badge estado-borrador"><i class="fas fa-pencil-alt"></i> Borrador</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Total -->
+                    <td class="total-cell">${{ pedido.total|floatformat:2 }}</td>
+
+                    <!-- Acciones -->
+                    <td>
+                        <div style="display: flex; gap: 6px;">
+                            <!-- Botón Detalles (Nuevo) -->
+                            <button class="btn-ver-ticket" style="border-color: var(--secondary); background: #fbfbfb; color: var(--secondary);"
+                                hx-get="{% url 'pedidos:detalle_pedido_modal' pedido.id %}" hx-target="#modal-container">
+                                <i class="fas fa-search-plus"></i> Detalles
+                            </button>
+
+                            {% if pedido.estado == 'pagado' %}
+                                {% with factura=pedido.factura %}
+                                {% if factura %}
+                                <a href="{% url 'pedidos:ver_ticket' factura.id %}" class="btn-ver-ticket" target="_blank">
+                                    <i class="fas fa-receipt"></i> Ticket
+                                </a>
+                                {% endif %}
+                                {% endwith %}
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>No se encontraron pedidos con los filtros aplicados.</p>
+        <a href="{% url 'pedidos:historial_pedidos' %}" style="color: var(--primary-color); font-weight: 600; text-decoration: none; margin-top: 10px; display: inline-block;">
+            <i class="fas fa-redo"></i> Ver todos los pedidos
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

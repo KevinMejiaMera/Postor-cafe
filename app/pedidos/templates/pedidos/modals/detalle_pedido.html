@@ -1,0 +1,102 @@
+<div class="modal-overlay">
+    <div class="modal-content" style="width: 600px; border-radius: 25px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+        <div class="modal-header" style="background: var(--primary-color); color: white; padding: 20px 25px;">
+            <div style="display: flex; flex-direction: column;">
+                <h3 style="margin: 0; color: white;"><i class="fas fa-search-plus" style="color: var(--accent-color); margin-right: 10px;"></i> Detalles del Pedido</h3>
+                <small style="color: rgba(255,255,255,0.7); font-weight: 500;">#{{ pedido.id }} • Registrado el {{ pedido.created_at|date:"d/m/Y H:i" }}</small>
+            </div>
+            <button type="button" class="btn-close" onclick="cerrarModal()" style="color: white; opacity: 0.8; background: none; border: none; font-size: 1.2rem; cursor: pointer;"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="modal-body" style="background: #F8F9F2; padding: 25px;">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                <div class="info-box" style="background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--bg-cream);">
+                    <small style="display: block; color: var(--text-muted); font-weight: 800; text-transform: uppercase; font-size: 0.7rem; margin-bottom: 5px;">Atendido por</small>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-user-tie" style="color: var(--secondary-color);"></i>
+                        <span style="font-weight: 700; color: var(--primary-color);">{{ pedido.mesero.get_full_name|default:pedido.mesero.username }}</span>
+                    </div>
+                </div>
+                <div class="info-box" style="background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--bg-cream);">
+                    <small style="display: block; color: var(--text-muted); font-weight: 800; text-transform: uppercase; font-size: 0.7rem; margin-bottom: 5px;">Mesa / Ubicación</small>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-chair" style="color: var(--secondary-color);"></i>
+                        <span style="font-weight: 700; color: var(--primary-color);">
+                            {% if pedido.mesa %}Mesa {{ pedido.mesa.numero }}{% else %}Consumo Directo{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLA DE PRODUCTOS -->
+            <div style="background: white; border-radius: 15px; overflow: hidden; border: 1px solid var(--bg-cream); margin-bottom: 25px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead style="background: var(--bg-cream);">
+                        <tr>
+                            <th style="padding: 10px 15px; text-align: left; font-size: 0.75rem; color: var(--primary-color); text-transform: uppercase;">Producto</th>
+                            <th style="padding: 10px 15px; text-align: center; font-size: 0.75rem; color: var(--primary-color); text-transform: uppercase;">Cant.</th>
+                            <th style="padding: 10px 15px; text-align: right; font-size: 0.75rem; color: var(--primary-color); text-transform: uppercase;">Precio</th>
+                            <th style="padding: 10px 15px; text-align: right; font-size: 0.75rem; color: var(--primary-color); text-transform: uppercase;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in pedido.items.all %}
+                        <tr style="border-bottom: 1px solid var(--bg-light);">
+                            <td style="padding: 12px 15px; font-weight: 600; color: var(--primary-color);">{{ item.producto.nombre }}</td>
+                            <td style="padding: 12px 15px; text-align: center; color: var(--text-muted);">{{ item.cantidad }}</td>
+                            <td style="padding: 12px 15px; text-align: right; color: var(--text-muted); font-family: monospace;">${{ item.precio_unitario|floatformat:2 }}</td>
+                            <td style="padding: 12px 15px; text-align: right; font-weight: 800; color: var(--primary-color); font-family: monospace;">${{ item.subtotal|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- DESGLOSE FINANCIERO -->
+            {% if pedido.factura %}
+            <div style="background: var(--primary-color); color: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(62, 67, 46, 0.2);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; opacity: 0.8; font-size: 0.9rem;">
+                    <span>Subtotal:</span>
+                    <span style="font-family: monospace;">${{ pedido.factura.subtotal|floatformat:2 }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); font-weight: 700; font-size: 1.2rem;">
+                    <span>TOTAL PAGADO:</span>
+                    <span style="color: var(--accent-color); font-family: monospace;">${{ pedido.factura.total|floatformat:2 }}</span>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; text-align: center;">
+                        <small style="display: block; opacity: 0.6; font-size: 0.7rem; text-transform: uppercase;">Dinero Recibido</small>
+                        <span style="font-size: 1.1rem; font-weight: 800; color: white;">${{ pedido.factura.monto_recibido|default:pedido.factura.total|floatformat:2 }}</span>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; text-align: center;">
+                        <small style="display: block; opacity: 0.6; font-size: 0.7rem; text-transform: uppercase;">Cambio Entregado</small>
+                        <span style="font-size: 1.1rem; font-weight: 800; color: #D1FAE5;">${{ pedido.factura.vuelto|default:0.00|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 20px; background: #FEF3C7; color: #92400E; border-radius: 12px; font-weight: 700;">
+                <i class="fas fa-exclamation-triangle"></i> Este pedido aún no ha sido facturado ({{ pedido.get_estado_display }})
+            </div>
+            {% endif %}
+
+        </div>
+
+        <div class="modal-footer" style="padding: 20px; background: white; border-top: 1px solid var(--bg-cream); display: flex; gap: 10px;">
+            <button type="button" onclick="cerrarModal()" style="flex: 1; padding: 12px; border-radius: 12px; border: 2px solid var(--bg-cream); background: white; color: var(--text-muted); font-weight: 700; cursor: pointer;">Cerrar Detalles</button>
+            {% if pedido.factura %}
+            <a href="{% url 'pedidos:ver_ticket' pedido.factura.id %}" target="_blank" style="flex: 1; padding: 12px; text-align: center; text-decoration: none; border-radius: 12px; background: var(--secondary-color); color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fas fa-print"></i> Reimprimir Ticket
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function cerrarModal() {
+        document.getElementById('modal-container').innerHTML = '';
+    }
+</script>

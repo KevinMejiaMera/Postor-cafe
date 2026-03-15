@@ -1,55 +1,450 @@
-<div class="modal-backdrop"
-    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;"
-    onclick="cerrarModal(event)">
-    <div class="modal-content"
-        style="background: white; padding: 25px; border-radius: 10px; width: 450px; max-width: 90%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
-        onclick="event.stopPropagation()">
+<style>
+    /* =========================================
+       MODAL FORM PRODUCTO - ESTILOS
+       ========================================= */
+    .modal-backdrop-prod {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        backdrop-filter: blur(3px);
+        animation: fadeInModal 0.2s ease;
+    }
 
-        <div
-            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-            <h2 style="margin: 0; font-size: 1.25rem; color: #333;">{{ titulo }}</h2>
-            <button type="button" onclick="cerrarModal()"
-                style="border: none; background: transparent; font-size: 1.5rem; cursor: pointer; color: #999;">&times;</button>
+    @keyframes fadeInModal {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+
+    .modal-box-prod {
+        background: white;
+        border-radius: 20px;
+        width: 520px;
+        max-width: 95vw;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+        animation: slideUpModal 0.25s ease;
+    }
+
+    @keyframes slideUpModal {
+        from { transform: translateY(20px); opacity: 0; }
+        to   { transform: translateY(0);   opacity: 1; }
+    }
+
+    .modal-header-prod {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px 16px;
+        border-bottom: 3px solid var(--accent-color);
+        position: sticky;
+        top: 0;
+        background: var(--primary-color);
+        z-index: 1;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .modal-header-prod h2 {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .modal-header-prod h2 i { color: var(--accent-color); }
+
+    .modal-close-btn {
+        border: none;
+        background: rgba(255,255,255,0.1);
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        font-size: 1rem;
+        cursor: pointer;
+        color: white;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.2s;
+    }
+    .modal-close-btn:hover { background: rgba(255,255,255,0.2); }
+
+    .modal-body-prod { padding: 20px 24px; background: #F8F9F2; }
+
+    /* ---- Imagen Upload Zone ---- */
+    .img-upload-zone {
+        border: 2px dashed var(--bg-cream);
+        border-radius: 14px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.2s;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 20px;
+        background: white;
+        min-height: 160px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .img-upload-zone:hover,
+    .img-upload-zone.dragover {
+        border-color: var(--secondary-color);
+        background: #F4F6EE;
+    }
+
+    .img-upload-zone.has-image {
+        border-style: solid;
+        border-color: var(--secondary-color);
+    }
+
+    .img-preview {
+        width: 100%;
+        height: 170px;
+        object-fit: cover;
+        border-radius: 12px;
+        display: none;
+    }
+
+    .img-upload-zone.has-image .img-preview { display: block; }
+    .img-upload-zone.has-image .upload-placeholder { display: none; }
+
+    .upload-placeholder { padding: 24px 20px; }
+    .upload-placeholder i {
+        font-size: 2.2rem; color: var(--bg-cream);
+        margin-bottom: 10px; display: block;
+    }
+    .upload-placeholder p { margin: 0 0 4px 0; font-weight: 700; color: var(--primary-color); font-size: 0.95rem; }
+    .upload-placeholder small { color: var(--text-muted); font-size: 0.78rem; }
+
+    .img-change-overlay {
+        display: none;
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        background: rgba(62,67,46,0.8);
+        color: white;
+        padding: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border-radius: 0 0 12px 12px;
+    }
+    .img-upload-zone.has-image:hover .img-change-overlay { display: flex; }
+
+    /* ---- Fields ---- */
+    .form-fields-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+    .form-field-full { grid-column: 1 / -1; }
+
+    .field-label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        opacity: 0.7;
+    }
+
+    .field-input {
+        width: 100%;
+        padding: 11px 13px;
+        border: 2px solid var(--bg-cream);
+        border-radius: 12px;
+        font-family: inherit;
+        font-size: 0.95rem;
+        outline: none;
+        transition: 0.2s;
+        box-sizing: border-box;
+        background: white;
+        color: var(--primary-color);
+    }
+    .field-input:focus {
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 4px rgba(97, 111, 57, 0.1);
+    }
+
+    .disponible-row {
+        display: flex; align-items: center; gap: 10px;
+        background: white; border: 2px solid var(--bg-cream);
+        border-radius: 12px; padding: 12px 14px;
+    }
+    .disponible-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--secondary-color); cursor: pointer; }
+    .disponible-row label { font-weight: 700; color: var(--primary-color); cursor: pointer; font-size: 0.95rem; }
+
+    .cat-row { display: flex; gap: 8px; align-items: flex-end; }
+    .cat-row > div:first-child { flex: 1; }
+
+    .btn-add-cat {
+        background: var(--secondary-color); color: white; border: none;
+        width: 42px; height: 42px; border-radius: 12px; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem; transition: 0.2s; flex-shrink: 0;
+    }
+    .btn-add-cat:hover { filter: brightness(1.1); transform: scale(1.05); }
+
+    .modal-footer-prod {
+        display: flex; justify-content: flex-end; gap: 10px;
+        padding: 16px 24px; border-top: 1px solid var(--bg-cream);
+        position: sticky; bottom: 0; background: white;
+        border-radius: 0 0 20px 20px;
+    }
+
+    .btn-cancel-prod {
+        padding: 10px 20px; background: var(--bg-cream);
+        border: none; border-radius: 10px; cursor: pointer;
+        color: var(--primary-color); font-weight: 700; font-family: inherit; font-size: 0.9rem;
+        transition: 0.2s;
+    }
+    .btn-cancel-prod:hover { background: #E9EBD8; }
+
+    .btn-save-prod {
+        padding: 10px 24px; background: var(--primary-color); color: white;
+        border: none; border-radius: 10px; cursor: pointer;
+        font-weight: 800; font-family: inherit; font-size: 0.9rem;
+        display: flex; align-items: center; gap: 7px;
+        transition: 0.3s;
+        box-shadow: 0 8px 20px rgba(62, 67, 46, 0.2);
+    }
+    .btn-save-prod:hover { filter: brightness(1.2); transform: translateY(-2px); box-shadow: 0 12px 25px rgba(62, 67, 46, 0.3); }
+    .btn-save-prod:disabled { background: var(--text-muted); box-shadow: none; transform: none; cursor: not-allowed; }
+
+</style>
+
+<div class="modal-backdrop-prod" onclick="cerrarModalProducto(event)">
+    <div class="modal-box-prod" onclick="event.stopPropagation()">
+
+        <!-- HEADER -->
+        <div class="modal-header-prod">
+            <h2>
+                <i class="fas fa-utensils"></i>
+                {{ titulo }}
+            </h2>
+            <button type="button" class="modal-close-btn" onclick="cerrarModalProducto()">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
 
-        <form hx-post="{{ request.path }}" hx-target="#modal-container" hx-swap="innerHTML"
-            enctype="multipart/form-data"
-            onsubmit="btn=document.getElementById('btn-guardar'); btn.disabled=true; btn.innerText='Guardando...';">
+        <!-- FORM -->
+        <form id="form-producto" enctype="multipart/form-data" method="POST" action="{{ request.path }}">
             {% csrf_token %}
 
-            {# RENDERIZADO DINÁMICO DE CAMPOS (Para soportar Producto, Insumo, Movimiento, etc.) #}
-            <div style="display: flex; flex-direction: column; gap: 15px;">
-                {% for field in form %}
-                <div>
-                    <label
-                        style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; color: #374151;">
-                        {{ field.label }}
-                    </label>
-                    <div class="field-wrapper">
-                        {{ field }}
+            <div class="modal-body-prod">
+
+                <!-- ZONA DE IMAGEN -->
+                <div class="img-upload-zone {% if form.instance.imagen %}has-image{% endif %}"
+                     id="imgUploadZone"
+                     onclick="document.getElementById('id_imagen').click()"
+                     ondragover="event.preventDefault(); this.classList.add('dragover')"
+                     ondragleave="this.classList.remove('dragover')"
+                     ondrop="handleDropProd(event)">
+
+                    {% if form.instance.imagen %}
+                    <img id="imgPreview" class="img-preview" src="{{ form.instance.imagen.url }}" alt="Foto del producto">
+                    {% else %}
+                    <img id="imgPreview" class="img-preview" src="" alt="Foto del producto">
+                    {% endif %}
+
+                    <div class="img-change-overlay">
+                        <i class="fas fa-camera"></i> Cambiar foto
                     </div>
-                    {% if field.help_text %}
-                    <small style="color: #6b7280; font-size: 0.8rem;">{{ field.help_text }}</small>
-                    {% endif %}
-                    {% if field.errors %}
-                    <small style="color: #ef4444; font-size: 0.8rem;">{{ field.errors.0 }}</small>
-                    {% endif %}
+
+                    <div class="upload-placeholder">
+                        <i class="fas fa-camera-retro"></i>
+                        <p>Subir foto del producto</p>
+                        <small>Haz clic o arrastra una imagen (JPG, PNG, WEBP)</small>
+                    </div>
+
+                    <!-- Input real oculto -->
+                    <input type="file" id="id_imagen" name="imagen" accept="image/*" style="display:none;">
                 </div>
-                {% endfor %}
+
+                <!-- CAMPOS -->
+                <div class="form-fields-grid">
+
+                    <!-- Nombre -->
+                    <div class="form-field-full">
+                        <label class="field-label" for="id_nombre">
+                            <i class="fas fa-tag"></i> Nombre del Plato
+                        </label>
+                        <input type="text" name="nombre" id="id_nombre"
+                               value="{{ form.nombre.value|default:'' }}"
+                               class="field-input"
+                               placeholder="Ej: Caldo de gallina criollo" required>
+                        {% if form.nombre.errors %}<small style="color:#EF4444;">{{ form.nombre.errors.0 }}</small>{% endif %}
+                    </div>
+
+                    <!-- Categoría -->
+                    <div class="form-field-full">
+                        <label class="field-label" for="id_categoria">
+                            <i class="fas fa-layer-group"></i> Categoría
+                        </label>
+                        <div class="cat-row">
+                            <div>
+                                <select name="categoria" id="id_categoria" class="field-input">
+                                    <option value="">— Selecciona una categoría —</option>
+                                    {% for choice_val, choice_label in form.categoria.field.choices %}
+                                    {% if choice_val %}
+                                    <option value="{{ choice_val }}"
+                                        {% if form.categoria.value|stringformat:"s" == choice_val|stringformat:"s" %}selected{% endif %}>
+                                        {{ choice_label }}
+                                    </option>
+                                    {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="button" class="btn-add-cat"
+                                    hx-get="{% url 'pedidos:crear_categoria' %}"
+                                    hx-target="body" hx-swap="beforeend"
+                                    title="Nueva Categoría">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        {% if form.categoria.errors %}<small style="color:#EF4444;">{{ form.categoria.errors.0 }}</small>{% endif %}
+                    </div>
+
+                    <!-- Precio -->
+                    <div>
+                        <label class="field-label" for="id_precio">
+                            <i class="fas fa-dollar-sign"></i> Precio de Venta ($)
+                        </label>
+                        <input type="number" name="precio" id="id_precio"
+                               value="{{ form.instance.precio|stringformat:'.2f' }}"
+                               class="field-input" placeholder="0.00" step="0.01" min="0" required>
+                        {% if form.precio.errors %}<small style="color:#EF4444;">{{ form.precio.errors.0 }}</small>{% endif %}
+                    </div>
+
+
+                    <!-- Stock -->
+                    <div>
+                        <label class="field-label" for="id_stock">
+                            <i class="fas fa-boxes"></i> Stock
+                        </label>
+                        <input type="number" name="stock" id="id_stock"
+                               value="{{ form.stock.value|default:'0' }}"
+                               class="field-input" placeholder="0" min="0" required>
+                        {% if form.stock.errors %}<small style="color:#EF4444;">{{ form.stock.errors.0 }}</small>{% endif %}
+                    </div>
+
+                    <!-- Disponible -->
+                    <div class="form-field-full">
+                        <div class="disponible-row">
+                            <input type="checkbox" name="disponible" id="id_disponible"
+                                   {% if form.disponible.value %}checked{% endif %}>
+                            <label for="id_disponible">
+                                <i class="fas fa-eye" style="color:#10B981;"></i>
+                                Visible en el Punto de Venta
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
-            <div style="text-align: right; margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px;">
-                <button type="button" onclick="cerrarModal()"
-                    style="padding: 10px 20px; background: #e5e7eb; border: none; border-radius: 5px; margin-right: 10px; cursor: pointer; color: #374151; font-weight: 600;">Cancelar</button>
-                <button id="btn-guardar" type="submit"
-                    style="padding: 10px 20px; background: #f97316; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 4px rgba(249, 115, 22, 0.3);">Guardar</button>
+            <!-- FOOTER -->
+            <div class="modal-footer-prod">
+                <button type="button" class="btn-cancel-prod" onclick="cerrarModalProducto()">
+                    Cancelar
+                </button>
+                <button id="btn-guardar-prod" type="submit" class="btn-save-prod">
+                    <i class="fas fa-save"></i> Guardar Producto
+                </button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-    function cerrarModal() {
-        document.getElementById('modal-container').innerHTML = '';
+    function cerrarModalProducto(event) {
+        if (!event || event.target.classList.contains('modal-backdrop-prod')) {
+            document.getElementById('modal-container').innerHTML = '';
+        }
     }
+
+    // Preview al seleccionar archivo
+    document.getElementById('id_imagen').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) mostrarPreviewProd(file);
+    });
+
+    function mostrarPreviewProd(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('imgPreview');
+            const zone   = document.getElementById('imgUploadZone');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            zone.classList.add('has-image');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Drag & Drop
+    function handleDropProd(event) {
+        event.preventDefault();
+        document.getElementById('imgUploadZone').classList.remove('dragover');
+        const file = event.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            document.getElementById('id_imagen').files = dt.files;
+            mostrarPreviewProd(file);
+        }
+    }
+
+    // Submit: usar fetch con FormData para no recargar la página
+    document.getElementById('form-producto').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btn-guardar-prod');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+        const formData = new FormData(this);
+
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                'HX-Request': 'true'  // Para que Django sepa que es una petición HTMX-like
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // El servidor responde con 204 (sin contenido) → éxito, refrescar
+                if (response.status === 204) {
+                    document.getElementById('modal-container').innerHTML = '';
+                    window.location.reload();
+                } else {
+                    // Puede haber errores de validación → los mostramos en el modal
+                    return response.text().then(html => {
+                        document.getElementById('modal-container').innerHTML = html;
+                    });
+                }
+            } else {
+                return response.text().then(html => {
+                    document.getElementById('modal-container').innerHTML = html;
+                });
+            }
+        })
+        .catch(err => {
+            console.error('Error al guardar producto:', err);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save"></i> Guardar Producto';
+            alert('Error de red. Intenta de nuevo.');
+        });
+    });
 </script>

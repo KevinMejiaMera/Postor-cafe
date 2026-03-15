@@ -1,0 +1,10 @@
+{% extends 'usuarios/base_gerente.html' %}
+
+{% block content %}
+<div style="height: calc(100vh - 75px); display: flex; flex-direction: column;">
+    {% include 'pedidos/detalle_mesa_contenido.html' %}
+</div>
+
+<!-- Contenedor para MODALES HTMX -->
+<div id="modal-container"></div>
+{% endblock %}

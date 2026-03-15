@@ -29,6 +29,19 @@ def buscar_cliente(request):
     return render(request, 'clientes/partials/resultados_busqueda.html', context)
 
 @login_required
+def lista_clientes(request):
+    query = request.GET.get('q', '')
+    if query:
+        clientes = Cliente.objects.filter(
+            Q(nombres__icontains=query) | 
+            Q(cedula_o_ruc__icontains=query)
+        ).order_by('-created_at')
+    else:
+        clientes = Cliente.objects.all().order_by('-created_at')
+    
+    return render(request, 'clientes/lista_clientes.html', {'clientes': clientes, 'query': query})
+
+@login_required
 def crear_cliente_modal(request):
     if request.method == 'POST':
         nombres = request.POST.get('nombres')
@@ -53,3 +66,8 @@ def crear_cliente_modal(request):
             return render(request, 'clientes/partials/form_crear_cliente.html', {'error': str(e)})
 
     return render(request, 'clientes/partials/form_crear_cliente.html')
+
+@login_required
+def pos_crear_cliente_fields(request):
+    """Retorna solo los inputs para el POS sin tag de form ni botones de guardar"""
+    return render(request, 'clientes/partials/pos_fields_nuevo_cliente.html')

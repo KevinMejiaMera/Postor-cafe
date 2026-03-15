@@ -7,90 +7,319 @@
 
 {% block extra_head %}
 <style>
-    .btn-confirmar:hover {
-        opacity: 0.9;
-        transform: scale(1.02);
-        transition: 0.2s;
+    .menu-table-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        overflow: hidden;
     }
 
-    .edit-btn:hover {
-        text-decoration: underline;
+    .menu-table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 24px;
+        border-bottom: 1px solid #F3F4F6;
+    }
+
+    .menu-table-header h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-nuevo-plato {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s, transform 0.1s;
+        box-shadow: 0 4px 12px rgba(62, 67, 46, 0.2);
+    }
+
+    .btn-nuevo-plato:hover {
+        background: var(--secondary-color);
+        transform: translateY(-1px);
+    }
+
+    .menu-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    .menu-table thead th {
+        background: #F9FAFB;
+        padding: 12px 18px;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6B7280;
+        border-bottom: 1px solid #F3F4F6;
+        white-space: nowrap;
+    }
+
+    .menu-table tbody tr {
+        border-bottom: 1px solid #F9FAFB;
+        transition: background 0.15s;
+    }
+
+    .menu-table tbody tr:last-child { border-bottom: none; }
+    .menu-table tbody tr:hover { background: var(--bg-light); }
+
+    .menu-table td { padding: 12px 18px; vertical-align: middle; }
+
+    /* Foto del producto */
+    .prod-foto {
+        width: 52px;
+        height: 52px;
+        border-radius: 10px;
+        object-fit: cover;
+        background: #F3F4F6;
+    }
+
+    .prod-foto-placeholder {
+        width: 52px;
+        height: 52px;
+        border-radius: 10px;
+        background: #F3F4F6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #D1D5DB;
+        font-size: 1.3rem;
+    }
+
+    /* Nombre del producto */
+    .prod-nombre {
+        font-weight: 700;
+        color: #1F2937;
+        font-size: 0.95rem;
+    }
+
+    .prod-cat {
+        font-size: 0.78rem;
+        color: #9CA3AF;
+        margin-top: 2px;
+    }
+
+    /* Precio */
+    .precio-cell {
+        font-weight: 800;
+        color: #059669;
+        font-size: 1.05rem;
+    }
+
+    /* Stock */
+    .stock-cell {
+        font-weight: 700;
+        color: #1F2937;
+    }
+
+    .stock-low { color: #EF4444; }
+    .stock-ok  { color: #059669; }
+
+    /* Estado */
+    .estado-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .estado-disponible    { background: #D1FAE5; color: #065F46; }
+    .estado-no-disponible { background: #FEE2E2; color: #991B1B; }
+
+    /* Botones acción */
+    .action-btns {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-accion {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        text-decoration: none;
+        transition: all 0.15s;
+    }
+
+    .btn-editar  { background: var(--bg-cream); color: var(--primary-color); border: 1px solid var(--accent-color); }
+    .btn-editar:hover  { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+    .btn-receta  { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
+    .btn-receta:hover  { background: #10B981; color: white; border-color: #10B981; }
+
+    .btn-ficha   { background: #EEF2FF; color: #3730A3; border: 1px solid #C7D2FE; }
+    .btn-ficha:hover   { background: #4338CA; color: white; border-color: #4338CA; }
+
+    .btn-eliminar { background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA; }
+    .btn-eliminar:hover { background: #EF4444; color: white; border-color: #EF4444; }
+
+    .empty-row td {
+        text-align: center;
+        padding: 60px 20px;
+        color: #9CA3AF;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<header>
-    <h2>Gestión del Menú</h2>
-    <button hx-get="{% url 'pedidos:crear_producto' %}" hx-target="#modal-container" hx-swap="innerHTML"
-        class="btn-confirmar"
-        style="width: auto; margin: 0; background: #FF5722; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 1rem;">
-        + Nuevo Plato
-    </button>
-</header>
 
-<section class="audit-section">
-    <table class="table-custom">
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Precio Venta</th>
-                <th>Costo Real</th>
-                <th>Stock (Platos)</th>
-                <th>Estado</th>
-                <th>Acción</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for p in productos %}
-            <tr>
-                <td>
-                    <div style="font-weight: bold;">{{ p.nombre }}</div>
-                </td>
-                <td style="color: #2e7d32; font-weight: bold;">${{ p.precio }}</td>
-                <td style="color: #777;">${{ p.costo_elaboracion|floatformat:2 }}</td>
-                <td>{{ p.stock }}</td>
-                <td>
-                    {% if p.disponible %}
-                    <span
-                        style="background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">Disponible</span>
-                    {% else %}
-                    <span
-                        style="background: #ffebee; color: #c62828; padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">No
-                        Disponible</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <button hx-get="{% url 'pedidos:editar_producto' p.id %}" hx-target="#modal-container"
-                        hx-swap="innerHTML" class="edit-btn"
-                        style="background: transparent; border: none; color: #f28500; font-weight: bold; cursor: pointer; font-size: 1rem; margin-right: 10px;">
-                        <i class="fas fa-edit"></i> Editar
-                    </button>
-                    <button hx-get="{% url 'pedidos:gestion_receta' p.id %}" hx-target="#modal-container"
-                        hx-swap="innerHTML" class="edit-btn"
-                        style="background: transparent; border: none; color: #10B981; font-weight: bold; cursor: pointer; font-size: 1rem; margin-right: 10px;">
-                        <i class="fas fa-carrot"></i> Receta
-                    </button>
-                    <a href="{% url 'pedidos:ver_ficha_tecnica' p.id %}" class="edit-btn"
-                        style="text-decoration: none; color: #3b82f6; font-weight: bold; font-size: 1rem; margin-right: 10px;"
-                        title="Ver Ficha Técnica y Costos">
-                        <i class="fas fa-file-invoice-dollar"></i> Ficha
-                    </a>
-                    <button hx-post="{% url 'pedidos:eliminar_producto' p.id %}"
-                        hx-confirm="¿Estás seguro de eliminar el plato '{{ p.nombre }}'?"
-                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                        style="background: transparent; border: none; color: #dc2626; font-weight: bold; cursor: pointer; font-size: 1rem;"
-                        title="Eliminar Plato">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6">No hay productos en el menú.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</section>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+    <div>
+        <h4 style="margin: 0; color: #9CA3AF; font-weight: 500; font-size: 0.9rem;">Panel Gerente</h4>
+        <h2 style="margin: 4px 0 0 0; font-size: 1.8rem; font-weight: 800; color: var(--primary-color);">
+            Gestión del <span style="color: var(--secondary-color);">Menú</span>
+        </h2>
+    </div>
+    <div style="background: white; padding: 6px 16px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); font-size: 0.85rem; color: #6B7280;">
+        <i class="fas fa-utensils" style="color: var(--secondary-color); margin-right: 6px;"></i>
+        <strong style="color: var(--primary-color);">{{ productos|length }}</strong> plato{{ productos|length|pluralize }} en el menú
+    </div>
+</div>
+
+<div class="menu-table-card">
+    <!-- HEADER -->
+    <div class="menu-table-header">
+        <h2>
+            <i class="fas fa-hamburger" style="color: #FF5722;"></i>
+            Platos del Menú
+        </h2>
+        <button class="btn-nuevo-plato"
+                hx-get="{% url 'pedidos:crear_producto' %}"
+                hx-target="#modal-container"
+                hx-swap="innerHTML">
+            <i class="fas fa-plus"></i> Nuevo Plato
+        </button>
+    </div>
+
+    <!-- TABLA -->
+    <div style="overflow-x: auto;">
+        <table class="menu-table">
+            <thead>
+                <tr>
+                    <th>Foto</th>
+                    <th>Producto</th>
+                    <th>Precio de Venta</th>
+                    <th>Stock</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in productos %}
+                <tr>
+                    <!-- FOTO -->
+                    <td>
+                        {% if p.imagen %}
+                        <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}" class="prod-foto">
+                        {% else %}
+                        <div class="prod-foto-placeholder">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        {% endif %}
+                    </td>
+
+                    <!-- NOMBRE Y CATEGORÍA -->
+                    <td>
+                        <div class="prod-nombre">{{ p.nombre }}</div>
+                        {% if p.categoria %}
+                        <div class="prod-cat">
+                            <i class="fas fa-tag" style="font-size: 0.65rem;"></i>
+                            {{ p.categoria.nombre }}
+                        </div>
+                        {% endif %}
+                    </td>
+
+                    <!-- PRECIO DE VENTA -->
+                    <td class="precio-cell">${{ p.precio }}</td>
+
+                    <!-- STOCK -->
+                    <td>
+                        <span class="stock-cell {% if p.stock <= 5 %}stock-low{% else %}stock-ok{% endif %}">
+                            {% if p.stock <= 5 %}
+                            <i class="fas fa-exclamation-triangle" style="font-size: 0.75rem;"></i>
+                            {% endif %}
+                            {{ p.stock }} uds.
+                        </span>
+                    </td>
+
+                    <!-- ESTADO -->
+                    <td>
+                        {% if p.disponible %}
+                        <span class="estado-badge estado-disponible">
+                            <i class="fas fa-eye"></i> Disponible
+                        </span>
+                        {% else %}
+                        <span class="estado-badge estado-no-disponible">
+                            <i class="fas fa-eye-slash"></i> Oculto
+                        </span>
+                        {% endif %}
+                    </td>
+
+                    <!-- ACCIONES -->
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn-accion btn-editar"
+                                    hx-get="{% url 'pedidos:editar_producto' p.id %}"
+                                    hx-target="#modal-container"
+                                    hx-swap="innerHTML">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="btn-accion btn-ficha"
+                                    hx-get="{% url 'pedidos:ver_ficha_tecnica' p.id %}"
+                                    hx-target="#modal-container"
+                                    hx-swap="innerHTML">
+                                <i class="fas fa-eye"></i> Detalles
+                            </button>
+                            <button class="btn-accion btn-eliminar"
+                                    hx-post="{% url 'pedidos:eliminar_producto' p.id %}"
+                                    hx-confirm="¿Eliminar '{{ p.nombre }}'? Esta acción no se puede deshacer."
+                                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row">
+                    <td colspan="6">
+                        <i class="fas fa-utensils" style="font-size: 2.5rem; opacity: 0.2; display: block; margin-bottom: 12px;"></i>
+                        <p style="margin: 0; font-weight: 600;">No hay platos en el menú aún.</p>
+                        <p style="margin: 6px 0 0 0; font-size: 0.85rem;">Haz clic en "Nuevo Plato" para comenzar.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
 {% endblock %}

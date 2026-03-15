@@ -27,6 +27,14 @@ COPY --from=builder /install /usr/local
 COPY . /app/
 RUN mkdir -p /app/staticfiles /app/media \
     && chown -R postor:postor /app
+
+
+# Permisos para el usuario no-root y crear directorios necesarios
+RUN chown -R postor:postor /app \
+    && mkdir -p /app/media/productos \
+    && chown -R postor:postor /app/media \
+    && chmod -R 755 /app/media
+
 USER postor
 EXPOSE 8000
 CMD ["gunicorn", "restaurante.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "--worker-tmp-dir", "/dev/shm"]

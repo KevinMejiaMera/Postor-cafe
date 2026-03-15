@@ -5,98 +5,365 @@
 {% block active_habitaciones %}active{% endblock %}
 
 {% block content %}
-<div class="mb-4 d-flex justify-content-between align-items-center">
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .page-title { font-size: 1.8rem; font-weight: 800; color: var(--primary-color); margin: 0; }
+    .page-sub   { color: var(--text-light); font-size: 0.9rem; margin: 4px 0 0 0; }
+
+    .btn-add-hab {
+        background: var(--primary-color); color: white;
+        border: none; border-radius: 14px;
+        padding: 12px 24px; font-weight: 800; font-size: 0.9rem;
+        cursor: pointer; display: flex; align-items: center; gap: 10px;
+        transition: 0.2s; box-shadow: 0 4px 14px rgba(62,67,46,0.2);
+    }
+    .btn-add-hab:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+    .hab-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .hab-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        border: 1.5px solid var(--bg-cream);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        transition: 0.25s;
+    }
+    .hab-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(62,67,46,0.1); }
+
+    .hab-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+    .hab-num {
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: var(--primary-color);
+        line-height: 1;
+    }
+    .hab-num small { display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-light); }
+
+    .estado-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .estado-disponible { background: #DCFCE7; color: #166534; }
+    .estado-ocupada    { background: #FEE2E2; color: #991B1B; }
+    .estado-limpieza   { background: #FEF9C3; color: #854D0E; }
+    .estado-reservada  { background: #DBEAFE; color: #1E40AF; }
+
+    .hab-info { margin-bottom: 1rem; }
+    .hab-tipo { font-weight: 700; color: var(--text-dark); margin-bottom: 2px; }
+    .hab-meta { font-size: 0.8rem; color: var(--text-light); }
+
+    .hab-price {
+        font-size: 1.3rem;
+        font-weight: 900;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+    .hab-price small { font-size: 0.75rem; color: var(--text-light); font-weight: 500; text-decoration: line-through; margin-left: 6px; }
+
+    .btn-gestionar {
+        width: 100%;
+        padding: 10px;
+        border-radius: 12px;
+        border: 2px solid var(--bg-cream);
+        background: white;
+        color: var(--primary-color);
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.2s;
+        font-size: 0.88rem;
+    }
+    .btn-gestionar:hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem;
+        color: var(--text-light);
+        background: white;
+        border-radius: 20px;
+        border: 2px dashed var(--bg-cream);
+    }
+    .empty-state i { font-size: 3rem; color: var(--bg-cream); margin-bottom: 1rem; display: block; }
+
+    /* ===== MODALES ===== */
+    .hostal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(30,32,20,0.75); backdrop-filter: blur(6px);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 9999; animation: htFadeIn 0.25s ease;
+    }
+    .hostal-modal {
+        background: white; border-radius: 24px;
+        width: 700px; max-width: 95vw; max-height: 92vh;
+        overflow-y: auto; box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        animation: htSlideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .hostal-modal-header {
+        background: var(--primary-color); padding: 20px 28px;
+        display: flex; justify-content: space-between; align-items: center;
+        border-radius: 24px 24px 0 0;
+    }
+    .hostal-modal-header h3 { margin: 0; color: white; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+    .hostal-modal-header small { color: rgba(255,255,255,0.65); display: block; font-size: 0.8rem; margin-top: 2px; }
+    .hostal-modal-close {
+        background: rgba(255,255,255,0.12); border: none; color: white;
+        width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: 0.2s; font-size: 0.9rem;
+    }
+    .hostal-modal-close:hover { background: rgba(255,255,255,0.25); }
+
+    .hostal-modal-body { padding: 28px; background: #F8F9F2; }
+    .hostal-modal-footer { padding: 20px 28px; background: white; border-top: 1px solid var(--bg-cream); display: flex; gap: 12px; justify-content: flex-end; }
+
+    .hm-field { margin-bottom: 18px; }
+    .hm-label { display: block; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary-color); margin-bottom: 7px; }
+    .hm-input {
+        width: 100%; padding: 12px 14px; border-radius: 12px;
+        border: 2px solid var(--bg-cream); font-size: 0.95rem;
+        background: white; outline: none; transition: 0.2s;
+        color: var(--primary-color); font-family: inherit; box-sizing: border-box;
+    }
+    .hm-input:focus { border-color: var(--secondary-color); box-shadow: 0 0 0 4px rgba(97,111,57,0.1); }
+    .hm-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .btn-hm-cancel { padding: 10px 24px; border-radius: 12px; border: 2px solid var(--bg-cream); background: white; color: var(--text-light); font-weight: 700; cursor: pointer; transition: 0.2s; }
+    .btn-hm-cancel:hover { border-color: var(--primary-color); color: var(--primary-color); }
+    .btn-hm-save { padding: 10px 28px; border-radius: 12px; border: none; background: var(--primary-color); color: white; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+    .btn-hm-save:hover { filter: brightness(1.1); }
+    .btn-hm-green { background: var(--secondary-color); }
+
+    .info-note {
+        background: rgba(97,111,57,0.08); border: 1px solid rgba(97,111,57,0.2);
+        border-radius: 12px; padding: 12px 16px; font-size: 0.83rem;
+        color: var(--secondary-color); display: flex; align-items: center; gap: 10px; margin-top: 16px;
+    }
+
+    @keyframes htFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes htSlideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
+
+<!-- HEADER -->
+<div class="page-header">
     <div>
-        <h1 class="fw-bold mb-1" style="color: var(--text-dark);">Gestión de Habitaciones</h1>
-        <p class="text-muted">Control de disponibilidad, limpieza y precios.</p>
+        <h1 class="page-title"><i class="fas fa-door-open" style="color: var(--secondary-color);"></i> Habitaciones</h1>
+        <p class="page-sub">{{ habitaciones.count }} habitación{{ habitaciones.count|pluralize:"es" }} registrada{{ habitaciones.count|pluralize:"s" }}</p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+        <button class="btn-add-hab" onclick="document.getElementById('modalTipo').style.display='flex'" style="background: var(--secondary-color);">
+            <i class="fas fa-layer-group"></i> Nuevo Tipo
+        </button>
+        <button class="btn-add-hab" onclick="document.getElementById('modalHabitacion').style.display='flex'">
+            <i class="fas fa-plus"></i> Nueva Habitación
+        </button>
     </div>
 </div>
 
-<div class="row g-4">
+<!-- HABITACIONES GRID -->
+<div class="hab-grid">
     {% for hab in habitaciones %}
-    <div class="col-md-6 col-lg-4 col-xl-3">
-        <div class="card h-100 border-0 shadow-sm" style="border-radius: 16px;">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="badge bg-light text-dark border" style="font-size: 0.9rem;">Hab. {{ hab.numero }}</span>
-                    {% if hab.estado == 'disponible' %}
-                        <span class="badge bg-success-subtle text-success">Disponible</span>
-                    {% elif hab.estado == 'ocupada' %}
-                        <span class="badge bg-danger-subtle text-danger">Ocupada</span>
-                    {% elif hab.estado == 'limpieza' %}
-                        <span class="badge bg-warning-subtle text-warning">Limpieza</span>
-                    {% elif hab.estado == 'reservada' %}
-                        <span class="badge bg-info-subtle text-info">Reservada</span>
-                    {% endif %}
-                </div>
-                
-                <h5 class="fw-bold mb-1">{{ hab.tipo.nombre }}</h5>
-                <p class="text-muted small mb-3">
-                    Capacidad: {{ hab.tipo.capacidad_personas }} pers.
-                    {% if hab.piso %} | Piso {{ hab.piso }}{% endif %}
-                </p>
-                
-                <div class="mb-3">
-                    <div class="small text-muted fw-bold">PRECIO BASE</div>
-                    <div class="fs-4 fw-bold text-dark">
-                        ${{ hab.precio_actual|floatformat:2 }}
-                        {% if hab.precio_personalizado %}
-                            <span class="text-muted fs-6 fw-normal text-decoration-line-through">${{ hab.tipo.precio_noche|floatformat:2 }}</span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <button class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#editHabModal{{ hab.id }}">
-                    <i class="fas fa-edit me-2"></i> Gestionar
-                </button>
+    <div class="hab-card">
+        <div class="hab-top">
+            <div class="hab-num">
+                {{ hab.numero }}
+                <small>{% if hab.piso %}Piso {{ hab.piso }}{% else %}Sin piso{% endif %}</small>
+            </div>
+            <span class="estado-badge estado-{{ hab.estado }}">{{ hab.get_estado_display }}</span>
+        </div>
+        <div class="hab-info">
+            <div class="hab-tipo">{{ hab.tipo.nombre|default:"Sin tipo" }}</div>
+            <div class="hab-meta">
+                <i class="fas fa-users"></i> {{ hab.tipo.capacidad_personas|default:"—" }} persona{{ hab.tipo.capacidad_personas|pluralize:"s" }}
             </div>
         </div>
+        <div class="hab-price">
+            ${{ hab.precio_actual|floatformat:2 }} <span>/noche</span>
+            {% if hab.precio_personalizado %}
+            <small>${{ hab.tipo.precio_noche|floatformat:2 }}</small>
+            {% endif %}
+        </div>
+        <button class="btn-gestionar" data-bs-toggle="modal" data-bs-target="#editHabModal{{ hab.id }}">
+            <i class="fas fa-sliders-h"></i> Gestionar
+        </button>
     </div>
 
-    <!-- Modal Editar -->
+    <!-- Modal Editar Hab -->
     <div class="modal fade" id="editHabModal{{ hab.id }}" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content" style="border-radius: 20px;">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold">Gestionar Habitación {{ hab.numero }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 20px; border: none;">
+                <div class="modal-header border-0" style="background: var(--primary-color); border-radius: 20px 20px 0 0; padding: 18px 24px;">
+                    <h5 class="modal-title" style="color: white; font-weight: 800;">
+                        <i class="fas fa-door-open" style="color: var(--accent-color);"></i> Gestionar Hab. {{ hab.numero }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="background: #F8F9F2; padding: 24px;">
                     <form method="POST" action="{% url 'hostal:gestion_habitaciones' %}">
                         {% csrf_token %}
                         <input type="hidden" name="habitacion_id" value="{{ hab.id }}">
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small text-muted">ESTADO ACTUAL</label>
-                            <select name="estado" class="form-select">
+
+                        <div class="hm-field">
+                            <label class="hm-label">Estado Actual</label>
+                            <select name="estado" class="hm-input">
                                 <option value="disponible" {% if hab.estado == 'disponible' %}selected{% endif %}>Disponible</option>
-                                <option value="ocupada" {% if hab.estado == 'ocupada' %}selected{% endif %}>Ocupada</option>
-                                <option value="limpieza" {% if hab.estado == 'limpieza' %}selected{% endif %}>Limpieza / Mantenimiento</option>
-                                <option value="reservada" {% if hab.estado == 'reservada' %}selected{% endif %}>Reservada</option>
+                                <option value="ocupada"    {% if hab.estado == 'ocupada'    %}selected{% endif %}>Ocupada</option>
+                                <option value="limpieza"   {% if hab.estado == 'limpieza'   %}selected{% endif %}>Limpieza / Mantenimiento</option>
+                                <option value="reservada"  {% if hab.estado == 'reservada'  %}selected{% endif %}>Reservada</option>
                             </select>
-                            <div class="form-text small">Cambiar manualmente el estado anulará la automatización actual.</div>
                         </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small text-muted">PRECIO PERSONALIZADO ($)</label>
-                            <input type="number" step="0.01" name="precio" class="form-control" 
-                                   value="{{ hab.precio_personalizado|default_if_none:'' }}" 
-                                   placeholder="Precio estándar: ${{ hab.tipo.precio_noche }}">
-                            <div class="form-text small">Dejar vacío para usar el precio del tipo de habitación.</div>
+                        <div class="hm-field">
+                            <label class="hm-label">Precio Personalizado ($/noche)</label>
+                            <input type="number" step="0.01" name="precio" class="hm-input"
+                                value="{{ hab.precio_personalizado|default_if_none:'' }}"
+                                placeholder="Precio actual: ${{ hab.tipo.precio_noche|floatformat:2 }}">
+                            <small style="color: var(--text-light); font-size: 0.78rem;">Dejar vacío para usar el precio del tipo.</small>
                         </div>
-
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg" style="border-radius: 12px;">Guardar Cambios</button>
-                        </div>
+                        <button type="submit" class="btn-hm-save" style="width: 100%; justify-content: center;">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
     {% empty %}
-    <div class="col-12 text-center py-5">
-        <div class="text-muted">No hay habitaciones registradas.</div>
+    <div class="hab-card" style="grid-column: 1 / -1;">
+        <div class="empty-state">
+            <i class="fas fa-door-closed"></i>
+            <h4 style="color: var(--primary-color); font-weight: 800;">No hay habitaciones registradas</h4>
+            <p>Haz clic en <strong>"Nueva Habitación"</strong> para agregar la primera.</p>
+        </div>
     </div>
     {% endfor %}
 </div>
+
+
+<!-- ========== MODAL: NUEVA HABITACIÓN ========== -->
+<div id="modalHabitacion" class="hostal-overlay" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="hostal-modal" onclick="event.stopPropagation()">
+        <div class="hostal-modal-header">
+            <div>
+                <h3><i class="fas fa-plus-circle"></i> Nueva Habitación</h3>
+                <small>Registrar una habitación disponible en el hostal</small>
+            </div>
+            <button class="hostal-modal-close" onclick="document.getElementById('modalHabitacion').style.display='none'">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="{% url 'hostal:crear_habitacion' %}">
+            {% csrf_token %}
+            <div class="hostal-modal-body">
+
+                <div class="hm-grid-2">
+                    <div class="hm-field">
+                        <label class="hm-label">Número / Código *</label>
+                        <input type="text" name="numero" class="hm-input" placeholder="Ej: 101, 202A" required>
+                    </div>
+                    <div class="hm-field">
+                        <label class="hm-label">Piso</label>
+                        <input type="text" name="piso" class="hm-input" placeholder="Ej: 1, 2, PB">
+                    </div>
+                </div>
+
+                <div class="hm-field">
+                    <label class="hm-label">Tipo de Habitación *</label>
+                    <select name="tipo" class="hm-input" required>
+                        <option value="">— Selecciona un tipo —</option>
+                        {% for t in tipos %}
+                        <option value="{{ t.id }}">{{ t.nombre }} — ${{ t.precio_noche }}/noche · {{ t.capacidad_personas }} pers.</option>
+                        {% empty %}
+                        <option value="" disabled>Primero crea un Tipo de Habitación</option>
+                        {% endfor %}
+                    </select>
+                    {% if not tipos %}
+                    <div class="info-note">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Aún no tienes tipos de habitación. Cierra este modal y crea uno primero con <strong>"Nuevo Tipo"</strong>.
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="hm-field" style="background: #F0F4E8; border-radius: 14px; padding: 14px; border: 2px solid var(--secondary-color);">
+                    <label class="hm-label" style="color: var(--secondary-color);">Precio por Noche ($) *</label>
+                    <input type="number" step="0.01" name="precio" class="hm-input" placeholder="Ej: 35.00" required style="font-size: 1.3rem; font-weight: 800;">
+                    <small style="color: var(--secondary-color); font-size: 0.78rem; font-weight: 600;">Este es el precio que se cobrará por noche en esta habitación.</small>
+                </div>
+
+            </div>
+            <div class="hostal-modal-footer">
+                <button type="button" class="btn-hm-cancel" onclick="document.getElementById('modalHabitacion').style.display='none'">Cancelar</button>
+                <button type="submit" class="btn-hm-save">
+                    <i class="fas fa-check"></i> Crear Habitación
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- ========== MODAL: NUEVO TIPO DE HABITACIÓN ========== -->
+<div id="modalTipo" class="hostal-overlay" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="hostal-modal" onclick="event.stopPropagation()" style="width: 520px;">
+        <div class="hostal-modal-header" style="background: var(--secondary-color);">
+            <div>
+                <h3><i class="fas fa-layer-group"></i> Nuevo Tipo de Habitación</h3>
+                <small>Ej: Simple, Doble, Matrimonial, Suite</small>
+            </div>
+            <button class="hostal-modal-close" onclick="document.getElementById('modalTipo').style.display='none'">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="{% url 'hostal:crear_tipo_habitacion' %}">
+            {% csrf_token %}
+            <div class="hostal-modal-body">
+
+                <div class="hm-field">
+                    <label class="hm-label">Nombre del Tipo *</label>
+                    <input type="text" name="nombre" class="hm-input" placeholder="Ej: Habitación Doble" required>
+                </div>
+
+                <div class="hm-field">
+                    <label class="hm-label">Capacidad (personas) *</label>
+                    <input type="number" name="capacidad_personas" class="hm-input" value="1" min="1" max="20" required>
+                    <small style="color: var(--text-light); font-size: 0.78rem;">El precio se define individualmente en cada habitación.</small>
+                </div>
+
+                <div class="hm-field">
+                    <label class="hm-label">Descripción (opcional)</label>
+                    <textarea name="descripcion" class="hm-input" rows="2" placeholder="Ej: Habitación con cama doble, baño privado y vista al jardín."></textarea>
+                </div>
+
+            </div>
+            <div class="hostal-modal-footer">
+                <button type="button" class="btn-hm-cancel" onclick="document.getElementById('modalTipo').style.display='none'">Cancelar</button>
+                <button type="submit" class="btn-hm-save btn-hm-green">
+                    <i class="fas fa-check"></i> Crear Tipo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% endblock %}

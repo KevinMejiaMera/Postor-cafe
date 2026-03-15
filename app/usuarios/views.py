@@ -6,19 +6,18 @@ from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .forms import CrearUsuarioForm, EditarUsuarioForm
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, F
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone 
 from .models import Usuario, AuditLog
-from pedidos.models import Pedido, Mesa
-from pedidos.models import Producto, Factura, DetallePedido
-import csv
-from django.db.models.functions import TruncDay
+from pedidos.models import Pedido, Mesa, Producto, Factura, DetallePedido
+from inventario.models import Insumo
+from caja.models import SesionCaja
 from django.utils.dateparse import parse_date
 import datetime
+import csv
+from django.db.models.functions import TruncDay
 from django.http import HttpResponse
-from pedidos.models import Pedido 
-from inventario.models import Insumo
 
 # Helper functions
 def es_gerente(user):
@@ -180,59 +179,88 @@ def reportes_ventas(request):
     if not es_gerente(request.user):
         return redirect('usuarios:login')
 
-    # Filtros de Fecha
+    # Filtros de Fecha Rápidos
+    filtro_rapido = request.GET.get('filtro', '') # 'hoy', 'ayer', 'semana', 'caja_x'
+    
+    # Filtros de Fecha Personalizados
     fecha_inicio_str = request.GET.get('fecha_inicio')
     fecha_fin_str = request.GET.get('fecha_fin')
     
-    # Query Base: Facturas (Ventas reales)
-    facturas = Factura.objects.all().order_by('-fecha_emision').select_related('pedido', 'pedido__mesa', 'pedido__mesero')
-
-    # Aplicar Filtros
-    if fecha_inicio_str and fecha_fin_str:
-        fecha_inicio = parse_date(fecha_inicio_str)
-        fecha_fin = parse_date(fecha_fin_str)
-        if fecha_inicio and fecha_fin:
-            facturas = facturas.filter(fecha_emision__date__range=[fecha_inicio, fecha_fin])
-
-    # Calcular Ingresos Totales (Usando campo real 'total' de Factura)
-    total_ingresos = facturas.aggregate(Sum('total'))['total__sum'] or 0
-
-    # Lógica de Exportación a Excel (CSV)
-    if 'exportar' in request.GET:
-        response = HttpResponse(content_type='text/csv')
-        response.write(u'\ufeff'.encode('utf8'))
-        response['Content-Disposition'] = 'attachment; filename="reporte_ventas.csv"'
-        
-        writer = csv.writer(response)
-        writer.writerow(['ID Factura', 'Fecha Emisión', 'Pedido ID', 'Mesa', 'Mesero', 'Cliente', 'Total'])
-        
-        for f in facturas:
-            mesero = f.pedido.mesero.username if f.pedido.mesero else 'Desconocido'
-            mesa = f"Mesa {f.pedido.mesa.numero}" if f.pedido.mesa else 'Sin Mesa'
-            writer.writerow([
-                f.id, 
-                f.fecha_emision.strftime("%d/%m/%Y %H:%M"), 
-                f.pedido.id,
-                mesa, 
-                mesero,
-                f.razon_social, # Cliente Snapshot
-                f.total
-            ])
-        return response
-
-    # Agregación para Gráfico (Ventas por Día)
-    ventas_diarias = facturas.annotate(dia=TruncDay('fecha_emision')).values('dia').annotate(total=Sum('total')).order_by('dia')
+    # Rango de fechas por defecto a analizar
+    fecha_inicio = None
+    fecha_fin = None
+    sesion_filtrada = None
     
-    labels_chart = [v['dia'].strftime("%d/%m") for v in ventas_diarias]
-    data_chart = [float(v['total']) for v in ventas_diarias]
+    hoy = timezone.localdate()
+    ayer = hoy - datetime.timedelta(days=1)
+    
+    if filtro_rapido == 'hoy':
+        fecha_inicio = hoy
+        fecha_fin = hoy
+        fecha_inicio_str = hoy.strftime('%Y-%m-%d')
+        fecha_fin_str = fecha_inicio_str
+    elif filtro_rapido == 'ayer':
+        fecha_inicio = ayer
+        fecha_fin = ayer
+        fecha_inicio_str = ayer.strftime('%Y-%m-%d')
+        fecha_fin_str = fecha_inicio_str
+    elif filtro_rapido == 'semana':
+        semana_pasada = hoy - datetime.timedelta(days=7)
+        fecha_inicio = semana_pasada
+        fecha_fin = hoy
+        fecha_inicio_str = semana_pasada.strftime('%Y-%m-%d')
+        fecha_fin_str = hoy.strftime('%Y-%m-%d')
+    elif filtro_rapido.startswith('caja_'):
+        try:
+            caja_id = int(filtro_rapido.split('_')[1])
+            sesion_filtrada = SesionCaja.objects.get(id=caja_id)
+        except:
+            pass
+    else:
+        # Fechas enviadas por formulario
+        if fecha_inicio_str and fecha_fin_str:
+            fecha_inicio = parse_date(fecha_inicio_str)
+            fecha_fin = parse_date(fecha_fin_str)
+            
+    # Query Base: Detalles de Pedidos Pagados
+    detalles = DetallePedido.objects.filter(pedido__estado='pagado')
+
+    # Aplicar Filtros de fechas en base a la factura asociada
+    if sesion_filtrada:
+        # Si filtramos por turno (caja), usamos sus datetimes exactos
+        if sesion_filtrada.fecha_cierre:
+            detalles = detalles.filter(
+                pedido__factura__fecha_emision__gte=sesion_filtrada.fecha_apertura,
+                pedido__factura__fecha_emision__lte=sesion_filtrada.fecha_cierre
+            )
+        else:
+            # Caja aún abierta
+            detalles = detalles.filter(
+                pedido__factura__fecha_emision__gte=sesion_filtrada.fecha_apertura
+            )
+    elif fecha_inicio and fecha_fin:
+        detalles = detalles.filter(pedido__factura__fecha_emision__date__range=[fecha_inicio, fecha_fin])
+        
+    # Obtener el reporte resumido de Productos Vendidos
+    from django.db.models import F
+    reporte_productos = detalles.values('producto__nombre', 'precio_unitario').annotate(
+        cantidad_vendida=Sum('cantidad'),
+        total=Sum(F('cantidad') * F('precio_unitario'))
+    ).order_by('-cantidad_vendida')
+    
+    total_ingresos = sum([item['total'] for item in reporte_productos])
+    
+    # Obtener las Cajas Recientes para el Sidebar (Solo de hoy y ayer)
+    cajas_recientes = SesionCaja.objects.filter(fecha_apertura__date__gte=ayer).order_by('-fecha_apertura')
 
     return render(request, 'usuarios/reportes.html', {
-        'facturas': facturas, 
         'total_ingresos': total_ingresos,
-        'labels_chart': labels_chart,
-        'data_chart': data_chart,
+        'reporte_productos': reporte_productos,
         'fecha_inicio': fecha_inicio_str,
-        'fecha_fin': fecha_fin_str
+        'fecha_fin': fecha_fin_str,
+        'filtro': filtro_rapido,
+        'cajas_recientes': cajas_recientes,
+        'sesion_filtrada': sesion_filtrada
     })
 
 @login_required

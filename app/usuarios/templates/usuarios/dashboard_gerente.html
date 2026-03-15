@@ -6,17 +6,196 @@
 {% block active_dashboard %}active{% endblock %}
 
 {% block content %}
-<header>
+<header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
     <div>
-        <h4>Hola, {{ user.first_name|default:user.username }} 👋</h4>
-        <h2>Panel de Control</h2>
+        <h4 style="margin: 0; color: var(--text-muted); font-weight: 500;">
+            Hola, {% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}
+        </h4>
+        <h2 style="margin: 5px 0 0 0; color: var(--primary-color); font-size: 1.8rem; font-weight: 800;">Panel de Control</h2>
     </div>
     <div class="user-profile">
-        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=f28500&color=fff"
-            style="border-radius: 50%; width: 35px;">
-        <span>Gerente</span>
+        <!-- Perfil removido por redundancia con el sidebar -->
     </div>
 </header>
+
+<!-- DASHBOARD ACCESOS RÁPIDOS (DISEÑO LIMPIO Y ELEGANTE) -->
+<div class="quick-actions-panel"
+    style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--card-shadow); margin-bottom: 30px;">
+    <h3
+        style="margin-top: 0; margin-bottom: 20px; color: var(--primary-color); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-bolt" style="color: var(--accent-color);"></i> Accesos Rápidos Operativos
+    </h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
+
+        <a href="{% url 'pedidos:panel_mesas' %}" class="quick-btn orange-btn">
+            <div class="icon-circle"><i class="fas fa-utensils"></i></div>
+            <div class="btn-text">
+                <strong>Punto de Venta</strong>
+                <span>Atender Mesas (POS)</span>
+            </div>
+        </a>
+
+        <a href="{% url 'hostal:dashboard_hostal' %}" class="quick-btn blue-btn">
+            <div class="icon-circle"><i class="fas fa-bed"></i></div>
+            <div class="btn-text">
+                <strong>Recepción Hostal</strong>
+                <span>Check-in / Check-out</span>
+            </div>
+        </a>
+
+        <a href="{% url 'caja:gestion_caja' %}" class="quick-btn yellow-btn">
+            <div class="icon-circle"><i class="fas fa-cash-register"></i></div>
+            <div class="btn-text">
+                <strong>Control de Caja</strong>
+                <span>Abrir / Cerrar Turno</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+    .quick-btn {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        border-radius: 16px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+    .quick-btn:hover {
+        transform: translateY(-3px);
+    }
+
+    .quick-btn .icon-circle {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .quick-btn .btn-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .btn-text strong {
+        font-size: 1.05rem;
+        margin-bottom: 2px;
+    }
+
+    .btn-text span {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    /* Variantes de Color Soft/Pastel - POSTOR CAFÉ THEME */
+    .orange-btn {
+        background: var(--bg-cream);
+        border-color: var(--accent-color);
+    }
+
+    .orange-btn:hover {
+        background: var(--bg-cream);
+        box-shadow: 0 4px 12px rgba(62, 67, 46, 0.1);
+    }
+
+    .orange-btn .icon-circle {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .orange-btn .btn-text {
+        color: var(--primary-color);
+    }
+
+    .blue-btn {
+        background: #F0F4F8; 
+        border-color: #D1D5DB;
+    }
+
+    .blue-btn:hover {
+        background: #E5E7EB;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .blue-btn .icon-circle {
+        background: #4B5563; 
+        color: white;
+    }
+
+    .blue-btn .btn-text {
+        color: #1F2937;
+    }
+
+    .yellow-btn {
+        background: #FEF3C7; 
+        border-color: #FCD34D;
+    }
+
+    .yellow-btn:hover {
+        background: #FDE68A;
+        box-shadow: 0 4px 12px rgba(167, 156, 125, 0.1);
+    }
+
+    .yellow-btn .icon-circle {
+        background: var(--accent-color);
+        color: white;
+    }
+
+    .yellow-btn .btn-text {
+        color: #92400E;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 25px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        box-shadow: var(--card-shadow);
+        transition: transform 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        background: var(--bg-cream);
+        color: var(--primary-color);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .stat-info h4 {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-info h2 {
+        margin: 5px 0 0 0;
+        color: var(--primary-color);
+        font-size: 1.8rem;
+        font-weight: 800;
+    }
+</style>
 
 <div class="stats-grid">
     <div class="stat-card">
@@ -28,8 +207,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon" style="background: #eef2ff; color: #4338ca;"><i class="fas fa-calendar-week"></i>
-        </div>
+        <div class="stat-icon"><i class="fas fa-calendar-week"></i></div>
         <div class="stat-info">
             <h4>Ventas de la Semana</h4>
             <h2>${{ ventas_semana_actual|floatformat:2 }}</h2>
@@ -59,40 +237,40 @@
 
     <!-- Gráfico de Ventas Semanales -->
     <div class="chart-card"
-        style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-        <h3 style="margin-bottom: 20px; color: #4B5563;">📈 Tendencia de Ventas (7 Días)</h3>
+        style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--card-shadow);">
+        <h3 style="margin-bottom: 25px; color: var(--primary-color); font-weight: 700; font-size: 1.1rem;"><i class="fas fa-chart-line me-2"></i> Tendencia de Ventas (7 Días)</h3>
         <canvas id="ventasChart"></canvas>
     </div>
 
     <!-- Gráfico de Productos Top -->
     <div class="chart-card"
-        style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-        <h3 style="margin-bottom: 20px; color: #4B5563;">🏆 Top 5 Platillos de la Historia</h3>
+        style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--card-shadow);">
+        <h3 style="margin-bottom: 25px; color: var(--primary-color); font-weight: 700; font-size: 1.1rem;"><i class="fas fa-medal me-2"></i> Top 5 Platillos de la Historia</h3>
         <canvas id="productosChart"></canvas>
     </div>
 
 </div>
 
-<section class="audit-section">
-    <h3>Actividad Reciente del Sistema</h3>
-    <table>
-        <thead>
+<section class="audit-section" style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--card-shadow);">
+    <h3 style="color: var(--primary-color); font-weight: 700; margin-bottom: 20px;">Actividad Reciente del Sistema</h3>
+    <table class="table table-hover">
+        <thead style="background: var(--bg-light);">
             <tr>
-                <th>Usuario</th>
-                <th>Acción</th>
-                <th>Fecha y Hora</th>
+                <th style="border: none; color: var(--primary-color);">Usuario</th>
+                <th style="border: none; color: var(--primary-color);">Acción</th>
+                <th style="border: none; color: var(--primary-color);">Fecha y Hora</th>
             </tr>
         </thead>
         <tbody>
             {% for log in ultimos_logs %}
             <tr>
                 <td><strong>{{ log.user.username|default:"Sistema" }}</strong></td>
-                <td>{{ log.action }}</td>
-                <td>{{ log.timestamp|date:"d M Y, H:i" }}</td>
+                <td class="text-muted">{{ log.action }}</td>
+                <td><small class="text-muted">{{ log.timestamp|date:"d M Y, H:i" }}</small></td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="3">No hay actividad reciente.</td>
+                <td colspan="3" class="text-center py-4 text-muted">No hay actividad reciente.</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -122,27 +300,28 @@
             datasets: [{
                 label: 'Ventas ($)',
                 data: ventas,
-                borderColor: '#2563EB',
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                borderWidth: 3,
+                borderColor: '#616F39', // Secundario (Olivo)
+                backgroundColor: 'rgba(97, 111, 57, 0.1)',
+                borderWidth: 4,
                 tension: 0.4,
                 fill: true,
                 pointBackgroundColor: '#fff',
-                pointBorderColor: '#2563EB',
-                pointRadius: 5
+                pointBorderColor: '#3E432E',
+                pointRadius: 6,
+                pointHoverRadius: 8
             }]
         },
         options: {
             responsive: true,
             plugins: { legend: { display: false } },
             scales: {
-                y: { beginAtZero: true, grid: { borderDash: [5, 5] } },
+                y: { beginAtZero: true, grid: { borderDash: [5, 5], color: '#E1E2CC' } },
                 x: { grid: { display: false } }
             }
         }
     });
 
-    // 2. Gráfico de Barras (Productos)
+    // 2. Gráfico de Rosca (Productos)
     new Chart(document.getElementById('productosChart'), {
         type: 'doughnut',
         data: {
@@ -150,15 +329,23 @@
             datasets: [{
                 data: topData,
                 backgroundColor: [
-                    '#F59E0B', '#10B981', '#3B82F6', '#6366F1', '#EC4899'
+                    '#3E432E', '#616F39', '#A79C7D', '#E1E2CC', '#6B7280'
                 ],
-                borderWidth: 0
+                borderWidth: 0,
+                hoverOffset: 10
             }]
         },
         options: {
             responsive: true,
             plugins: {
-                legend: { position: 'right' }
+                legend: { 
+                    position: 'right',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20,
+                        font: { family: 'DM Sans', size: 12 }
+                    }
+                }
             },
             cutout: '70%',
         }

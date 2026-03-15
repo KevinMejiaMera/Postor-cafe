@@ -10,14 +10,14 @@
 <style>
     /* Override/Custom Styles for Report Page */
     :root {
-        /* Inherited from base but kept for specific elements if needed */
-        --primary: #FF5722;
-        --primary-dark: #E64A19;
-        --secondary: #1F2937;
-        --bg-light: #FFF5F2;
+        /* Inheriting from base but keeping naming for local compatibility */
+        --primary: var(--primary-color);
+        --primary-dark: var(--secondary-color);
+        --secondary: var(--primary-color);
+        --bg-light: var(--bg-light);
         --white: #ffffff;
-        --text-gray: #6B7280;
-        --border-color: #E5E7EB;
+        --text-gray: var(--text-muted);
+        --border-color: var(--bg-cream);
     }
 
     .report-header {
@@ -103,12 +103,15 @@
     }
 
     .btn-export {
-        background-color: #10B981;
-        color: var(--white);
+        background-color: var(--bg-cream);
+        color: var(--primary);
+        font-weight: 700;
+        border: 1px solid var(--accent-color);
     }
 
     .btn-export:hover {
-        background-color: #059669;
+        background-color: var(--primary);
+        color: var(--white);
     }
 
     /* KPI Cards */
@@ -144,19 +147,19 @@
         font-size: 1.5rem;
     }
 
-    .icon-orange {
-        background: #FFF7ED;
+    .icon-brand {
+        background: var(--bg-cream);
         color: var(--primary);
     }
 
-    .icon-blue {
-        background: #EFF6FF;
-        color: #3B82F6;
+    .icon-olive {
+        background: var(--bg-light);
+        color: var(--secondary-color);
     }
 
-    .icon-green {
-        background: #ECFDF5;
-        color: #10B981;
+    .icon-accent {
+        background: var(--bg-cream);
+        color: var(--accent-color);
     }
 
     .kpi-content h4 {
@@ -271,11 +274,11 @@
 <!-- 1. Header & Filters -->
 <div class="report-header">
     <div class="report-title">
-        <h2>Reporte de Ventas</h2>
-        <p>Visualiza el rendimiento y exporta datos históricos.</p>
+        <h2>Panel de Reportes Operativos</h2>
+        <p>Selecciona un turno de caja o un periodo personalizado para exportar a PDF.</p>
     </div>
 
-    <form method="get" class="filter-form">
+    <form method="get" class="filter-form" style="flex-wrap: wrap;">
         <div class="date-input-group">
             <label>Desde</label>
             <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}">
@@ -286,110 +289,183 @@
         </div>
 
         <button type="submit" class="btn-filter">
-            <i class="fas fa-filter"></i> Filtrar
+            <i class="fas fa-filter"></i> Aplicar
         </button>
 
-        <button type="submit" name="exportar" value="true" class="btn-export">
-            <i class="fas fa-download"></i> Exportar
+        <!-- Botón modificado para PDF -->
+        <button type="button" class="btn-export" onclick="descargarPDF()" style="background-color: #EF4444;">
+            <i class="fas fa-file-pdf"></i> PDF de Resultados
         </button>
-
-        {% if fecha_inicio %}
-        <a href="{% url 'usuarios:reportes_ventas' %}"
-            style="margin-top: 18px; color: #EF4444; font-size: 1.2rem; margin-left: 5px;" title="Limpiar Filtros">
-            <i class="fas fa-times-circle"></i>
-        </a>
-        {% endif %}
     </form>
 </div>
 
-<!-- 2. KPI Cards -->
-<div class="kpi-grid">
-    <div class="kpi-card">
-        <div class="kpi-icon icon-orange"><i class="fas fa-dollar-sign"></i></div>
-        <div class="kpi-content">
-            <h4>Ingresos Totales</h4>
-            <h2>${{ total_ingresos }}</h2>
-        </div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-icon icon-blue"><i class="fas fa-receipt"></i></div>
-        <div class="kpi-content">
-            <h4>Ventas Realizadas</h4>
-            <h2>{{ facturas|length }}</h2>
-        </div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-icon icon-green"><i class="fas fa-chart-line"></i></div>
-        <div class="kpi-content">
-            <h4>Periodo Actual</h4>
-            {% if fecha_inicio %}
-            <h4 style="color: #374151; margin-top: 5px;">{{ fecha_inicio }} al {{ fecha_fin }}</h4>
-            {% else %}
-            <h4 style="color: #374151; margin-top: 5px;">Histórico Completo</h4>
-            {% endif %}
-        </div>
-    </div>
-</div>
+<div style="display: flex; gap: 30px; align-items: flex-start;">
+    <!-- SIDEBAR DE FILTROS RÁPIDOS Y TURNOS -->
+    <div style="flex: 0 0 250px; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 15px;">
+        
+        <div>
+            <h3 style="margin-top: 0; font-size: 1.1em; color: var(--secondary); margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <i class="fas fa-calendar-day" style="color: var(--primary);"></i> Reporte Diario
+            </h3>
+            
+            <a href="?filtro=hoy" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border-radius: 8px; text-decoration: none; color: {% if filtro == 'hoy' %}white{% else %}var(--primary){% endif %}; background: {% if filtro == 'hoy' %}var(--primary){% else %}#FFF5F2{% endif %}; font-weight: 700; transition: 0.2s; border: 1px solid var(--primary); margin-bottom: 10px;">
+                <span><i class="fas fa-file-invoice-dollar"></i> TODO EL DÍA</span>
+                <i class="fas fa-chevron-right"></i>
+            </a>
 
-<!-- 3. Chart Section -->
-<div class="chart-container">
-    <div class="chart-header">
-        <h3>Tendencia de Ventas (Diaria)</h3>
-    </div>
-    <div style="height: 350px; width: 100%;">
-        <canvas id="salesChart"></canvas>
-    </div>
-</div>
+            <h3 style="margin-top: 20px; font-size: 1.1em; color: var(--secondary); margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <i class="fas fa-calendar-alt" style="color: #6B7280;"></i> Otros Periodos
+            </h3>
+            
+            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+                <li>
+                    <a href="?filtro=ayer" style="display: block; padding: 10px 15px; border-radius: 8px; text-decoration: none; color: {% if filtro == 'ayer' %}white{% else %}var(--secondary){% endif %}; background: {% if filtro == 'ayer' %}var(--primary){% else %}#F9FAFB{% endif %}; font-weight: 500; transition: 0.2s;">
+                        <i class="fas fa-history" style="width: 20px;"></i> Ayer (Completo)
+                    </a>
+                </li>
+                <li>
+                    <a href="?filtro=ayer" style="display: block; padding: 10px 15px; border-radius: 8px; text-decoration: none; color: {% if filtro == 'ayer' %}white{% else %}var(--secondary){% endif %}; background: {% if filtro == 'ayer' %}var(--primary){% else %}#F9FAFB{% endif %}; font-weight: 500; transition: 0.2s;">
+                        <i class="fas fa-history" style="width: 20px;"></i> Ayer
+                    </a>
+                </li>
+                <li>
+                    <a href="?filtro=semana" style="display: block; padding: 10px 15px; border-radius: 8px; text-decoration: none; color: {% if filtro == 'semana' %}white{% else %}var(--secondary){% endif %}; background: {% if filtro == 'semana' %}var(--primary){% else %}#F9FAFB{% endif %}; font-weight: 500; transition: 0.2s;">
+                        <i class="fas fa-calendar-week" style="width: 20px;"></i> Esta Semana
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'usuarios:reportes_ventas' %}" style="display: block; padding: 10px 15px; border-radius: 8px; text-decoration: none; color: {% if not filtro and not fecha_inicio and not sesion_filtrada %}white{% else %}var(--secondary){% endif %}; background: {% if not filtro and not fecha_inicio and not sesion_filtrada %}var(--primary){% else %}#F9FAFB{% endif %}; font-weight: 500; transition: 0.2s;">
+                        <i class="fas fa-globe" style="width: 20px;"></i> Histórico Completo
+                    </a>
+                </li>
+            </ul>
+        </div>
 
-<!-- 4. Table Section -->
-<div class="table-container">
-    <div class="table-header">
-        <h3>Detalle de Facturas</h3>
-    </div>
-    <div style="overflow-x: auto;">
-        <table>
-            <thead>
-                <tr>
-                    <th># Factura</th>
-                    <th>Fecha Emisión</th>
-                    <th>Mesa</th>
-                    <th>Mesero</th>
-                    <th>Cliente</th>
-                    <th>Total</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for f in facturas %}
-                <tr>
-                    <td><strong>#{{ f.id }}</strong></td>
-                    <td>{{ f.fecha_emision|date:"d M, Y - H:i" }}</td>
-                    <td>{{ f.pedido.mesa.numero }}</td>
-                    <td>{{ f.pedido.mesero.username|default:"N/A" }}</td>
-                    <td>
-                        <div><strong style="font-weight: 600;">{{ f.razon_social }}</strong></div>
-                        <div style="font-size: 0.8em; color: #9CA3AF;">{{ f.ruc_ci }}</div>
-                    </td>
-                    <td style="font-weight: 700;">${{ f.total }}</td>
-                    <td><span class="badge badge-success">Pagado</span></td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="7">
-                        <div class="empty-state">
-                            <i class="fas fa-inbox" style="font-size: 3rem; color: #D1D5DB; margin-bottom: 10px;"></i>
-                            <p>No se encontraron datos en este rango de fechas.</p>
+        <div>
+            <h3 style="margin-top: 10px; font-size: 1.1em; color: var(--secondary); margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <i class="fas fa-cash-register" style="color: #10B981;"></i> Reportes por Turno
+            </h3>
+
+            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+                {% for caja in cajas_recientes %}
+                <li>
+                    <a href="?filtro=caja_{{ caja.id }}" style="display: block; padding: 10px 15px; border-radius: 8px; text-decoration: none; border-left: 4px solid {% if caja.fecha_cierre %}#10B981{% else %}#F59E0B{% endif %}; color: {% if sesion_filtrada and sesion_filtrada.id == caja.id %}white{% else %}var(--secondary){% endif %}; background: {% if sesion_filtrada and sesion_filtrada.id == caja.id %}var(--primary){% else %}#F9FAFB{% endif %}; font-weight: 500; transition: 0.2s; font-size: 0.85rem;">
+                        <div style="font-weight: 700;">{{ caja.fecha_apertura|date:"d M" }} - Turno {{ caja.usuario.username }}</div>
+                        <div style="color: {% if sesion_filtrada and sesion_filtrada.id == caja.id %}#FFEDDA{% else %}#9CA3AF{% endif %}; font-size: 0.8rem;">
+                            {{ caja.fecha_apertura|time:"H:i" }} hasta 
+                            {% if caja.fecha_cierre %}
+                                {{ caja.fecha_cierre|time:"H:i" }}
+                            {% else %}
+                                <i>Actual</i>
+                            {% endif %}
                         </div>
-                    </td>
-                </tr>
+                    </a>
+                </li>
+                {% empty %}
+                <li style="color: #9CA3AF; font-size: 0.85rem; text-align: center;">No hay turnos registrados hoy ni ayer.</li>
                 {% endfor %}
-            </tbody>
-        </table>
+            </ul>
+        </div>
+
+        <div style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 5px;">
+            <button onclick="window.location.href='?filtro=hoy&descargar_directo=true'" class="btn-export" style="width: 100%; justify-content: center; background-color: #3B82F6; font-size: 0.85rem; padding: 12px;">
+                <i class="fas fa-cloud-download-alt"></i> Descargar Todo Hoy
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT AREA -->
+    <div style="flex: 1;" id="reporte-resultados">
+        <!-- 2. KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon icon-orange"><i class="fas fa-dollar-sign"></i></div>
+                <div class="kpi-content">
+                    <h4>Ingresos Generados</h4>
+                    <h2>${{ total_ingresos|floatformat:2 }}</h2>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon icon-blue"><i class="fas fa-cubes"></i></div>
+                <div class="kpi-content">
+                    <h4>Tipos de Productos</h4>
+                    <h2>{{ reporte_productos|length }}</h2>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon icon-green"><i class="fas fa-chart-line"></i></div>
+                <div class="kpi-content">
+                    <h4>Periodo Actual</h4>
+                    {% if sesion_filtrada %}
+                    <h4 style="color: #374151; margin-top: 5px;">Turno: {{ sesion_filtrada.usuario.username }}<br><small style="color: #9CA3AF;">{{ sesion_filtrada.fecha_apertura|date:"d/m/y H:i" }}</small></h4>
+                    {% elif filtro == 'hoy' %}
+                    <h4 style="color: #374151; margin-top: 5px;">Hoy</h4>
+                    {% elif filtro == 'ayer' %}
+                    <h4 style="color: #374151; margin-top: 5px;">Ayer</h4>
+                    {% elif filtro == 'semana' %}
+                    <h4 style="color: #374151; margin-top: 5px;">Últimos 7 días</h4>
+                    {% elif fecha_inicio %}
+                    <h4 style="color: #374151; margin-top: 5px;">Personalizado</h4>
+                    {% else %}
+                    <h4 style="color: #374151; margin-top: 5px;">Histórico Completo</h4>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Table Section (Productos Vendidos) -->
+        <div class="table-container">
+            <div class="table-header">
+                <h3>Detalle de Productos Vendidos</h3>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th style="text-align: right;">Precio Unitario</th>
+                            <th style="text-align: center;">Cantidad Vendida</th>
+                            <th style="text-align: right;">Total Generado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in reporte_productos %}
+                        <tr>
+                            <td><strong>{{ item.producto__nombre }}</strong></td>
+                            <td style="text-align: right;">${{ item.precio_unitario|floatformat:2 }}</td>
+                            <td style="text-align: center;"><span class="badge badge-success" style="font-size: 1em;">{{ item.cantidad_vendida }}</span></td>
+                            <td style="text-align: right; font-weight: 700;">${{ item.total|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4">
+                                <div class="empty-state">
+                                    <i class="fas fa-box-open" style="font-size: 3rem; color: #D1D5DB; margin-bottom: 10px;"></i>
+                                    <p>No se registraron ventas en este periodo.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% if reporte_productos %}
+                    <tfoot>
+                        <tr style="background: #FFF5F2;">
+                            <td colspan="3" style="text-align: right; font-weight: 800; color: #C05621;">TOTAL INGRESOS:</td>
+                            <td style="text-align: right; font-weight: 800; font-size: 1.1em; color: #DD6B20;">${{ total_ingresos|floatformat:2 }}</td>
+                        </tr>
+                    </tfoot>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
+<!-- Librería para exportar PDF desde HTML -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <!-- Chart.js & Data Injection -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {{ labels_chart|json_script:"chart-labels" }}
@@ -462,5 +538,57 @@
             console.error("Chart Error:", error);
         }
     });
+
+    // Auto-descarga si viene el parámetro
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('descargar_directo') === 'true') {
+            setTimeout(descargarPDF, 1000);
+        }
+    };
+
+    // Función para exportar a PDF
+    function descargarPDF() {
+        // Clonamos el elemento para añadirle una cabecera solo al PDF
+        const content = document.getElementById('reporte-resultados').cloneNode(true);
+        
+        // Crear un contenedor temporal para el PDF
+        const container = document.createElement('div');
+        container.style.padding = '20px';
+        container.style.fontFamily = "'Outfit', sans-serif";
+
+        // Cabecera "Bonita" para el PDF
+        const header = `
+            <div style="text-align: center; border-bottom: 3px solid var(--primary); padding-bottom: 15px; margin-bottom: 25px;">
+                <img src="{% static 'usuarios/imagenes/logo_postor.png' %}" style="height: 60px; margin-bottom: 10px;">
+                <h1 style="margin: 0; color: #1F2937; font-size: 24px; text-transform: uppercase;">Postor Café - San Pedro de Huaca</h1>
+                <p style="margin: 5px 0; color: #6B7280; font-size: 14px;">Reporte Operativo de Ventas</p>
+                <div style="display: flex; justify-content: space-between; margin-top: 15px; font-size: 12px; color: #374151;">
+                    <span><strong>Generado:</strong> ${new Date().toLocaleString()}</span>
+                    <span><strong>Periodo:</strong> ${document.querySelector('.kpi-card:last-child h4').innerText.replace('<br>', ' ')}</span>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = header;
+        container.appendChild(content);
+
+        const boton = document.querySelector('.btn-export');
+        boton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando PDF...';
+        boton.disabled = true;
+
+        const opciones = {
+            margin:       [10, 10, 10, 10],
+            filename:     'Reporte_PostorCafe_' + new Date().toISOString().slice(0,10) + '.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opciones).from(container).save().then(() => {
+            boton.innerHTML = '<i class="fas fa-file-pdf"></i> PDF de Resultados';
+            boton.disabled = false;
+        });
+    }
 </script>
 {% endblock %}

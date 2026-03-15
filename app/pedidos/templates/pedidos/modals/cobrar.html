@@ -1,68 +1,248 @@
+{% load l10n %}
 <script src="https://unpkg.com/htmx.org@1.9.6"></script>
 
-<div class="modal-overlay">
-    <div class="modal-content">
+<div class="cobrar-overlay">
+    <div class="cobrar-box">
 
         <form action="{% url 'pedidos:procesar_pago' pedido.id %}" method="POST">
             {% csrf_token %}
 
-            <div class="modal-header">
-                <h3><i class="fas fa-cash-register"></i> Finalizar Cuenta</h3>
-                <button type="button" class="btn-close" onclick="cerrarModal()"><i class="fas fa-times"></i></button>
+            <!-- HEADER -->
+            <div class="cobrar-header">
+                <div>
+                    <h3><i class="fas fa-cash-register"></i> Panel de Facturación y Cobro</h3>
+                    <small>Pedido #{{ pedido.id }} &bull; Atendido por: {{ pedido.mesero.get_full_name|default:pedido.mesero.username }}</small>
+                </div>
+                <button type="button" onclick="cerrarModal()"><i class="fas fa-times"></i></button>
             </div>
 
-            <div class="modal-body">
+            <!-- BODY: DOS COLUMNAS -->
+            <div class="cobrar-body">
 
-                <div class="resumen-pago">
-                    <span>Total a Pagar:</span>
-                    <span class="monto-total">${{ pedido.total }}</span>
+                <!-- ===== COLUMNA IZQUIERDA: RESUMEN ===== -->
+                <div class="cobrar-left">
+                    <p class="col-title"><i class="fas fa-receipt"></i> Resumen de Compra</p>
+
+                    <div class="items-list custom-scroll">
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-prod">Producto</th>
+                                    <th class="col-cant">Cant.</th>
+                                    <th class="col-price">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in pedido.items.all %}
+                                <tr>
+                                    <td>
+                                        <span class="item-name">{{ item.producto.nombre }}</span>
+                                        <span class="item-unit">${{ item.precio_unitario|floatformat:2 }} u.</span>
+                                    </td>
+                                    <td class="center bold">{{ item.cantidad }}</td>
+                                    <td class="right bold mono">${{ item.subtotal|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="total-box">
+                        <div class="total-row subtle">
+                            <span>Mesa / Ubicación</span>
+                            <span class="green-text">{{ pedido.mesa.numero|default:"Venta Directa" }}</span>
+                        </div>
+                        <div class="total-row big">
+                            <span>Total a Pagar</span>
+                            <span class="mono">${{ pedido.total|floatformat:2 }}</span>
+                        </div>
+                    </div>
                 </div>
 
-                <p style="margin-bottom: 10px; font-weight: 600; color: #374151;">Datos de Facturación:</p>
+                <!-- ===== COLUMNA DERECHA: COBRO ===== -->
+                <div class="cobrar-right">
 
-                <input type="hidden" id="cliente_seleccionado_id" name="cliente_id" value="">
+                    <!-- 1. CLIENTE -->
+                    <div class="c-card">
+                        <p class="col-title"><i class="fas fa-user-circle"></i> Datos de Facturación</p>
+                        <input type="hidden" id="cliente_seleccionado_id" name="cliente_id" value="">
 
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" name="q" placeholder="Buscar (Escribe despacio)..." autocomplete="off"
-                        hx-get="{% url 'clientes:buscar' %}" hx-trigger="keyup changed"
-                        hx-target="#resultados-clientes">
+                        <div class="search-row">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" name="q" placeholder="Buscar Cliente..."
+                                    autocomplete="off"
+                                    hx-get="{% url 'clientes:buscar' %}"
+                                    hx-trigger="keyup changed delay:300ms"
+                                    hx-target="#resultados-clientes">
+                            </div>
+                            <button type="button" class="btn-nuevo"
+                                hx-get="{% url 'clientes:pos_crear_fields' %}"
+                                hx-target="#resultados-clientes"
+                                hx-swap="innerHTML">
+                                <i class="fas fa-plus"></i> NUEVO
+                            </button>
+                        </div>
+
+                        <div id="resultados-clientes" class="clientes-results custom-scroll">
+                            {% include 'clientes/partials/resultados_busqueda.html' with clientes=None %}
+                        </div>
+                        <!-- Chip del cliente seleccionado (oculto por defecto) -->
+                        <div id="cliente-chip" style="display:none; margin-top: 10px; background: #F0F4E8; border: 1.5px solid var(--secondary-color); border-radius: 12px; padding: 10px 14px; display: none; align-items: center; gap: 12px;">
+                            <div style="width:36px;height:36px;background:var(--secondary-color);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;flex-shrink:0;">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div style="flex:1;">
+                                <strong id="chip-nombre" style="color:var(--primary-color);font-size:0.92rem;display:block;"></strong>
+                                <small id="chip-cedula" style="color:var(--text-muted);"></small>
+                            </div>
+                            <button type="button" onclick="limpiarCliente()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;padding:4px;">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. DESTINO (solo si no tiene mesa) -->
+                    {% if not pedido.mesa %}
+                    <div class="c-card c-card-sm">
+                        <p class="col-title"><i class="fas fa-map-marker-alt"></i> Destino del Pedido</p>
+                        <select name="mesa_id" class="c-select">
+                            <option value="">Consumo en local / sin mesa</option>
+                            <option value="llevar">Para llevar</option>
+                            {% for m in mesas_libres %}
+                            <option value="{{ m.id }}">Mesa {{ m.numero }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <!-- 3. CALCULADORA -->
+                    <div class="c-card calc-card">
+                        <p class="col-title green-text"><i class="fas fa-calculator"></i> Calculadora de Cambio</p>
+
+                        <div class="calc-row">
+                            <div class="calc-cell">
+                                <small>RECIBIDO</small>
+                                <div class="money-input">
+                                    <span>$</span>
+                                    <input type="number" id="efectivo_recibido" name="efectivo_recibido"
+                                        placeholder="0.00" step="0.01"
+                                        oninput="calcularVuelto()" autofocus>
+                                </div>
+                            </div>
+                            <div class="calc-cell vuelto-cell">
+                                <small>CAMBIO</small>
+                                <div class="money-output">
+                                    <span>$</span>
+                                    <span id="vuelto_label">0.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="quick-cash">
+                            <button type="button" class="qc-exact" onclick="setCash({{ pedido.total|unlocalize }})">Exacto</button>
+                            <button type="button" onclick="addCash(1)">+$1</button>
+                            <button type="button" onclick="addCash(5)">+$5</button>
+                            <button type="button" onclick="addCash(10)">+$10</button>
+                            <button type="button" onclick="addCash(20)">+$20</button>
+                            <button type="button" onclick="addCash(50)">+$50</button>
+                        </div>
+                    </div>
+
+                    <!-- 4. TOTAL + BOTÓN FINAL -->
+                    <div class="cobrar-footer-row">
+                        <div class="total-chip">
+                            <span class="chip-label">A COBRAR</span>
+                            <span class="chip-amount mono"
+                                id="monto_a_pagar_label"
+                                data-total="{{ pedido.total|unlocalize }}">
+                                ${{ pedido.total|floatformat:2 }}
+                            </span>
+                        </div>
+                        <button type="submit" class="btn-finalizar">
+                            <i class="fas fa-check-double"></i> FINALIZAR VENTA
+                        </button>
+                    </div>
+
                 </div>
-
-                <div id="resultados-clientes" class="results-area">
-                    {% include 'clientes/partials/resultados_busqueda.html' with clientes=None %}
-                </div>
-
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn-new-client" hx-get="{% url 'clientes:modal_crear' %}"
-                    hx-target="#resultados-clientes" hx-swap="innerHTML">
-                    <i class="fas fa-user-plus"></i> Nuevo
-                </button>
-
-                <button type="submit" class="btn-pay">
-                    <i class="fas fa-file-invoice-dollar"></i> FACTURAR
-                </button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
+    const TOTAL_PEDIDO = parseFloat(
+        document.getElementById('monto_a_pagar_label').getAttribute('data-total').replace(',', '.')
+    ) || 0;
+
+    function seleccionarCliente(id, nombre, cedula) {
+        // Guardar ID del cliente
+        document.getElementById('cliente_seleccionado_id').value = id || '';
+
+        // Mostrar chip con datos
+        const chip = document.getElementById('cliente-chip');
+        document.getElementById('chip-nombre').textContent = nombre;
+        document.getElementById('chip-cedula').textContent = cedula;
+        chip.style.display = 'flex';
+
+        // Ocultar lista de resultados y barra de búsqueda
+        document.getElementById('resultados-clientes').style.display = 'none';
+    }
+
+    function limpiarCliente() {
+        // Volver a mostrar la búsqueda y ocultar el chip
+        document.getElementById('cliente_seleccionado_id').value = '';
+        document.getElementById('cliente-chip').style.display = 'none';
+        const area = document.getElementById('resultados-clientes');
+        area.style.display = '';
+        // Restaurar consumidor final
+        area.innerHTML = `<div class="cliente-item selected" onclick="seleccionarCliente(null, 'Consumidor Final', '9999999999999')">
+            <div class="icon-avatar"><i class="fas fa-user"></i></div>
+            <div class="info"><strong>Consumidor Final</strong><small>9999999999999</small></div>
+            <i class="fas fa-check-circle check-icon"></i>
+        </div>`;
+    }
+
+    function setCash(val) {
+        val = parseFloat(String(val).replace(',', '.')) || 0;
+        document.getElementById('efectivo_recibido').value = val.toFixed(2);
+        calcularVuelto();
+    }
+
+    function addCash(amount) {
+        let input = document.getElementById('efectivo_recibido');
+        let current = parseFloat(input.value) || 0;
+        input.value = (current + amount).toFixed(2);
+        calcularVuelto();
+    }
+
+    function calcularVuelto() {
+        let recibido = parseFloat(document.getElementById('efectivo_recibido').value) || 0;
+        let label    = document.getElementById('vuelto_label');
+
+        if (recibido === 0) {
+            label.textContent = '0.00';
+            label.style.color = 'var(--text-muted)';
+            return;
+        }
+
+        if (recibido < TOTAL_PEDIDO) {
+            let falta = (TOTAL_PEDIDO - recibido).toFixed(2);
+            label.textContent = '-' + falta;
+            label.style.color = '#EF4444';
+        } else {
+            let vuelto = (recibido - TOTAL_PEDIDO).toFixed(2);
+            label.textContent = vuelto;
+            label.style.color = 'var(--secondary-color)';
+        }
+    }
+
     function seleccionarCliente(id, nombre, ruc) {
-        // 1. Guardar el ID en el input oculto
-        document.getElementById('cliente_seleccionado_id').value = id ? id : '';
-
-        // 2. Efecto visual (clase .selected)
+        document.getElementById('cliente_seleccionado_id').value = id || '';
         document.querySelectorAll('.cliente-item').forEach(el => el.classList.remove('selected'));
-
-        // Se la ponemos al que dimos click
         if (event && event.currentTarget) {
             event.currentTarget.classList.add('selected');
         }
-
-        console.log("Cliente seleccionado ID:", id, "Nombre:", nombre);
     }
 
     function cerrarModal() {
@@ -71,227 +251,300 @@
 </script>
 
 <style>
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(4px);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        animation: fadeIn 0.3s;
+    /* ==================== OVERLAY ==================== */
+    .cobrar-overlay {
+        position: fixed; inset: 0;
+        background: rgba(30, 32, 20, 0.75);
+        backdrop-filter: blur(8px);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 9999;
+        animation: cobrarFadeIn 0.25s ease-out;
     }
 
-    .modal-content {
+    /* ==================== BOX ==================== */
+    .cobrar-box {
         background: white;
-        width: 500px;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        border-radius: 24px;
+        width: 980px;
+        max-width: 98vw;
+        max-height: 92vh;
         overflow: hidden;
-        animation: slideUp 0.3s;
         display: flex;
         flex-direction: column;
-        max-height: 90vh;
+        box-shadow: 0 30px 70px rgba(0,0,0,0.35);
+        animation: cobrarSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .modal-header {
-        padding: 20px;
-        border-bottom: 1px solid #E5E7EB;
-        background: #F9FAFB;
+    /* ==================== HEADER ==================== */
+    .cobrar-header {
+        background: var(--primary-color);
+        padding: 18px 28px;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-shrink: 0;
     }
-
-    .modal-header h3 {
+    .cobrar-header h3 {
         margin: 0;
-        color: #111827;
-        font-size: 1.25rem;
-    }
-
-    .btn-close {
-        background: none;
-        border: none;
-        font-size: 1.2rem;
-        cursor: pointer;
-        color: #6B7280;
-    }
-
-    .modal-body {
-        padding: 25px;
-        overflow-y: auto;
-    }
-
-    .resumen-pago {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #ECFDF5;
-        color: #065F46;
-        padding: 15px;
-        border-radius: 12px;
-        margin-bottom: 25px;
-        border: 1px solid #10B981;
-        font-weight: bold;
-    }
-
-    .monto-total {
-        font-size: 1.5rem;
-    }
-
-    .search-box {
+        color: white;
+        font-size: 1.15rem;
         display: flex;
         align-items: center;
         gap: 10px;
-        border: 2px solid #E5E7EB;
-        border-radius: 10px;
-        padding: 12px;
-        margin-bottom: 15px;
-        transition: 0.2s;
+    }
+    .cobrar-header small { color: rgba(255,255,255,0.65); font-size: 0.8rem; display: block; margin-top: 2px; }
+    .cobrar-header > button {
+        background: rgba(255,255,255,0.12);
+        border: none; color: white;
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        font-size: 1rem; cursor: pointer;
+        transition: background 0.2s;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .cobrar-header > button:hover { background: rgba(255,255,255,0.25); }
+
+    /* ==================== BODY (2 cols) ==================== */
+    .cobrar-body {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
     }
 
-    .search-box:focus-within {
-        border-color: #F97316;
-    }
-
-    .search-box input {
-        border: none;
-        outline: none;
-        width: 100%;
-        font-size: 1rem;
-    }
-
-    .results-area {
-        max-height: 250px;
-        overflow-y: auto;
+    /* ===== LEFT ===== */
+    .cobrar-left {
+        width: 380px;
+        flex-shrink: 0;
+        border-right: 1px solid var(--bg-cream);
+        padding: 22px;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        background: #FAFAF6;
+        overflow: hidden;
     }
 
-    .cliente-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px;
-        border: 1px solid #E5E7EB;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-
-    .cliente-item:hover {
-        background: #F3F4F6;
-    }
-
-    .cliente-item.selected {
-        border-color: #F97316;
-        background: #FFF7ED;
-    }
-
-    .icon-avatar {
-        width: 35px;
-        height: 35px;
-        background: #E5E7EB;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #6B7280;
-    }
-
-    .cliente-item.selected .icon-avatar {
-        background: #F97316;
-        color: white;
-    }
-
-    .info {
+    .items-list {
         flex: 1;
+        overflow-y: auto;
+        margin-bottom: 16px;
     }
 
-    .info strong {
-        display: block;
-        font-size: 0.95rem;
-        color: #1F2937;
+    .items-table { width: 100%; border-collapse: collapse; }
+    .items-table thead th {
+        padding: 8px 6px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        border-bottom: 2px solid var(--bg-cream);
+        text-align: left;
     }
+    .items-table .col-cant, .items-table .col-price { text-align: center; }
+    .items-table .col-price { text-align: right; }
+    .items-table tbody tr { border-bottom: 1px solid var(--bg-light); }
+    .items-table tbody td { padding: 10px 6px; vertical-align: middle; }
+    .item-name { display: block; font-weight: 700; color: var(--primary-color); font-size: 0.88rem; }
+    .item-unit { display: block; font-size: 0.72rem; color: var(--text-muted); }
+    .center { text-align: center; }
+    .right  { text-align: right; }
+    .bold   { font-weight: 800; }
+    .mono   { font-family: monospace; }
+    .green-text { color: var(--secondary-color) !important; }
 
-    .info small {
-        color: #6B7280;
-    }
-
-    .check-icon {
-        color: #F97316;
-        display: none;
-    }
-
-    .cliente-item.selected .check-icon {
-        display: block;
-    }
-
-    .modal-footer {
-        padding: 20px;
-        border-top: 1px solid #E5E7EB;
-        background: #F9FAFB;
-        display: flex;
-        gap: 10px;
-    }
-
-    .btn-new-client {
-        flex: 1;
-        padding: 12px;
-        border: 1px solid #D1D5DB;
+    .total-box {
         background: white;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 600;
+        border-radius: 14px;
+        padding: 14px 16px;
+        border: 1.5px solid var(--bg-cream);
+        flex-shrink: 0;
+    }
+    .total-row { display: flex; justify-content: space-between; align-items: center; }
+    .total-row.subtle { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; }
+    .total-row.big {
+        font-size: 1.3rem; font-weight: 800; color: var(--primary-color);
+        padding-top: 10px; border-top: 2px dashed var(--bg-cream);
     }
 
-    .btn-new-client:hover {
-        background: #F3F4F6;
-    }
-
-    .btn-pay {
-        flex: 2;
-        padding: 12px;
-        border: none;
-        background: #111827;
-        color: white;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 700;
+    /* ===== RIGHT ===== */
+    .cobrar-right {
+        flex: 1;
+        padding: 22px;
         display: flex;
-        align-items: center;
+        flex-direction: column;
+        gap: 14px;
+        overflow-y: auto;
+    }
+
+    .col-title {
+        display: flex; align-items: center; gap: 7px;
+        font-size: 0.75rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 1px;
+        color: var(--primary-color);
+        margin: 0 0 12px 0;
+    }
+
+    /* Cards */
+    .c-card {
+        background: white;
+        border-radius: 16px;
+        padding: 16px;
+        border: 1.5px solid var(--bg-cream);
+    }
+    .c-card-sm { padding: 12px 16px; }
+
+    /* Búsqueda cliente */
+    .search-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .search-box {
+        flex: 1; display: flex; align-items: center; gap: 10px;
+        border: 2px solid var(--bg-cream); border-radius: 12px;
+        padding: 8px 12px; background: white; transition: 0.2s;
+    }
+    .search-box:focus-within { border-color: var(--primary-color); }
+    .search-box i { color: var(--text-muted); }
+    .search-box input { border: none; outline: none; width: 100%; font-size: 0.9rem; background: transparent; }
+
+    .btn-nuevo {
+        border: 2px solid var(--primary-color);
+        color: var(--primary-color);
+        background: white;
+        border-radius: 12px;
+        padding: 0 16px;
+        font-weight: 800; font-size: 0.82rem;
+        cursor: pointer; transition: 0.2s;
+        white-space: nowrap;
+    }
+    .btn-nuevo:hover { background: var(--primary-color); color: white; }
+
+    .clientes-results {
+        max-height: 260px;
+        overflow-y: auto;
+        border-radius: 12px;
+        background: #FAFAF6;
+    }
+
+    /* Clientes items (compatibles) */
+    .cliente-item {
+        padding: 10px 12px; border-radius: 12px; border: 2px solid transparent;
+        display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s;
+    }
+    .cliente-item:hover { background: var(--bg-light); }
+    .cliente-item.selected { background: #F0F4E8; border-color: var(--secondary-color); }
+    .icon-avatar { width: 38px; height: 38px; background: var(--bg-cream); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary-color); }
+    .cliente-item.selected .icon-avatar { background: var(--secondary-color); color: white; }
+    .info strong { display: block; font-size: 0.9rem; color: var(--primary-color); }
+    .info small { font-size: 0.75rem; color: var(--text-muted); }
+    .check-icon { margin-left: auto; color: var(--secondary-color); display: none; }
+    .cliente-item.selected .check-icon { display: block; }
+
+    /* Select destino */
+    .c-select {
+        width: 100%; padding: 10px 12px;
+        border: 2px solid var(--bg-cream);
+        border-radius: 12px;
+        font-size: 0.9rem; font-weight: 600;
+        outline: none; cursor: pointer; background: white;
+    }
+    .c-select:focus { border-color: var(--primary-color); }
+
+    /* ===== CALCULADORA ===== */
+    .calc-card { background: #F2F5E8 !important; border: 2px dashed var(--secondary-color) !important; }
+
+    .calc-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .calc-cell {
+        background: white;
+        border-radius: 12px;
+        padding: 10px 14px;
+        border: 1.5px solid var(--bg-cream);
+    }
+    .calc-cell small {
+        font-size: 0.62rem; font-weight: 800;
+        color: var(--text-muted); letter-spacing: 1px;
+        text-transform: uppercase; display: block;
+    }
+
+    .money-input {
+        display: flex; align-items: baseline; gap: 4px; margin-top: 4px;
+    }
+    .money-input > span {
+        font-size: 1.1rem; font-weight: 800; color: var(--secondary-color);
+    }
+    .money-input > input {
+        border: none; outline: none; background: transparent;
+        font-size: 1.6rem; font-weight: 900;
+        color: var(--primary-color);
+        width: 100%;
+    }
+    .money-input > input::placeholder { color: #C5CCAA; }
+
+    .money-output {
+        display: flex; align-items: baseline; gap: 4px; margin-top: 4px;
+    }
+    .money-output > span:first-child {
+        font-size: 1.1rem; font-weight: 800; color: var(--secondary-color);
+    }
+    #vuelto_label {
+        font-size: 1.6rem; font-weight: 900;
+        color: var(--secondary-color);
+        transition: color 0.2s;
+    }
+
+    /* quick cash */
+    .quick-cash { display: flex; gap: 8px; flex-wrap: wrap; }
+    .quick-cash button {
+        background: white; border: 1.5px solid var(--bg-cream);
+        padding: 6px 12px; border-radius: 10px;
+        font-size: 0.8rem; font-weight: 800;
+        color: var(--primary-color); cursor: pointer; transition: 0.2s;
+    }
+    .quick-cash button:hover { background: var(--secondary-color); color: white; border-color: var(--secondary-color); }
+    .qc-exact { background: var(--primary-color) !important; color: white !important; border-color: var(--primary-color) !important; }
+    .qc-exact:hover { filter: brightness(1.15); }
+
+    /* ===== FOOTER FILA ===== */
+    .cobrar-footer-row {
+        display: flex; gap: 12px; align-items: stretch;
+        margin-top: auto;
+    }
+
+    .total-chip {
+        background: var(--primary-color);
+        border-radius: 16px;
+        padding: 12px 20px;
+        display: flex; flex-direction: column;
         justify-content: center;
-        gap: 8px;
+        flex: 1;
+        border: 2px solid var(--accent-color);
+    }
+    .chip-label {
+        font-size: 0.6rem; font-weight: 800;
+        letter-spacing: 1.5px; color: rgba(255,255,255,0.6);
+        display: block;
+    }
+    .chip-amount {
+        font-size: 1.9rem; font-weight: 900; color: white; display: block; line-height: 1.1;
     }
 
-    .btn-pay:hover {
-        background: #000;
+    .btn-finalizar {
+        flex: 1.3;
+        background: var(--secondary-color);
+        color: white; border: none;
+        border-radius: 16px;
+        font-size: 1rem; font-weight: 800;
+        cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+        box-shadow: 0 8px 20px rgba(97,111,57,0.25);
+        transition: 0.25s;
     }
+    .btn-finalizar:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
+    /* SCROLL */
+    .custom-scroll::-webkit-scrollbar { width: 5px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: var(--bg-cream); border-radius: 10px; }
 
-        to {
-            opacity: 1;
-        }
-    }
-
-    @keyframes slideUp {
-        from {
-            transform: translateY(20px);
-            opacity: 0;
-        }
-
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
+    @keyframes cobrarFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes cobrarSlideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 </style>

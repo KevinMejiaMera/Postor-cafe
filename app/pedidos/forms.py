@@ -1,16 +1,24 @@
 from django import forms
-from .models import Producto
+from .models import Producto, CategoriaProducto
+
+class CategoriaProductoForm(forms.ModelForm):
+    class Meta:
+        model = CategoriaProducto
+        fields = ['nombre']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-input', 'style': 'width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;'}),
+        }
 
 class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
-        # Ahora incluimos 'categoria'
-        fields = ['nombre', 'categoria', 'precio', 'stock', 'disponible']
+        fields = ['nombre', 'categoria', 'precio', 'stock', 'imagen', 'disponible']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-input', 'style': 'width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;'}),
             'categoria': forms.Select(attrs={'class': 'form-input', 'style': 'width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;'}),
             'precio': forms.NumberInput(attrs={'class': 'form-input', 'style': 'width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;'}),
             'stock': forms.NumberInput(attrs={'class': 'form-input', 'style': 'width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;'}),
+            'imagen': forms.FileInput(attrs={'id': 'id_imagen', 'accept': 'image/*', 'style': 'display: none;'}),
             'disponible': forms.CheckboxInput(attrs={'style': 'transform: scale(1.2); margin-left: 5px;'}),
         }
 

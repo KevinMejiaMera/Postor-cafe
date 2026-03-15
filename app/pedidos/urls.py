@@ -23,6 +23,7 @@ urlpatterns = [
     path('productos/nuevo/', views.crear_producto, name='crear_producto'),
     path('productos/editar/<int:pk>/', views.editar_producto, name='editar_producto'),
     path('productos/eliminar/<int:pk>/', views.eliminar_producto, name='eliminar_producto'),
+    path('productos/categorias/nueva/', views.crear_categoria, name='crear_categoria'),
     path('productos/<int:producto_id>/receta/', views.gestion_receta, name='gestion_receta'),
     path('receta/eliminar/<int:receta_id>/', views.eliminar_ingrediente, name='eliminar_ingrediente'),
     path('check_notificaciones/', views.check_notificaciones, name='check_notificaciones'),
@@ -41,4 +42,8 @@ urlpatterns = [
     path('api/agenda/', views.api_pedidos_agenda, name='api_pedidos_agenda'),
     path('nuevo/agendado/', views.crear_pedido_agendado, name='crear_pedido_agendado'),
     path('editar/pedido/<int:pedido_id>/', views.editar_pedido_directo, name='editar_pedido_directo'),
+
+    # Historial de Pedidos (Gerente)
+    path('historial/', views.historial_pedidos, name='historial_pedidos'),
+    path('historial/detalle/<int:pedido_id>/', views.detalle_pedido_modal, name='detalle_pedido_modal'),
 ]

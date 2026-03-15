@@ -9,23 +9,29 @@
         rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&display=swap');
 
         :root {
-            --hostal-primary: #5856D6;
-            /* Purple/Blueish from design */
-            --hostal-light: #E0E7FF;
-            --hostal-bg: #F5F7FA;
-            --text-dark: #1F2937;
+            /* PALETA EL POSTOR CAFÉ */
+            --primary-color: #3E432E;    /* Verde Café Profundo */
+            --secondary-color: #616F39;  /* Verde Olivo */
+            --accent-color: #A79C7D;     /* Dorado/Bronce */
+            --bg-light: #F8F9F2;         /* Crema Suave */
+            --bg-cream: #E1E2CC;         /* Crema Base */
+            --text-dark: #2D2F23;
             --text-light: #6B7280;
-            --sidebar-width: 260px;
+            --sidebar-width: 280px;
+
+            --success-color: #616F39;
+            --danger-color: #991B1B;
         }
 
         body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--hostal-bg);
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg-light);
             color: var(--text-dark);
             overflow-x: hidden;
         }
@@ -48,24 +54,26 @@
         .brand {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--hostal-primary);
-            margin-bottom: 3rem;
-            padding: 0 0.5rem;
+            gap: 15px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 2.5rem;
+            padding: 10px 10px;
+            letter-spacing: -0.5px;
         }
 
         .brand-icon {
-            background: var(--hostal-primary);
+            background: var(--primary-color);
             color: white;
-            width: 36px;
-            height: 36px;
+            width: 42px;
+            height: 42px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 10px;
-            font-size: 1rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 10px rgba(62, 67, 46, 0.2);
         }
 
         .nav-menu {
@@ -89,14 +97,16 @@
         }
 
         .nav-item:hover {
-            color: var(--hostal-primary);
-            background: #F8FAFC;
+            color: var(--secondary-color);
+            background: var(--bg-cream);
+            transform: translateX(5px);
         }
 
         .nav-item.active {
-            background-color: var(--hostal-light);
-            color: var(--hostal-primary);
+            background-color: var(--primary-color);
+            color: white;
             font-weight: 600;
+            box-shadow: 0 4px 12px rgba(62, 67, 46, 0.15);
         }
 
         .nav-item i {
@@ -112,23 +122,27 @@
         }
 
         .btn-restaurant {
-            background: #FFF7ED;
-            color: #EA580C;
-            border: none;
+            background: var(--bg-cream);
+            color: var(--primary-color);
+            border: 1px solid var(--accent-color);
             text-align: left;
-            padding: 12px 16px;
+            padding: 14px 16px;
             border-radius: 12px;
-            font-weight: 600;
+            font-weight: 700;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
             text-decoration: none;
-            transition: 0.2s;
+            transition: all 0.3s;
+            margin-bottom: 15px;
         }
 
         .btn-restaurant:hover {
-            background: #FFEDD5;
-            color: #C2410C;
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
         }
 
         .logout-link {
@@ -153,33 +167,88 @@
 
         /* Utilities */
         .btn-primary-hostal {
-            background-color: var(--hostal-primary);
-            color: white;
+            background-color: var(--primary-color);
+            color: white !important;
             border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
+            padding: 12px 24px;
+            border-radius: 12px;
             font-weight: 600;
-            transition: 0.2s;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(62, 67, 46, 0.1);
         }
 
         .btn-primary-hostal:hover {
-            background-color: #4338CA;
-            color: white;
+            background-color: var(--secondary-color);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(62, 67, 46, 0.15);
         }
 
         .btn-outline-hostal {
             background: transparent;
-            color: var(--hostal-primary);
-            border: 1px solid var(--hostal-primary);
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            transition: 0.2s;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            padding: 10px 22px;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: all 0.3s;
         }
 
         .btn-outline-hostal:hover {
-            background: var(--hostal-light);
+            background: var(--primary-color);
+            color: white;
         }
+
+        /* ========== MODAL HTMX OVERLAY GLOBAL ========== */
+        .hostal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(30,32,20,0.8); backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; animation: htFadeIn 0.25s ease;
+        }
+        .hostal-modal {
+            background: white; border-radius: 24px;
+            width: 860px; max-width: 95vw; max-height: 92vh;
+            overflow-y: auto; box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            animation: htSlideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+        }
+        .hostal-modal-header {
+            background: var(--primary-color); padding: 20px 28px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-radius: 24px 24px 0 0; position: sticky; top: 0; z-index: 10;
+        }
+        .hostal-modal-header h3 { margin: 0; color: white; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+        .hostal-modal-header small { color: rgba(255,255,255,0.65); display: block; font-size: 0.8rem; margin-top: 2px; }
+        .hostal-modal-close {
+            background: rgba(255,255,255,0.12); border: none; color: white;
+            width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s; font-size: 0.9rem; flex-shrink: 0;
+        }
+        .hostal-modal-close:hover { background: rgba(255,255,255,0.25); }
+        .hostal-modal-body { padding: 28px; background: #F8F9F2; }
+        .hostal-modal-footer {
+            padding: 20px 28px; background: white;
+            border-top: 1px solid var(--bg-cream);
+            display: flex; gap: 12px; justify-content: flex-end;
+            position: sticky; bottom: 0;
+        }
+        .hm-field { margin-bottom: 18px; }
+        .hm-label { display: block; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary-color); margin-bottom: 7px; }
+        .hm-input {
+            width: 100%; padding: 12px 14px; border-radius: 12px;
+            border: 2px solid var(--bg-cream); font-size: 0.95rem;
+            background: white; outline: none; transition: 0.2s;
+            color: var(--primary-color); font-family: inherit; box-sizing: border-box;
+        }
+        .hm-input:focus { border-color: var(--secondary-color); box-shadow: 0 0 0 4px rgba(97,111,57,0.1); }
+        .hm-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .btn-hm-cancel { padding: 10px 24px; border-radius: 12px; border: 2px solid var(--bg-cream); background: white; color: var(--text-light); font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-hm-cancel:hover { border-color: var(--primary-color); color: var(--primary-color); }
+        .btn-hm-save { padding: 10px 28px; border-radius: 12px; border: none; background: var(--primary-color); color: white; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+        .btn-hm-save:hover { filter: brightness(1.1); }
+        .info-note { background: rgba(97,111,57,0.08); border: 1px solid rgba(97,111,57,0.2); border-radius: 12px; padding: 12px 16px; font-size: 0.83rem; color: var(--secondary-color); display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+        @keyframes htFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes htSlideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
@@ -187,27 +256,27 @@
 <body>
 
     <nav class="sidebar">
-        <a href="{% url 'hostal:dashboard_hostal' %}" class="brand" style="text-decoration: none;">
-            <div class="brand-icon">
-                <i class="fas fa-bed"></i>
-            </div>
-            <span>Hostal</span>
+        <a href="{% url 'hostal:dashboard_hostal' %}" class="brand" style="text-decoration: none; padding: 20px 10px; display: block; text-align: center;">
+            <img src="{% static 'usuarios/imagenes/logo_postor.png' %}" alt="El Postor Café" style="width: 100%; max-width: 180px; height: auto; margin-bottom: 10px;">
+            <div style="font-size: 0.8rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">Módulo Hostal</div>
         </a>
 
         <div class="nav-menu">
             <a href="{% url 'hostal:dashboard_hostal' %}" class="nav-item {% block active_dashboard %}{% endblock %}">
                 <i class="fas fa-th-large"></i> Recepción
             </a>
-            <a href="{% url 'hostal:calendario_reservas' %}" class="nav-item {% block active_reservas %}{% endblock %}">
-                <i class="fas fa-calendar-alt"></i> Rack Mensual
-            </a>
             <a href="{% url 'hostal:gestion_habitaciones' %}"
                 class="nav-item {% block active_habitaciones %}{% endblock %}">
                 <i class="fas fa-door-open"></i> Habitaciones
             </a>
-            <!-- Nuevo Módulo Finanzas -->
-            <a href="{% url 'hostal:finanzas_hostal' %}" class="nav-item">
-                <i class="fas fa-comment-dollar"></i> Finanzas
+            <a href="{% url 'hostal:finanzas_hostal' %}" class="nav-item {% block active_finanzas %}{% endblock %}">
+                <i class="fas fa-chart-line"></i> Finanzas
+            </a>
+            <a href="{% url 'hostal:caja_hostal' %}" class="nav-item {% block active_caja_hostal %}{% endblock %}" style="padding-left: 32px; font-size: 0.88rem;">
+                <i class="fas fa-cash-register"></i> Caja
+            </a>
+            <a href="{% url 'hostal:reportes_hostal' %}" class="nav-item {% block active_reportes_hostal %}{% endblock %}" style="padding-left: 32px; font-size: 0.88rem;">
+                <i class="fas fa-chart-bar"></i> Reportes
             </a>
         </div>
 
@@ -233,6 +302,9 @@
 
         {% block content %}{% endblock %}
     </main>
+
+    <!-- CONTENEDOR GLOBAL DE MODALES HTMX -->
+    <div id="hostal-modal-container"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     {% block extra_scripts %}{% endblock %}

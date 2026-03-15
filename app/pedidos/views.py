@@ -1,6 +1,7 @@
 
 # 📁 pedidos/views.py
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse, HttpResponse
@@ -9,8 +10,7 @@ from django.views.decorators.http import etag
 from django.utils import timezone
 
 from clientes.models import Cliente
-from .models import Pedido, Producto, DetallePedido, Mesa, Factura
-from usuarios.models import AuditLog
+from .models import Pedido, Producto, DetallePedido, Mesa, Factura, CategoriaProducto
 from usuarios.models import AuditLog
 from inventario.models import MovimientoKardex, Insumo
 from .forms import ProductoForm # Importar Formulario
@@ -26,20 +26,54 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
+from caja.models import SesionCaja
+from django.contrib import messages
+
 # --- VISTAS DEL MESERO ---
 
 # 👇👇👇 ESTA ES LA VISTA NUEVA QUE FALTABA 👇👇👇
 @login_required
-@mesero_required
 def panel_mesas(request):
-    # Traemos todas las mesas ordenadas por su número
-    mesas = Mesa.objects.all().order_by('numero')
-    return render(request, 'pedidos/panel_mesas.html', {'mesas': mesas})
+    # Validar que la caja esté abierta ANTES de empezar el día en el POS
+    if not SesionCaja.objects.filter(usuario=request.user, estado=True).exists():
+        messages.warning(request, "⚠️ Para acceder al Punto de Venta debes abrir tu caja primero.")
+        return redirect('caja:gestion_caja')
+
+    # La vista asume que si es POS General, usamos un ticket genérico sin mesa atada.
+    pedido_activo = Pedido.objects.filter(
+        mesero=request.user, 
+        estado='borrador', 
+        mesa__isnull=True, 
+        cliente__isnull=True,
+        fecha_entrega__isnull=True
+    ).first()
+    
+    if not pedido_activo:
+        pedido_activo = Pedido.objects.create(
+            mesero=request.user,
+            estado='borrador'
+        )
+        
+    productos = Producto.objects.filter(disponible=True).order_by('categoria__nombre', 'nombre')
+    categorias = CategoriaProducto.objects.all().order_by('nombre')
+    
+    context = {
+        'pedido': pedido_activo,
+        'productos': productos,
+        'categorias': categorias,
+        'mesa': None, # Pedido general directo
+    }
+    return render(request, 'pedidos/pos_general.html', context)
 # 👆👆👆 FIN DE LO NUEVO 👆👆👆
 
 @login_required
 @mesero_required
 def detalle_mesa(request, mesa_id):
+    # Validar que la caja esté abierta ANTES de atender mesa
+    if not SesionCaja.objects.filter(usuario=request.user, estado=True).exists():
+        messages.warning(request, "⚠️ Para atender mesas debes abrir tu caja primero.")
+        return redirect('caja:gestion_caja')
+
     mesa = get_object_or_404(Mesa, pk=mesa_id)
     
     # Buscamos si hay un pedido activo
@@ -88,15 +122,20 @@ def agregar_producto(request, pedido_id, producto_id):
         )
         
         if not created:
-            detalle.cantidad += 1
-            detalle.save()
+            # Validar si hay stock suficiente antes de incrementar
+            if producto.stock > detalle.cantidad:
+                detalle.cantidad += 1
+                detalle.save()
+            else:
+                # Opcional: podrías enviar un mensaje de error htmx aquí
+                pass
         
-        # Restar stock
-        producto.stock -= 1
-        producto.save()
+        # ELIMINADO: No descontamos del stock hasta que se venda o confirme formalmente
+        # producto.stock -= 1
+        # producto.save()
 
-        # NUEVO: Si la mesa estaba libre, ahora sí la ocupamos
-        if pedido.mesa.estado == 'libre':
+        # NUEVO: Si la mesa estaba libre, ahora sí la ocupamos (solo si hay mesa)
+        if pedido.mesa and pedido.mesa.estado == 'libre':
             pedido.mesa.estado = 'ocupada'
             pedido.mesa.save()
 
@@ -129,28 +168,8 @@ def confirmar_pedido(request, pedido_id):
             action=f"Envió a cocina: Pedido #{pedido.id} (Mesa {pedido.mesa.numero})"
         )
 
-        # 2. DESCARGA DE INVENTARIO (RECETAS)
-        for detalle in pedido.items.all():
-            producto = detalle.producto
-            cantidad_vendida = detalle.cantidad
-
-            if producto.receta.exists():
-                for item_receta in producto.receta.all():
-                    insumo = item_receta.insumo
-                    cantidad_a_descontar = item_receta.cantidad_necesaria * cantidad_vendida
-                    
-                    # Restamos del stock del INSUMO
-                    insumo.stock_actual -= cantidad_a_descontar
-                    insumo.save()
-
-                    # Guardamos en Kardex
-                    MovimientoKardex.objects.create(
-                        insumo=insumo,
-                        tipo='salida',
-                        cantidad=cantidad_a_descontar,
-                        costo_total=cantidad_a_descontar * insumo.costo_unitario,
-                        observacion=f"Venta Pedido #{pedido.id}: {producto.nombre} x{cantidad_vendida}"
-                    )
+        # ELIMINADO: El descuento de inventario se centraliza en el pago (procesar_pago)
+        # para evitar errores de doble descuento y cumplir con el flujo solicitado.
         
         return redirect('usuarios:dashboard_mesero')
     else:
@@ -220,8 +239,10 @@ def modificar_cantidad_item(request, item_id, accion):
     
     if pedido.estado == 'borrador':
         if accion == 'sumar':
-            item.cantidad += 1
-            item.save()
+            # Validar stock antes de sumar
+            if item.producto.stock > item.cantidad:
+                item.cantidad += 1
+                item.save()
         elif accion == 'restar':
             item.cantidad -= 1
             if item.cantidad <= 0:
@@ -270,7 +291,13 @@ def ver_comanda(request, pedido_id):
 def modal_cobrar(request, pedido_id):
     # Buscamos el pedido para mostrar el total
     pedido = get_object_or_404(Pedido, pk=pedido_id)
-    return render(request, 'pedidos/modals/cobrar.html', {'pedido': pedido})
+    mesas_libres = Mesa.objects.filter(estado='libre').order_by('numero')
+    return render(request, 'pedidos/modals/cobrar.html', {'pedido': pedido, 'mesas_libres': mesas_libres})
+
+@login_required
+def detalle_pedido_modal(request, pedido_id):
+    pedido = get_object_or_404(Pedido, pk=pedido_id)
+    return render(request, 'pedidos/modals/detalle_pedido.html', {'pedido': pedido})
 
 @login_required
 @mesero_required
@@ -278,13 +305,59 @@ def procesar_pago(request, pedido_id):
     if request.method == 'POST':
         pedido = get_object_or_404(Pedido, pk=pedido_id)
         cliente_id = request.POST.get('cliente_id')
+        mesa_id = request.POST.get('mesa_id')
         
-        # 1. Obtener Cliente (si enviaron uno)
+        # Asignar mesa de venta si la enviaron desde el modal del POS general
+        if mesa_id:
+            mesa_seleccionada = get_object_or_404(Mesa, pk=mesa_id)
+            pedido.mesa = mesa_seleccionada
+            pedido.save()
+            
+        # 1. Obtener o Crear Cliente
         cliente = None
-        if cliente_id:
+        
+        # Comprobar si es un cliente nuevo enviado desde el formulario
+        if request.POST.get('es_nuevo_cliente') == 'true':
+            nombres = request.POST.get('nuevo_nombres')
+            cedula = request.POST.get('nuevo_cedula')
+            direccion = request.POST.get('nuevo_direccion')
+            telefono = request.POST.get('nuevo_telefono')
+            email = request.POST.get('nuevo_email')
+            
+            if nombres and cedula:
+                # Intentamos obtenerlo si ya existe por cédula para evitar duplicados
+                cliente, created = Cliente.objects.get_or_create(
+                    cedula_o_ruc=cedula,
+                    defaults={
+                        'nombres': nombres,
+                        'direccion': direccion,
+                        'telefono': telefono,
+                        'email': email
+                    }
+                )
+        
+        # Si no es nuevo, buscarlo por ID si se seleccionó uno existente
+        if not cliente and cliente_id:
             cliente = get_object_or_404(Cliente, pk=cliente_id)
             
-        # 2. Crear la Factura (Snapshot de datos)
+        if cliente:
+            pedido.cliente = cliente
+            pedido.save()
+            
+        # 2. Capturar Montos de Pago (Para Efectivo)
+        monto_recibido = request.POST.get('efectivo_recibido', 0)
+        total_pago = pedido.total
+        cambio = 0
+        
+        try:
+            monto_recibido = float(monto_recibido)
+            if monto_recibido > 0:
+                cambio = monto_recibido - float(total_pago)
+        except (ValueError, TypeError):
+            monto_recibido = total_pago
+            cambio = 0
+
+        # 3. Crear la Factura (Snapshot de datos)
         # Si no hay cliente, usamos datos genéricos de Consumidor Final
         datos_factura = {
             'pedido': pedido,
@@ -295,40 +368,39 @@ def procesar_pago(request, pedido_id):
             'razon_social': cliente.nombres if cliente else 'CONSUMIDOR FINAL',
             'ruc_ci': cliente.cedula_o_ruc if cliente else '9999999999999',
             'direccion': cliente.direccion if cliente else '',
-            'correo': cliente.email if cliente else ''
+            'correo': cliente.email if cliente else '',
+            'monto_recibido': monto_recibido,
+            'vuelto': max(0.0, float(cambio))
         }
         
         factura = Factura.objects.create(**datos_factura)
         
-        # 3. AUTOMATIZACIÓN DE INVENTARIO (KARDEX)
-        # Recorremos cada plato vendido para descontar sus ingredientes
+        # 3. AUTOMATIZACIÓN DE INVENTARIO (PRODUCTOS Y RECETAS)
+        # Este es ahora el punto ÚNICO de descuento para asegurar que la venta se realizó.
         for item in pedido.items.all():
             producto = item.producto
             cantidad_vendida = item.cantidad
             
-            # Buscamos si el producto tiene receta (ingredientes)
-            if hasattr(producto, 'receta'):
+            # A. Descontar stock del producto directamente (si tiene stock definido)
+            if producto.stock > 0:
+                producto.stock -= cantidad_vendida
+                producto.save()
+
+            # B. Descontar ingredientes (Receta)
+            if producto.receta.exists():
                 for ingrediente in producto.receta.all():
                     insumo = ingrediente.insumo
                     cantidad_a_descontar = ingrediente.cantidad_necesaria * cantidad_vendida
                     
-                    # Registramos la salida en el Kardex
+                    # Registramos la salida en el Kardex (El modelo Kardex descuenta el stock automáticamente al guardar)
                     MovimientoKardex.objects.create(
                         insumo=insumo,
                         tipo='salida',
                         cantidad=cantidad_a_descontar,
-                        costo_total=cantidad_a_descontar * insumo.costo_unitario, # Costo estimado
-                        observacion=f"Venta Pedido #{pedido.id}: {cantidad_vendida}x {producto.nombre}"
+                        costo_total=cantidad_a_descontar * insumo.costo_unitario, 
+                        observacion=f"Venta Final Pedido #{pedido.id}: {cantidad_vendida}x {producto.nombre}"
                     )
 
-        # 4. Actualizar Estados
-        pedido.estado = 'pagado'
-        pedido.save()
-        
-        mesa = pedido.mesa
-        mesa.estado = 'libre'
-        mesa.save()
-        
         # 4. Redirigir al Ticket
         return redirect('pedidos:ver_ticket', factura_id=factura.id)
 
@@ -339,8 +411,23 @@ def ver_ticket(request, factura_id):
 # --- GESTIÓN DE PRODUCTOS (GERENTE) ---
 
 # --- GESTIÓN DE RECETAS (Menú Gerente) ---
-from .forms import RecetaForm 
+from .forms import RecetaForm, CategoriaProductoForm
 from inventario.models import Receta
+
+@login_required
+@gerente_required
+def crear_categoria(request):
+    if request.method == 'POST':
+        form = CategoriaProductoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            # Retornar una señal para que el select del producto se actualice o refrescar
+            # En este caso, como estamos dentro de otro modal, lo más limpio es refrescar la página
+            # o recargar el modal del producto. Refrescar la página es lo más seguro.
+            return HttpResponse(status=204, headers={'HX-Refresh': 'true'})
+    else:
+        form = CategoriaProductoForm()
+    return render(request, 'pedidos/modals/form_categoria.html', {'form': form})
 
 @login_required
 @gerente_required
@@ -691,5 +778,58 @@ def editar_pedido_directo(request, pedido_id):
         'productos': productos,
         'mesa': None, # Explícito
         'is_htmx': False 
+    })
+
+
+# --- HISTORIAL DE PEDIDOS (GERENTE) ---
+@login_required
+@gerente_required
+def historial_pedidos(request):
+    from django.db.models import Q
+    from datetime import date, timedelta
+
+    # Filtros desde GET
+    estado_filtro = request.GET.get('estado', '')
+    fecha_desde = request.GET.get('fecha_desde', '')
+    fecha_hasta = request.GET.get('fecha_hasta', '')
+    busqueda = request.GET.get('q', '')
+
+    # Base queryset: todos los pedidos excepto borradores vacíos
+    pedidos_qs = Pedido.objects.exclude(
+        estado='borrador'
+    ).select_related('mesa', 'mesero', 'cliente').prefetch_related('items__producto').order_by('-created_at')
+
+    if estado_filtro:
+        pedidos_qs = pedidos_qs.filter(estado=estado_filtro)
+
+    if fecha_desde:
+        pedidos_qs = pedidos_qs.filter(created_at__date__gte=fecha_desde)
+
+    if fecha_hasta:
+        pedidos_qs = pedidos_qs.filter(created_at__date__lte=fecha_hasta)
+
+    if busqueda:
+        pedidos_qs = pedidos_qs.filter(
+            Q(id__icontains=busqueda) |
+            Q(mesa__numero__icontains=busqueda) |
+            Q(mesero__username__icontains=busqueda) |
+            Q(cliente__nombres__icontains=busqueda)
+        )
+
+    # Estadísticas rápidas del día
+    hoy = date.today()
+    pedidos_hoy = Pedido.objects.filter(created_at__date=hoy).exclude(estado='borrador')
+    total_hoy = sum(p.total for p in pedidos_hoy if p.estado == 'pagado')
+    
+    return render(request, 'pedidos/historial_pedidos.html', {
+        'pedidos': pedidos_qs,
+        'estado_filtro': estado_filtro,
+        'fecha_desde': fecha_desde,
+        'fecha_hasta': fecha_hasta,
+        'busqueda': busqueda,
+        'total_pedidos': pedidos_qs.count(),
+        'pedidos_hoy_count': pedidos_hoy.count(),
+        'total_ventas_hoy': total_hoy,
+        'estados': Pedido.ESTADO_CHOICES,
     })
 

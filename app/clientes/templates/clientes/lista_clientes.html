@@ -1,0 +1,248 @@
+{% extends 'usuarios/base_gerente.html' %}
+{% load static %}
+
+{% block title %}Gestión de Clientes - El Postor Café{% endblock %}
+
+{% block active_clientes %}active{% endblock %}
+
+{% block content %}
+<style>
+    .clientes-container {
+        padding: 2rem;
+        background: var(--bg-light);
+        min-height: 100vh;
+    }
+
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin: 0;
+    }
+
+    .page-subtitle {
+        color: var(--text-muted);
+        font-size: 1rem;
+        margin-top: 5px;
+    }
+
+    /* Search Card */
+    .search-card {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 2rem;
+        border: 1px solid var(--bg-cream);
+    }
+
+    .input-group-custom {
+        display: flex;
+        gap: 12px;
+    }
+
+    .search-input-wrapper {
+        flex: 1;
+        position: relative;
+    }
+
+    .search-input-wrapper i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--accent-color);
+    }
+
+    .search-input-wrapper input {
+        width: 100%;
+        padding: 12px 12px 12px 45px;
+        border: 2px solid var(--bg-cream);
+        border-radius: 12px;
+        outline: none;
+        font-family: inherit;
+        transition: 0.3s;
+    }
+
+    .search-input-wrapper input:focus {
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 4px rgba(97, 111, 57, 0.1);
+    }
+
+    /* Table Styling */
+    .table-responsive-custom {
+        background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--bg-cream);
+    }
+
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .custom-table thead th {
+        background: var(--primary-color);
+        color: white;
+        text-align: left;
+        padding: 18px 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .custom-table tbody tr {
+        border-bottom: 1px solid var(--bg-light);
+        transition: 0.2s;
+    }
+
+    .custom-table tbody tr:hover {
+        background: #F9FAF5;
+    }
+
+    .custom-table td {
+        padding: 16px 20px;
+        color: var(--primary-color);
+        font-size: 0.95rem;
+    }
+
+    .client-name {
+        font-weight: 800;
+        color: var(--primary-color);
+    }
+
+    .client-id {
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: 700;
+        color: var(--secondary-color);
+        font-size: 0.9rem;
+    }
+
+    .client-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .client-meta small {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+    }
+
+    .btn-action {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: 0.2s;
+        border: none;
+        background: var(--bg-cream);
+        color: var(--primary-color);
+    }
+
+    .btn-action:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: scale(1.1);
+    }
+</style>
+
+<div class="clientes-container">
+    <div class="header-section">
+        <div>
+            <h1 class="page-title">Directorio de Clientes</h1>
+            <p class="page-subtitle">Base de datos de fidelización y facturación.</p>
+        </div>
+        <button class="btn-primary" hx-get="{% url 'clientes:modal_crear' %}" hx-target="#modal-container" style="display: flex; align-items: center; gap: 10px; padding: 14px 24px; border-radius: 14px;">
+            <i class="fas fa-user-plus"></i> Registrar Nuevo Cliente
+        </button>
+    </div>
+
+    <!-- Buscador -->
+    <div class="search-card">
+        <form method="GET" action="{% url 'clientes:lista' %}" class="input-group-custom">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" name="q" placeholder="Buscar por Nombre, RUC o Cédula de identidad..." value="{{ query }}">
+            </div>
+            <button type="submit" class="btn btn-dark" style="border-radius: 12px; padding: 0 30px;">
+                <i class="fas fa-filter me-2"></i> Aplicar Filtro
+            </button>
+        </form>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-responsive-custom">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Identificación</th>
+                    <th>Cliente / Razón Social</th>
+                    <th>Contacto</th>
+                    <th>Ubicación</th>
+                    <th>Registro</th>
+                    <th style="text-align: center;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in clientes %}
+                <tr>
+                    <td class="client-id">{{ cliente.cedula_o_ruc }}</td>
+                    <td>
+                        <div class="client-name">{{ cliente.nombres }}</div>
+                        <small class="text-muted" style="font-size: 0.75rem;">Consumidor Recurrente</small>
+                    </td>
+                    <td>
+                        <div class="client-meta">
+                            <span><i class="far fa-envelope me-1"></i> {{ cliente.email|default:"Sin correo" }}</span>
+                            <small><i class="fas fa-phone-alt me-1"></i> {{ cliente.telefono|default:"—" }}</small>
+                        </div>
+                    </td>
+                    <td style="font-size: 0.85rem; color: var(--text-muted); max-width: 200px;">
+                        {{ cliente.direccion|default:"Dirección no registrada" }}
+                    </td>
+                    <td>
+                        <span class="badge" style="background: var(--bg-cream); color: var(--primary-color); font-weight: 700;">
+                            {{ cliente.created_at|date:"d M, Y" }}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="display: flex; justify-content: center; gap: 8px;">
+                            <button class="btn-action" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-action" style="color: #991B1B;" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 100px 0; color: var(--text-muted);">
+                        <i class="fas fa-users-slash fa-4x mb-4" style="opacity: 0.2; display: block;"></i>
+                        <p style="font-size: 1.2rem; font-weight: 500;">No se encontraron clientes registrados</p>
+                        <p style="font-size: 0.9rem;">Intenta con otros términos de búsqueda o registra uno nuevo.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="modal-container"></div>
+{% endblock %}

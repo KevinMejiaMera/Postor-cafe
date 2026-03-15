@@ -19,6 +19,7 @@ services:
       - red_interna
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d postorcafe_db"]
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
       interval: 10s
       timeout: 10s
       retries: 10
@@ -93,7 +94,7 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 512M
+          memory: 1024M
 
   # ─────────────────────────────────────
   # PROXY NGINX

@@ -1,0 +1,203 @@
+<!-- MODAL: NUEVA RESERVA HOSTAL (cargado vía HTMX) -->
+<div class="hostal-overlay" onclick="if(event.target===this) cerrarModalReserva()">
+    <div class="hostal-modal hostal-modal-wide" onclick="event.stopPropagation()">
+
+        <div class="hostal-modal-header">
+            <div>
+                <h3><i class="fas fa-calendar-plus"></i> Nueva Reserva</h3>
+                <small>Ingresa los datos del huésped y la estancia</small>
+            </div>
+            <button class="hostal-modal-close" onclick="cerrarModalReserva()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="{% url 'hostal:crear_reserva' %}">
+            {% csrf_token %}
+            <div class="hostal-modal-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+
+                <!-- COLUMNA IZQUIERDA -->
+                <div>
+                    <p class="rm-section-title"><i class="fas fa-user"></i> Datos del Huésped</p>
+
+                    <div class="hm-field">
+                        <label class="hm-label">Nombre Completo *</label>
+                        <input type="text" name="nombre_completo" class="hm-input" placeholder="Ej: Juan Pérez" required>
+                    </div>
+                    <div class="hm-field">
+                        <label class="hm-label">DNI / Pasaporte *</label>
+                        <input type="text" name="documento" class="hm-input" placeholder="Ej: 1234567890" required>
+                    </div>
+                    <div class="hm-grid-2">
+                        <div class="hm-field">
+                            <label class="hm-label">Teléfono</label>
+                            <input type="text" name="telefono" class="hm-input" placeholder="09xxxxxxxx">
+                        </div>
+                        <div class="hm-field">
+                            <label class="hm-label">Email</label>
+                            <input type="email" name="email" class="hm-input" placeholder="correo@...">
+                        </div>
+                    </div>
+
+                    <p class="rm-section-title" style="margin-top: 20px;"><i class="fas fa-bed"></i> Estancia</p>
+
+                    <div class="hm-grid-2">
+                        <div class="hm-field">
+                            <label class="hm-label">Check-In *</label>
+                            <input type="date" name="fecha_checkin" id="rm_checkin" class="hm-input" required>
+                        </div>
+                        <div class="hm-field">
+                            <label class="hm-label">Check-Out *</label>
+                            <input type="date" name="fecha_checkout" id="rm_checkout" class="hm-input" required>
+                        </div>
+                    </div>
+
+                    <div class="hm-grid-2">
+                        <div class="hm-field">
+                            <label class="hm-label">N.° Huéspedes</label>
+                            <input type="number" name="cantidad_personas" class="hm-input" value="1" min="1" max="20">
+                        </div>
+                        <div class="hm-field">
+                            <label class="hm-label">Precio/Noche (acordado)</label>
+                            <input type="number" step="0.01" name="precio_manual" id="rm_precio_manual" class="hm-input" placeholder="Auto">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMNA DERECHA -->
+                <div>
+                    <p class="rm-section-title"><i class="fas fa-door-open"></i> Habitación</p>
+
+                    <div class="hm-field">
+                        <label class="hm-label">Tipo de Habitación</label>
+                        <select name="tipo_habitacion" id="rm_tipo" class="hm-input">
+                            <option value="">— Cualquier tipo —</option>
+                            {% for t in tipos %}
+                            <option value="{{ t.id }}" data-precio="{{ t.precio_noche }}">
+                                {{ t.nombre }} — ${{ t.precio_noche }}/noche · {{ t.capacidad_personas }} pers.
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="hm-field">
+                        <label class="hm-label">Habitación Específica</label>
+                        <select name="habitacion_id" id="rm_hab" class="hm-input">
+                            <option value="">Asignación Automática</option>
+                            {% for h in habitaciones %}
+                            <option value="{{ h.id }}" data-tipo="{{ h.tipo.id }}" data-precio="{{ h.tipo.precio_noche }}">
+                                Hab. {{ h.numero }} — {{ h.tipo.nombre }} (${{ h.precio_actual }}/noche)
+                            </option>
+                            {% empty %}
+                            <option disabled>No hay habitaciones disponibles</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- RESUMEN DINÁMICO -->
+                    <div class="rm-summary">
+                        <div class="rm-sum-row">
+                            <span>Noches</span>
+                            <span id="rm_noches" class="rm-val">—</span>
+                        </div>
+                        <div class="rm-sum-row">
+                            <span>Precio / noche</span>
+                            <span id="rm_precio_label" class="rm-val">$0.00</span>
+                        </div>
+                        <div class="rm-sum-row rm-sum-total">
+                            <span>Total Estimado</span>
+                            <span id="rm_total" class="rm-val">$0.00</span>
+                        </div>
+                    </div>
+
+                    {% if not habitaciones %}
+                    <div class="info-note" style="margin-top: 16px;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        No hay habitaciones disponibles en este momento. Libera una o crea nuevas en <strong>Habitaciones</strong>.
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <div class="hostal-modal-footer">
+                <button type="button" class="btn-hm-cancel" onclick="cerrarModalReserva()">Cancelar</button>
+                <button type="submit" class="btn-hm-save">
+                    <i class="fas fa-check-circle"></i> Confirmar Reserva
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .hostal-modal-wide { width: 860px !important; }
+
+    .rm-section-title {
+        font-size: 0.78rem; font-weight: 800; text-transform: uppercase;
+        letter-spacing: 1px; color: var(--secondary-color);
+        margin: 0 0 14px 0; display: flex; align-items: center; gap: 8px;
+    }
+
+    .rm-summary {
+        background: var(--primary-color);
+        border-radius: 16px;
+        padding: 18px 20px;
+        margin-top: 20px;
+    }
+    .rm-sum-row {
+        display: flex; justify-content: space-between;
+        font-size: 0.88rem; line-height: 1; padding: 8px 0;
+        color: rgba(255,255,255,0.75);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .rm-sum-row:last-child { border-bottom: none; }
+    .rm-val { font-weight: 800; color: white; }
+    .rm-sum-total { font-size: 1.2rem; margin-top: 4px; padding-top: 12px; }
+    .rm-sum-total .rm-val { font-size: 1.4rem; }
+</style>
+
+<script>
+    function cerrarModalReserva() {
+        document.getElementById('hostal-modal-container').innerHTML = '';
+    }
+
+    (function() {
+        const checkin  = document.getElementById('rm_checkin');
+        const checkout = document.getElementById('rm_checkout');
+        const tipoSel  = document.getElementById('rm_tipo');
+        const habSel   = document.getElementById('rm_hab');
+        const precioM  = document.getElementById('rm_precio_manual');
+        const today    = new Date().toISOString().split('T')[0];
+        checkin.min = today;
+        checkout.min = today;
+
+        function recalcular() {
+            let noches = 0;
+            if (checkin.value && checkout.value) {
+                const d1 = new Date(checkin.value);
+                const d2 = new Date(checkout.value);
+                noches = Math.max(0, Math.round((d2 - d1) / 86400000));
+            }
+
+            let precioNoche = 0;
+            const habOpt  = habSel.options[habSel.selectedIndex];
+            const tipoOpt = tipoSel.options[tipoSel.selectedIndex];
+            if (habOpt && habOpt.dataset.precio) {
+                precioNoche = parseFloat(habOpt.dataset.precio);
+            } else if (tipoOpt && tipoOpt.dataset.precio) {
+                precioNoche = parseFloat(tipoOpt.dataset.precio);
+            }
+            const manual = parseFloat(precioM.value);
+            if (!isNaN(manual) && manual > 0) precioNoche = manual;
+
+            document.getElementById('rm_noches').textContent = noches > 0 ? noches + ' noche' + (noches > 1 ? 's' : '') : '—';
+            document.getElementById('rm_precio_label').textContent = '$' + precioNoche.toFixed(2);
+            document.getElementById('rm_total').textContent = '$' + (precioNoche * noches).toFixed(2);
+        }
+
+        [checkin, checkout, tipoSel, habSel, precioM].forEach(el => el.addEventListener('change', recalcular));
+        precioM.addEventListener('input', recalcular);
+        recalcular();
+    })();
+</script>
