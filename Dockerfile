@@ -40,8 +40,11 @@ COPY --from=builder /install /usr/local
 # Copiar el código del proyecto
 COPY . /app/
 
-# Permisos para el usuario no-root
-RUN chown -R postor:postor /app
+# Permisos para el usuario no-root y crear directorios necesarios
+RUN chown -R postor:postor /app \
+    && mkdir -p /app/media/productos \
+    && chown -R postor:postor /app/media \
+    && chmod -R 755 /app/media
 
 USER postor
 

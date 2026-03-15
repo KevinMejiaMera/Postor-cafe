@@ -18,19 +18,31 @@ class Mesa(models.Model):
     def __str__(self):
         return f"Mesa {self.numero}"
 
-# 2. PRODUCTO (Menú)
+# 2. CATEGORÍA
+class CategoriaProducto(models.Model):
+    nombre = models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(max_length=60, unique=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        from django.utils.text import slugify
+        if not self.slug:
+            self.slug = slugify(self.nombre)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.nombre
+
+    class Meta:
+        verbose_name = "Categoría de Producto"
+        verbose_name_plural = "Categorías de Productos"
+
+# 3. PRODUCTO (Menú)
 class Producto(models.Model):
-    CATEGORIA_CHOICES = [
-        ('entrada', 'Entrada'),
-        ('plato_fuerte', 'Plato Fuerte'),
-        ('bebida', 'Bebida'),
-        ('postre', 'Postre'),
-        ('otro', 'Otro'),
-    ]
 
     nombre = models.CharField(max_length=100)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
-    categoria = models.CharField(max_length=20, choices=CATEGORIA_CHOICES, default='otro', verbose_name="Categoría")
+    categoria = models.ForeignKey(CategoriaProducto, on_delete=models.SET_NULL, null=True, related_name='productos', verbose_name="Categoría")
+    imagen = models.ImageField(upload_to='productos/', null=True, blank=True, verbose_name="Imagen del Producto")
     stock = models.IntegerField(default=0, verbose_name="Stock Disponible")
     disponible = models.BooleanField(default=True)
 
@@ -139,8 +151,9 @@ class Factura(models.Model):
             self.pedido.estado = 'pagado'
             self.pedido.save()
             
-            # También liberamos la mesa automáticamente
-            self.pedido.mesa.estado = 'libre'
-            self.pedido.mesa.save()
+            # También liberamos la mesa automáticamente (si el pedido tiene una)
+            if self.pedido.mesa:
+                self.pedido.mesa.estado = 'libre'
+                self.pedido.mesa.save()
             
         super().save(*args, **kwargs)

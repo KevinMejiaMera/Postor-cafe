@@ -19,6 +19,8 @@ from django.urls import path, include
 from django.views.generic import RedirectView
 from django.http import JsonResponse
 from django.db import connection
+from django.conf import settings
+from django.conf.urls.static import static
 
 def health_check(request):
     """Endpoint de salud para health checks de Docker."""
@@ -43,3 +45,6 @@ urlpatterns = [
     path('eventos/', include('eventos.urls')),
     path('hostal/', include('hostal.urls')),
 ]
+
+# Servir archivos media siempre (en producción lo maneja Nginx/el volumen Docker)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

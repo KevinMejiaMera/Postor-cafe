@@ -1,4 +1,4 @@
-﻿aiodns
+aiodns
 aiohappyeyeballs
 aiohttp
 aiohttp-jinja2
@@ -62,6 +62,7 @@ pandas
 prometheus_client
 prompt_toolkit
 propcache
+Pillow
 proxmoxer
 psutil
 psycopg2-binary

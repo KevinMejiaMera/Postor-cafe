@@ -61,9 +61,9 @@ def registrar_movimiento(request):
             
             return HttpResponse(status=204, headers={'HX-Refresh': 'true'})
     else:
-        form = MovimientoKardexForm(initial={'tipo': 'entrada'})
+        form = MovimientoKardexForm(initial={'tipo': 'salida'})
     
-    return render(request, 'pedidos/modals/form_producto.html', {'form': form, 'titulo': 'Registrar Movimiento'})
+    return render(request, 'pedidos/modals/form_producto.html', {'form': form, 'titulo': 'Registrar Gasto / Movimiento'})
 
 @login_required
 @gerente_required

@@ -653,6 +653,8 @@
     </style>
     <script>
         // --- GUARDIÁN DE SESIÓN (Tab Close Protection) ---
+        // Se ejecuta SOLO para meseros. Los gerentes tienen pase libre y multi-pestaña.
+        {% if user.rol == 'mesero' %}
         // 1. Si venimos del login (?init_session=true), marcamos esta pestaña como AUTORIZADA.
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('init_session')) {
@@ -666,28 +668,40 @@
         if (!sessionStorage.getItem('session_active')) {
             window.location.href = "{% url 'usuarios:logout' %}";
         }
+        {% endif %}
     </script>
 </head>
 
 <body>
 
-    <!-- NAVBAR -->
     <nav class="navbar">
         <a href="#" class="brand"><i class="fas fa-utensils"></i> Postor Cafe San Pedro de Huaca</a>
 
-        <!-- ENLACE DE CAJA -->
-        <a href="{% url 'caja:gestion_caja' %}"
-            style="text-decoration: none; color: #4B5563; font-weight: 600; font-size: 1.1rem; display: flex; gap: 8px; align-items: center; background: #F3F4F6; padding: 8px 16px; border-radius: 12px;">
-            <i class="fas fa-cash-register" style="color: #FF6B00;"></i> Caja
-        </a>
+        <!-- LINKS DE NAVEGACIÓN -->
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <!-- ENLACE DE CAJA -->
+            <a href="{% url 'caja:gestion_caja' %}"
+                style="text-decoration: none; color: #4B5563; font-weight: 600; font-size: 1.1rem; display: flex; gap: 8px; align-items: center; background: #F3F4F6; padding: 8px 16px; border-radius: 12px;">
+                <i class="fas fa-cash-register" style="color: #FF6B00;"></i> Caja
+            </a>
 
-        <div class="user-pill">
-            <span>{{ user.username }}</span>
-            <div class="user-avatar-circle">
-                {{ user.username|make_list|first|upper }}
+            <!-- ENLACE VOLVER AL DASHBOARD (SOLO GERENTE) -->
+            {% if user.rol == 'gerente' or user.rol == 'admin' %}
+            <a href="{% url 'usuarios:dashboard_gerente' %}"
+                style="text-decoration: none; color: #4B5563; font-weight: 600; font-size: 1.1rem; display: flex; gap: 8px; align-items: center; background: #F3F4F6; padding: 8px 16px; border-radius: 12px;">
+                <i class="fas fa-chart-line" style="color: #4338CA;"></i> Volver al Dashboard
+            </a>
+            {% endif %}
+
+            <div class="user-pill">
+                <span>{% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}</span>
+                <div class="user-avatar-circle">
+                    {{ user.username|make_list|first|upper }}
+                </div>
+                <a href="{% url 'usuarios:logout' %}" style="color: #9CA3AF; margin-left: 5px;" title="Cerrar Sesión">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
             </div>
-            <a href="{% url 'usuarios:logout' %}" style="color: #9CA3AF; margin-left: 5px;"><i
-                    class="fas fa-sign-out-alt"></i></a>
         </div>
     </nav>
 

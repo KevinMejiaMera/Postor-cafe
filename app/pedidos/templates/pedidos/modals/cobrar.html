@@ -15,10 +15,43 @@
 
                 <div class="resumen-pago">
                     <span>Total a Pagar:</span>
-                    <span class="monto-total">${{ pedido.total }}</span>
+                    <span class="monto-total" id="monto_a_pagar_label" data-total="{{ pedido.total }}">${{ pedido.total|floatformat:2 }}</span>
                 </div>
 
-                <p style="margin-bottom: 10px; font-weight: 600; color: #374151;">Datos de Facturación:</p>
+                <!-- SELECTOR DE MESA (Si el pedido no tiene mesa asignada) -->
+                {% if not pedido.mesa %}
+                <div style="margin-bottom: 20px;">
+                    <label
+                        style="font-weight: 600; font-size: 0.9rem; color: #374151; display: block; margin-bottom: 8px;"><i
+                            class="fas fa-chair"></i> Asignar Mesa (Opcional):</label>
+                    <select name="mesa_id" class="search-box"
+                        style="width: 100%; border: 2px solid #E5E7EB; padding: 12px; border-radius: 10px; outline: none; background: white; color: #1F2937;">
+                        <option value="">🏠 Para Llevar / Directo</option>
+                        {% for m in mesas_libres %}
+                        <option value="{{ m.id }}">Mesa {{ m.numero }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <!-- CALCULADORA DE VUELTO -->
+                <div
+                    style="margin-bottom: 20px; background: #F9FAFB; padding: 15px; border-radius: 12px; border: 1px solid #E5E7EB;">
+                    <label
+                        style="font-weight: 600; font-size: 0.9rem; color: #374151; display: block; margin-bottom: 8px;"><i
+                            class="fas fa-money-bill-wave"></i> Efectivo Recibido:</label>
+                    <input type="number" id="efectivo_recibido" class="search-box"
+                        style="width: 100%; font-size: 1.2rem; font-weight: bold; border: 2px solid #D1D5DB; padding: 10px; border-radius: 8px; box-sizing: border-box; background: white;"
+                        placeholder="$ 0.00" step="0.01" onkeyup="calcularVuelto()">
+
+                    <div
+                        style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 1.1rem; font-weight: 700;">
+                        <span style="color: #4B5563;">Cambio / Vuelto:</span>
+                        <span id="vuelto_label" style="color: #10B981;">$ 0.00</span>
+                    </div>
+                </div>
+
+                <p style="margin-bottom: 10px; font-weight: 600; color: #374151;">Datos de Facturación Opcional:</p>
 
                 <input type="hidden" id="cliente_seleccionado_id" name="cliente_id" value="">
 
@@ -50,6 +83,21 @@
 </div>
 
 <script>
+    function calcularVuelto() {
+        let total = parseFloat(document.getElementById('monto_a_pagar_label').getAttribute('data-total')) || 0;
+        let recibido = parseFloat(document.getElementById('efectivo_recibido').value);
+        let vueltoLabel = document.getElementById('vuelto_label');
+
+        if (isNaN(recibido) || recibido < total) {
+            vueltoLabel.innerText = "Faltan fondos";
+            vueltoLabel.style.color = "#EF4444"; // rojo
+        } else {
+            let vuelto = recibido - total;
+            vueltoLabel.innerText = "$ " + vuelto.toFixed(2);
+            vueltoLabel.style.color = "#10B981"; // verde
+        }
+    }
+
     function seleccionarCliente(id, nombre, ruc) {
         // 1. Guardar el ID en el input oculto
         document.getElementById('cliente_seleccionado_id').value = id ? id : '';

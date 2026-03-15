@@ -117,6 +117,12 @@
             <a href="{% url 'usuarios:dashboard_gerente' %}" class="{% block active_dashboard %}{% endblock %}">
                 <i class="fas fa-home"></i> Dashboard
             </a>
+            <a href="{% url 'pedidos:panel_mesas' %}" style="color: var(--primary-color);">
+                <i class="fas fa-utensils"></i> Punto de Venta
+            </a>
+            <a href="{% url 'pedidos:historial_pedidos' %}" class="{% block active_historial %}{% endblock %}">
+                <i class="fas fa-history"></i> Historial de Pedidos
+            </a>
             <a href="{% url 'usuarios:gestion_menu' %}" class="{% block active_menu %}{% endblock %}">
                 <i class="fas fa-hamburger"></i> Menú
             </a>
@@ -126,9 +132,7 @@
             <a href="{% url 'usuarios:reportes_ventas' %}" class="{% block active_reportes %}{% endblock %}">
                 <i class="fas fa-chart-line"></i> Reportes
             </a>
-            <a href="{% url 'pedidos:reporte_tiempos_cocina' %}">
-                <i class="fas fa-stopwatch"></i> Tiempos Cocina
-            </a>
+
             <a href="{% url 'usuarios:lista_usuarios' %}" class="{% block active_personal %}{% endblock %}">
                 <i class="fas fa-users"></i> Personal
             </a>

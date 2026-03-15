@@ -31,13 +31,13 @@ def role_required(allowed_roles=[]):
 def gerente_required(view_func):
     return role_required(['gerente'])(view_func)
 
-# Cocina
+# Cocina (Ahora el gerente también puede acceder)
 def cocina_required(view_func):
-    return role_required(['cocina'])(view_func)
+    return role_required(['cocina', 'gerente'])(view_func)
 
-# Mesero
+# Mesero (Ahora el gerente también puede acceder al POS)
 def mesero_required(view_func):
-    return role_required(['mesero'])(view_func)
+    return role_required(['mesero', 'gerente'])(view_func)
 
 # Cajero (si existiera en el futuro, por ahora usamos gerente o lógica ad-hoc)
 def cajero_required(view_func):

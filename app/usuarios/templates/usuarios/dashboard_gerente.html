@@ -6,17 +6,177 @@
 {% block active_dashboard %}active{% endblock %}
 
 {% block content %}
-<header>
+<header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
     <div>
-        <h4>Hola, {{ user.first_name|default:user.username }} 👋</h4>
-        <h2>Panel de Control</h2>
+        <h4 style="margin: 0; color: var(--text-gray); font-weight: 500;">
+            Hola, {% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %} 👋
+        </h4>
+        <h2 style="margin: 5px 0 0 0; color: var(--text-dark); font-size: 1.8rem;">Panel de Control</h2>
     </div>
-    <div class="user-profile">
+    <div class="user-profile"
+        style="display: flex; align-items: center; gap: 12px; background: white; padding: 6px 16px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+        <span style="font-weight: 700; color: var(--primary-color); font-size: 0.95rem;">Súper Gerente</span>
         <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=f28500&color=fff"
-            style="border-radius: 50%; width: 35px;">
-        <span>Gerente</span>
+            style="border-radius: 50%; width: 38px; height: 38px;">
     </div>
 </header>
+
+<!-- DASHBOARD ACCESOS RÁPIDOS (DISEÑO LIMPIO Y ELEGANTE) -->
+<div class="quick-actions-panel"
+    style="background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 30px;">
+    <h3
+        style="margin-top: 0; margin-bottom: 20px; color: var(--text-dark); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-bolt" style="color: #F59E0B;"></i> Accesos Rápidos Operativos
+    </h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
+
+        <a href="{% url 'pedidos:panel_mesas' %}" class="quick-btn orange-btn">
+            <div class="icon-circle"><i class="fas fa-utensils"></i></div>
+            <div class="btn-text">
+                <strong>Punto de Venta</strong>
+                <span>Atender Mesas (POS)</span>
+            </div>
+        </a>
+
+        <a href="{% url 'hostal:dashboard_hostal' %}" class="quick-btn blue-btn">
+            <div class="icon-circle"><i class="fas fa-bed"></i></div>
+            <div class="btn-text">
+                <strong>Recepción Hostal</strong>
+                <span>Check-in / Check-out</span>
+            </div>
+        </a>
+
+
+
+        <a href="{% url 'caja:gestion_caja' %}" class="quick-btn yellow-btn">
+            <div class="icon-circle"><i class="fas fa-cash-register"></i></div>
+            <div class="btn-text">
+                <strong>Control de Caja</strong>
+                <span>Abrir / Cerrar Turno</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+    .quick-btn {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        border-radius: 16px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+    .quick-btn:hover {
+        transform: translateY(-3px);
+    }
+
+    .quick-btn .icon-circle {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .quick-btn .btn-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .btn-text strong {
+        font-size: 1rem;
+        margin-bottom: 2px;
+    }
+
+    .btn-text span {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    /* Variantes de Color Soft/Pastel */
+    .orange-btn {
+        background: #FFF5F2;
+        border-color: #FFE4DC;
+    }
+
+    .orange-btn:hover {
+        background: #FFE4DC;
+        box-shadow: 0 4px 12px rgba(255, 87, 34, 0.1);
+    }
+
+    .orange-btn .icon-circle {
+        background: #FF5722;
+        color: white;
+    }
+
+    .orange-btn .btn-text {
+        color: #D84315;
+    }
+
+    .blue-btn {
+        background: #EEF2FF;
+        border-color: #E0E7FF;
+    }
+
+    .blue-btn:hover {
+        background: #E0E7FF;
+        box-shadow: 0 4px 12px rgba(67, 56, 202, 0.1);
+    }
+
+    .blue-btn .icon-circle {
+        background: #4338CA;
+        color: white;
+    }
+
+    .blue-btn .btn-text {
+        color: #3730A3;
+    }
+
+    .green-btn {
+        background: #ECFDF5;
+        border-color: #D1FAE5;
+    }
+
+    .green-btn:hover {
+        background: #D1FAE5;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+    }
+
+    .green-btn .icon-circle {
+        background: #10B981;
+        color: white;
+    }
+
+    .green-btn .btn-text {
+        color: #065F46;
+    }
+
+    .yellow-btn {
+        background: #FFFBEB;
+        border-color: #FEF3C7;
+    }
+
+    .yellow-btn:hover {
+        background: #FEF3C7;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+    }
+
+    .yellow-btn .icon-circle {
+        background: #F59E0B;
+        color: white;
+    }
+
+    .yellow-btn .btn-text {
+        color: #92400E;
+    }
+</style>
 
 <div class="stats-grid">
     <div class="stat-card">

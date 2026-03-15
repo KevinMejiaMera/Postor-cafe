@@ -1,7 +1,12 @@
 
 from django.contrib import admin
-from .models import Mesa, Producto, Pedido, DetallePedido
+from .models import Mesa, Producto, Pedido, DetallePedido, CategoriaProducto
 from inventario.models import Receta 
+
+@admin.register(CategoriaProducto)
+class CategoriaProductoAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'slug')
+    prepopulated_fields = {'slug': ('nombre',)}
 
 # --- CONFIGURACIÓN PARA VER RECETAS DENTRO DEL PRODUCTO ---
 class RecetaInline(admin.TabularInline):

@@ -1,0 +1,47 @@
+<div class="modal-backdrop"
+    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1100;"
+    onclick="cerrarMismoModal(this)">
+    <div class="modal-content"
+        style="background: white; padding: 25px; border-radius: 10px; width: 350px; max-width: 90%; box-shadow: 0 4px 10px rgba(0,0,0,0.2);"
+        onclick="event.stopPropagation()">
+
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+            <h2 style="margin: 0; font-size: 1.1rem; color: #333;">Nueva Categoría</h2>
+            <button type="button" onclick="this.closest('.modal-backdrop').remove()"
+                style="border: none; background: transparent; font-size: 1.5rem; cursor: pointer; color: #999;">&times;</button>
+        </div>
+
+        <form hx-post="{% url 'pedidos:crear_categoria' %}" hx-target="#modal-container" hx-swap="innerHTML">
+            {% csrf_token %}
+
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                {% for field in form %}
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; color: #374151;">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <small style="color: #ef4444; font-size: 0.8rem;">{{ field.errors.0 }}</small>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div style="text-align: right; margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px;">
+                <button type="button" onclick="this.closest('.modal-backdrop').remove()"
+                    style="padding: 8px 15px; background: #e5e7eb; border: none; border-radius: 5px; margin-right: 10px; cursor: pointer; color: #374151; font-weight: 600;">Cancelar</button>
+                <button type="submit"
+                    style="padding: 8px 15px; background: #f97316; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">Crear</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function cerrarMismoModal(el) {
+        el.remove();
+    }
+</script>
