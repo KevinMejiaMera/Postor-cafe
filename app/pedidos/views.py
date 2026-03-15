@@ -1,6 +1,7 @@
 
 # 📁 pedidos/views.py
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse, HttpResponse
@@ -294,6 +295,11 @@ def modal_cobrar(request, pedido_id):
     return render(request, 'pedidos/modals/cobrar.html', {'pedido': pedido, 'mesas_libres': mesas_libres})
 
 @login_required
+def detalle_pedido_modal(request, pedido_id):
+    pedido = get_object_or_404(Pedido, pk=pedido_id)
+    return render(request, 'pedidos/modals/detalle_pedido.html', {'pedido': pedido})
+
+@login_required
 @mesero_required
 def procesar_pago(request, pedido_id):
     if request.method == 'POST':
@@ -338,7 +344,20 @@ def procesar_pago(request, pedido_id):
             pedido.cliente = cliente
             pedido.save()
             
-        # 2. Crear la Factura (Snapshot de datos)
+        # 2. Capturar Montos de Pago (Para Efectivo)
+        monto_recibido = request.POST.get('efectivo_recibido', 0)
+        total_pago = pedido.total
+        cambio = 0
+        
+        try:
+            monto_recibido = float(monto_recibido)
+            if monto_recibido > 0:
+                cambio = monto_recibido - float(total_pago)
+        except (ValueError, TypeError):
+            monto_recibido = total_pago
+            cambio = 0
+
+        # 3. Crear la Factura (Snapshot de datos)
         # Si no hay cliente, usamos datos genéricos de Consumidor Final
         datos_factura = {
             'pedido': pedido,
@@ -349,7 +368,9 @@ def procesar_pago(request, pedido_id):
             'razon_social': cliente.nombres if cliente else 'CONSUMIDOR FINAL',
             'ruc_ci': cliente.cedula_o_ruc if cliente else '9999999999999',
             'direccion': cliente.direccion if cliente else '',
-            'correo': cliente.email if cliente else ''
+            'correo': cliente.email if cliente else '',
+            'monto_recibido': monto_recibido,
+            'vuelto': max(0.0, float(cambio))
         }
         
         factura = Factura.objects.create(**datos_factura)

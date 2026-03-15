@@ -4,12 +4,12 @@
 {% block content %}
 <div class="report-header">
     <div class="header-content">
-        <h1><i class="fas fa-history"></i> Métricas de Eficiencia</h1>
+        <h1><i class="fas fa-history" style="color: var(--accent-color);"></i> Métricas de Eficiencia</h1>
         <p>Análisis detallado de tiempos de preparación en cocina</p>
     </div>
     <div class="header-stats">
         <div class="mini-stat">
-            <span class="ms-label">Total Platos</span>
+            <span class="ms-label">Total Platos Analizados</span>
             <span class="ms-value">{{ reporte|length }}</span>
         </div>
     </div>
@@ -178,15 +178,16 @@
 <style>
     /* Header Styles */
     .report-header {
-        background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
-        color: white;
+        background: white;
+        color: var(--primary-color);
         padding: 30px;
-        border-radius: 16px;
+        border-radius: 20px;
         margin-bottom: 30px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--bg-cream);
     }
 
     .header-content h1 {
@@ -196,15 +197,13 @@
         display: flex;
         gap: 12px;
         align-items: center;
-    }
-
-    .header-content h1 i {
-        color: #F59E0B;
+        color: var(--primary-color);
     }
 
     .header-content p {
         margin: 0;
-        opacity: 0.7;
+        color: var(--text-muted);
+        font-weight: 600;
         font-size: 0.95rem;
     }
 
@@ -214,25 +213,26 @@
     }
 
     .mini-stat {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 10px 20px;
-        border-radius: 10px;
+        background: var(--bg-cream);
+        padding: 12px 25px;
+        border-radius: 15px;
         text-align: center;
-        backdrop-filter: blur(5px);
+        border: 1px solid var(--accent-color);
     }
 
     .ms-label {
         display: block;
         font-size: 0.75rem;
         text-transform: uppercase;
-        opacity: 0.8;
+        color: var(--primary-color);
+        font-weight: 700;
         letter-spacing: 0.5px;
     }
 
     .ms-value {
         font-size: 1.5rem;
         font-weight: 800;
-        color: #F59E0B;
+        color: var(--secondary-color);
     }
 
     /* Card & Table Styles */
@@ -248,10 +248,11 @@
 
     .card-header {
         padding: 20px 25px;
-        border-bottom: 1px solid #F3F4F6;
+        border-bottom: 1px solid var(--bg-cream);
         display: flex;
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
         gap: 15px;
     }
 
@@ -289,7 +290,7 @@
     }
 
     .legend-dot.green {
-        background: #10B981;
+        background: var(--secondary-color);
     }
 
     .legend-dot.yellow {
@@ -306,14 +307,15 @@
     }
 
     .modern-table th {
-        background: #F9FAFB;
+        background: var(--bg-light);
         padding: 16px 20px;
         text-align: left;
         font-size: 0.75rem;
         text-transform: uppercase;
-        color: #6B7280;
-        font-weight: 700;
+        color: var(--text-color);
+        font-weight: 800;
         letter-spacing: 0.05em;
+        border-bottom: 1px solid var(--bg-cream);
     }
 
     .modern-table td {
@@ -370,8 +372,9 @@
     }
 
     .status-badge.good {
-        background: #ECFDF5;
-        color: #047857;
+        background: var(--bg-light);
+        color: var(--secondary-color);
+        border: 1px solid var(--secondary-color);
     }
 
     .status-badge.medium {

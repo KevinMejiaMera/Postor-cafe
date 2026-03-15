@@ -41,10 +41,10 @@
         justify-content: space-between;
         align-items: center;
         padding: 20px 24px 16px;
-        border-bottom: 1px solid #F3F4F6;
+        border-bottom: 3px solid var(--accent-color);
         position: sticky;
         top: 0;
-        background: white;
+        background: var(--primary-color);
         z-index: 1;
         border-radius: 20px 20px 0 0;
     }
@@ -53,40 +53,40 @@
         margin: 0;
         font-size: 1.15rem;
         font-weight: 800;
-        color: #1F2937;
+        color: white;
         display: flex;
         align-items: center;
         gap: 8px;
     }
 
-    .modal-header-prod h2 i { color: #FF5722; }
+    .modal-header-prod h2 i { color: var(--accent-color); }
 
     .modal-close-btn {
         border: none;
-        background: #F3F4F6;
+        background: rgba(255,255,255,0.1);
         width: 32px; height: 32px;
         border-radius: 50%;
         font-size: 1rem;
         cursor: pointer;
-        color: #6B7280;
+        color: white;
         display: flex; align-items: center; justify-content: center;
         transition: background 0.2s;
     }
-    .modal-close-btn:hover { background: #E5E7EB; color: #374151; }
+    .modal-close-btn:hover { background: rgba(255,255,255,0.2); }
 
-    .modal-body-prod { padding: 20px 24px; }
+    .modal-body-prod { padding: 20px 24px; background: #F8F9F2; }
 
     /* ---- Imagen Upload Zone ---- */
     .img-upload-zone {
-        border: 2px dashed #E5E7EB;
+        border: 2px dashed var(--bg-cream);
         border-radius: 14px;
         text-align: center;
         cursor: pointer;
-        transition: border-color 0.2s, background 0.2s;
+        transition: 0.2s;
         position: relative;
         overflow: hidden;
         margin-bottom: 20px;
-        background: #FAFAFA;
+        background: white;
         min-height: 160px;
         display: flex;
         flex-direction: column;
@@ -96,14 +96,13 @@
 
     .img-upload-zone:hover,
     .img-upload-zone.dragover {
-        border-color: #FF5722;
-        background: #FFF5F2;
+        border-color: var(--secondary-color);
+        background: #F4F6EE;
     }
 
     .img-upload-zone.has-image {
         border-style: solid;
-        border-color: #D1FAE5;
-        background: #F0FDF4;
+        border-color: var(--secondary-color);
     }
 
     .img-preview {
@@ -119,17 +118,17 @@
 
     .upload-placeholder { padding: 24px 20px; }
     .upload-placeholder i {
-        font-size: 2.2rem; color: #D1D5DB;
+        font-size: 2.2rem; color: var(--bg-cream);
         margin-bottom: 10px; display: block;
     }
-    .upload-placeholder p { margin: 0 0 4px 0; font-weight: 700; color: #374151; font-size: 0.95rem; }
-    .upload-placeholder small { color: #9CA3AF; font-size: 0.78rem; }
+    .upload-placeholder p { margin: 0 0 4px 0; font-weight: 700; color: var(--primary-color); font-size: 0.95rem; }
+    .upload-placeholder small { color: var(--text-muted); font-size: 0.78rem; }
 
     .img-change-overlay {
         display: none;
         position: absolute;
         bottom: 0; left: 0; right: 0;
-        background: rgba(0,0,0,0.5);
+        background: rgba(62,67,46,0.8);
         color: white;
         padding: 8px;
         font-size: 0.8rem;
@@ -154,74 +153,75 @@
         margin-bottom: 5px;
         font-weight: 700;
         font-size: 0.8rem;
-        color: #6B7280;
+        color: var(--primary-color);
         text-transform: uppercase;
         letter-spacing: 0.4px;
+        opacity: 0.7;
     }
 
     .field-input {
         width: 100%;
-        padding: 9px 13px;
-        border: 1px solid #E5E7EB;
-        border-radius: 10px;
+        padding: 11px 13px;
+        border: 2px solid var(--bg-cream);
+        border-radius: 12px;
         font-family: inherit;
         font-size: 0.95rem;
         outline: none;
-        transition: border-color 0.2s, box-shadow 0.2s;
+        transition: 0.2s;
         box-sizing: border-box;
-        background: #FAFAFA;
-        color: #1F2937;
+        background: white;
+        color: var(--primary-color);
     }
     .field-input:focus {
-        border-color: #FF5722;
-        box-shadow: 0 0 0 3px rgba(255,87,34,0.1);
-        background: white;
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 4px rgba(97, 111, 57, 0.1);
     }
 
     .disponible-row {
         display: flex; align-items: center; gap: 10px;
-        background: #F9FAFB; border: 1px solid #E5E7EB;
-        border-radius: 10px; padding: 10px 14px;
+        background: white; border: 2px solid var(--bg-cream);
+        border-radius: 12px; padding: 12px 14px;
     }
-    .disponible-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #10B981; cursor: pointer; }
-    .disponible-row label { font-weight: 600; color: #374151; cursor: pointer; font-size: 0.95rem; }
+    .disponible-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--secondary-color); cursor: pointer; }
+    .disponible-row label { font-weight: 700; color: var(--primary-color); cursor: pointer; font-size: 0.95rem; }
 
     .cat-row { display: flex; gap: 8px; align-items: flex-end; }
     .cat-row > div:first-child { flex: 1; }
 
     .btn-add-cat {
-        background: #FF5722; color: white; border: none;
-        width: 38px; height: 38px; border-radius: 10px; cursor: pointer;
+        background: var(--secondary-color); color: white; border: none;
+        width: 42px; height: 42px; border-radius: 12px; cursor: pointer;
         display: flex; align-items: center; justify-content: center;
-        font-size: 1rem; transition: background 0.2s; flex-shrink: 0;
+        font-size: 1rem; transition: 0.2s; flex-shrink: 0;
     }
-    .btn-add-cat:hover { background: #E64A19; }
+    .btn-add-cat:hover { filter: brightness(1.1); transform: scale(1.05); }
 
     .modal-footer-prod {
         display: flex; justify-content: flex-end; gap: 10px;
-        padding: 16px 24px; border-top: 1px solid #F3F4F6;
+        padding: 16px 24px; border-top: 1px solid var(--bg-cream);
         position: sticky; bottom: 0; background: white;
         border-radius: 0 0 20px 20px;
     }
 
     .btn-cancel-prod {
-        padding: 10px 20px; background: #F3F4F6;
+        padding: 10px 20px; background: var(--bg-cream);
         border: none; border-radius: 10px; cursor: pointer;
-        color: #374151; font-weight: 600; font-family: inherit; font-size: 0.9rem;
-        transition: background 0.2s;
+        color: var(--primary-color); font-weight: 700; font-family: inherit; font-size: 0.9rem;
+        transition: 0.2s;
     }
-    .btn-cancel-prod:hover { background: #E5E7EB; }
+    .btn-cancel-prod:hover { background: #E9EBD8; }
 
     .btn-save-prod {
-        padding: 10px 24px; background: #FF5722; color: white;
+        padding: 10px 24px; background: var(--primary-color); color: white;
         border: none; border-radius: 10px; cursor: pointer;
-        font-weight: 700; font-family: inherit; font-size: 0.9rem;
+        font-weight: 800; font-family: inherit; font-size: 0.9rem;
         display: flex; align-items: center; gap: 7px;
-        transition: background 0.2s, transform 0.1s;
-        box-shadow: 0 4px 12px rgba(255,87,34,0.3);
+        transition: 0.3s;
+        box-shadow: 0 8px 20px rgba(62, 67, 46, 0.2);
     }
-    .btn-save-prod:hover { background: #E64A19; transform: translateY(-1px); }
-    .btn-save-prod:disabled { background: #D1D5DB; box-shadow: none; transform: none; cursor: not-allowed; }
+    .btn-save-prod:hover { filter: brightness(1.2); transform: translateY(-2px); box-shadow: 0 12px 25px rgba(62, 67, 46, 0.3); }
+    .btn-save-prod:disabled { background: var(--text-muted); box-shadow: none; transform: none; cursor: not-allowed; }
+
 </style>
 
 <div class="modal-backdrop-prod" onclick="cerrarModalProducto(event)">

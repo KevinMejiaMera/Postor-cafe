@@ -14,22 +14,20 @@
 
     <style>
         :root {
-            /* TOMATO/RED PALETTE GLOBAL */
-            --primary-color: #FF5722;
-            /* Deep Orange */
-            --secondary-color: #FF8A65;
-            /* Light Salmon */
-            --text-color: #2B3674;
-            --text-muted: #A3AED0;
-            --bg-light: #FFF5F2;
-            /* Very light reddish/warm bg instead of cream */
-            --card-shadow: 0px 18px 40px rgba(112, 144, 176, 0.12);
-
-            --success-gradient: linear-gradient(135deg, #059669 0%, #34D399 100%);
-            --danger-gradient: linear-gradient(135deg, #E11D48 0%, #FB7185 100%);
-            --info-gradient: linear-gradient(135deg, #FF6347 0%, #FF4500 100%);
-            /* Tomato -> OrangeRed */
-            --warning-gradient: linear-gradient(135deg, #F59E0B 0%, #FCD34D 100%);
+            /* PALETA EL POSTOR CAFÉ */
+            --primary-color: #3E432E;    /* Verde Café Profundo */
+            --secondary-color: #616F39;  /* Verde Olivo */
+            --accent-color: #A79C7D;     /* Dorado/Bronce */
+            --bg-light: #F8F9F2;         /* Crema Suave */
+            --bg-cream: #E1E2CC;         /* Crema Base */
+            --text-color: #2D2F23;
+            --text-muted: #6B7280;
+            --card-shadow: 0 10px 25px -5px rgba(62, 67, 46, 0.1);
+            
+            --success-gradient: linear-gradient(135deg, #616F39 0%, #859458 100%);
+            --danger-gradient: linear-gradient(135deg, #991B1B 0%, #DC2626 100%);
+            --info-gradient: linear-gradient(135deg, #3E432E 0%, #616F39 100%);
+            --warning-gradient: linear-gradient(135deg, #A79C7D 0%, #CBBF9D 100%);
         }
 
         body {
@@ -41,65 +39,152 @@
         /* Sidebar override */
         .sidebar {
             background: white;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+            box-shadow: 4px 0 20px rgba(62, 67, 46, 0.05);
+            border-right: 1px solid var(--bg-cream);
         }
 
         .sidebar .logo {
             color: var(--primary-color);
             font-weight: 800;
+            font-size: 1.4rem;
+            letter-spacing: -0.5px;
+            padding: 30px 20px;
         }
 
         .sidebar .nav-links a {
             color: var(--text-muted);
-            font-weight: 500;
-            transition: all 0.3s;
-            border-radius: 10px;
-            margin: 0 10px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 12px;
+            margin: 4px 15px;
+            padding: 12px 18px;
         }
 
-        .sidebar .nav-links a:hover,
+        .sidebar .nav-links a:hover {
+            color: var(--secondary-color);
+            background: var(--bg-light);
+            transform: translateX(5px);
+        }
+
         .sidebar .nav-links a.active {
-            color: var(--primary-color);
-            background: rgba(255, 87, 34, 0.1);
+            color: white;
+            background: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(62, 67, 46, 0.2);
         }
 
         .sidebar .nav-links a i {
             width: 25px;
         }
 
-        /* Global Card Styles matching Simulador */
+        /* Global UI Elements */
         .card,
         .card-custom {
-            border: none;
-            border-radius: 20px;
-            box-shadow: var(--card-shadow);
-            background: white;
+            border: none !important;
+            border-radius: 20px !important;
+            box-shadow: var(--card-shadow) !important;
+            background: white !important;
         }
 
-        /* Buttons Globally */
-        .btn-primary,
-        .btn-gradient {
-            background: var(--info-gradient) !important;
-            border: none;
-            color: white;
+        .card-header {
+            background: white !important;
+            border-bottom: 1px solid var(--bg-cream) !important;
+            padding: 1.25rem 1.5rem !important;
+        }
+
+        /* Bootstrap Overrides */
+        .text-primary { color: var(--primary-color) !important; }
+        .bg-primary { background-color: var(--primary-color) !important; }
+        .border-primary { border-color: var(--primary-color) !important; }
+        .btn-primary { 
+            background: var(--primary-color) !important; 
+            border: none !important;
+            border-radius: 12px !important;
+            padding: 10px 22px !important;
+            font-weight: 700 !important;
+        }
+        .btn-primary:hover {
+            background: var(--secondary-color) !important;
+            transform: translateY(-2px);
+        }
+        
+        .btn-dark {
+            background: var(--primary-color) !important;
+            border: none !important;
+            border-radius: 12px !important;
+        }
+
+        /* Tables */
+        .table thead th {
+            background: var(--bg-light) !important;
+            color: var(--text-color) !important;
+            font-weight: 700 !important;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--bg-cream) !important;
         }
 
         /* Botón Switch Hostal */
         .btn-hostal-switch {
-            color: var(--text-muted);
-            font-weight: 500;
-            margin: 0 10px 10px 10px;
-            border-radius: 10px;
+            background: var(--bg-cream);
+            color: var(--primary-color);
+            font-weight: 700;
+            margin: 20px 15px;
+            border-radius: 12px;
             transition: all 0.3s;
-            border: 1px solid transparent;
+            border: 1px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px;
+            text-decoration: none;
         }
 
         .btn-hostal-switch:hover {
-            background-color: #E0E7FF;
-            /* Indigo suave */
-            color: #4338CA;
-            /* Indigo oscuro */
-            border-color: #C7D2FE;
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        header h2 {
+            color: var(--primary-color);
+            font-weight: 800;
+        }
+        
+        .audit-section {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--card-shadow);
+            margin-top: 20px;
+        }
+        
+        .table-custom, table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .table-custom th, table th {
+            padding: 15px;
+            border-bottom: 1px solid var(--bg-cream);
+        }
+        
+        .table-custom td, table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--bg-light);
+            color: var(--text-color);
+        }
+
+        .logout-btn {
+            color: #EF4444 !important;
+            font-weight: 700 !important;
+        }
+        
+        .logout-btn:hover {
+            background: #FEE2E2 !important;
         }
     </style>
     {% block extra_head %}{% endblock %}
@@ -109,8 +194,18 @@
 
     <nav class="sidebar">
         <div class="logo">
-            <i class="fas fa-utensils"></i> Postor Cafe
+            <img src="{% static 'usuarios/imagenes/logo_postor.png' %}" alt="El Postor Café" style="width: 100%; max-width: 180px; height: auto;">
         </div>
+
+        <!-- Perfil de Usuario -->
+        <div style="padding: 0 20px 20px 20px; border-bottom: 1px solid var(--bg-cream); margin-bottom: 20px; text-align: center;">
+            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=3E432E&color=fff&size=128" 
+                 alt="{{ user.username }}" 
+                 style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--bg-cream); margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            <div style="font-weight: 800; color: var(--primary-color); font-size: 0.95rem;">{{ user.username|title }}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">{{ user.get_rol_display }}</div>
+        </div>
+
         <div class="nav-links">
             <!-- LINKS EXCLUSIVOS ADMINISTRACION -->
             {% if user.rol == 'gerente' or user.rol == 'admin' %}

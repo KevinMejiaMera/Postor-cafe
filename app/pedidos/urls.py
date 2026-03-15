@@ -45,4 +45,5 @@ urlpatterns = [
 
     # Historial de Pedidos (Gerente)
     path('historial/', views.historial_pedidos, name='historial_pedidos'),
+    path('historial/detalle/<int:pedido_id>/', views.detalle_pedido_modal, name='detalle_pedido_modal'),
 ]

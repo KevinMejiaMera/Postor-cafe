@@ -1,0 +1,544 @@
+﻿postor-app  | [2026-03-15 20:32:26 +0000] [1] [INFO] Starting gunicorn 25.1.0
+postor-app  | [2026-03-15 20:32:26 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+postor-app  | [2026-03-15 20:32:26 +0000] [1] [INFO] Using worker: sync
+postor-app  | [2026-03-15 20:32:26 +0000] [1] [INFO] Control socket listening at /app/gunicorn.ctl
+postor-app  | [2026-03-15 20:32:26 +0000] [8] [INFO] Booting worker with pid: 8
+postor-app  | [2026-03-15 20:32:26 +0000] [9] [INFO] Booting worker with pid: 9
+postor-app  | [2026-03-15 20:32:26 +0000] [10] [INFO] Booting worker with pid: 10
+postor-app  | [2026-03-15 15:32:28 -0500] [8] [ERROR] Exception in worker process
+postor-app  | Traceback (most recent call last):
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 708, in spawn_worker
+postor-app  |     worker.init_process()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py", line 136, in init_process
+postor-app  |     self.load_wsgi()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py", line 148, in load_wsgi
+postor-app  |     self.wsgi = self.app.wsgi()
+postor-app  |                 ^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/base.py", line 66, in wsgi
+postor-app  |     self.callable = self.load()
+postor-app  |                     ^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+postor-app  |     return self.load_wsgiapp()
+postor-app  |            ^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+postor-app  |     return util.import_app(self.app_uri)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/util.py", line 377, in import_app
+postor-app  |     mod = importlib.import_module(module)
+postor-app  |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+postor-app  |     return _bootstrap._gcd_import(name[level:], package, level)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+postor-app  |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+postor-app  |   File "/app/restaurante/wsgi.py", line 16, in <module>
+postor-app  |     application = get_wsgi_application()
+postor-app  |                   ^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/core/wsgi.py", line 12, in get_wsgi_application
+postor-app  |     django.setup(set_prefix=False)
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/__init__.py", line 24, in setup
+postor-app  |     apps.populate(settings.INSTALLED_APPS)
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/apps/registry.py", line 91, in populate
+postor-app  |     app_config = AppConfig.create(entry)
+postor-app  |                  ^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/apps/config.py", line 193, in create
+postor-app  |     import_module(entry)
+postor-app  |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+postor-app  |     return _bootstrap._gcd_import(name[level:], package, level)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1138, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 1078, in _find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1507, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1479, in _get_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1619, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1662, in _fill_cache
+postor-app  | OSError: [Errno 12] Cannot allocate memory: '/app/app'
+postor-app  | [Errno 12] Cannot allocate memory: '/app/app'
+postor-app  | [2026-03-15 15:32:28 -0500] [8] [INFO] Worker exiting (pid: 8)
+postor-app  | [2026-03-15 15:32:28 -0500] [9] [ERROR] Exception in worker process
+postor-app  | Traceback (most recent call last):
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 708, in spawn_worker
+postor-app  |     worker.init_process()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py", line 136, in init_process
+postor-app  |     self.load_wsgi()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py", line 148, in load_wsgi
+postor-app  |     self.wsgi = self.app.wsgi()
+postor-app  |                 ^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/base.py", line 66, in wsgi
+postor-app  |     self.callable = self.load()
+postor-app  |                     ^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+postor-app  |     return self.load_wsgiapp()
+postor-app  |            ^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+postor-app  |     return util.import_app(self.app_uri)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/util.py", line 377, in import_app
+postor-app  |     mod = importlib.import_module(module)
+postor-app  |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+postor-app  |     return _bootstrap._gcd_import(name[level:], package, level)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+postor-app  |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+postor-app  |   File "/app/restaurante/wsgi.py", line 16, in <module>
+postor-app  |     application = get_wsgi_application()
+postor-app  |                   ^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/core/wsgi.py", line 12, in get_wsgi_application
+postor-app  |     django.setup(set_prefix=False)
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/__init__.py", line 24, in setup
+postor-app  |     apps.populate(settings.INSTALLED_APPS)
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/apps/registry.py", line 91, in populate
+postor-app  |     app_config = AppConfig.create(entry)
+postor-app  |                  ^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/apps/config.py", line 193, in create
+postor-app  |     import_module(entry)
+postor-app  |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+postor-app  |     return _bootstrap._gcd_import(name[level:], package, level)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1138, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 1078, in _find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1507, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1479, in _get_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1619, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1662, in _fill_cache
+postor-app  | OSError: [Errno 12] Cannot allocate memory: '/app/app'
+postor-app  | [Errno 12] Cannot allocate memory: '/app/app'
+postor-app  | [2026-03-15 15:32:28 -0500] [9] [INFO] Worker exiting (pid: 9)
+postor-app  | [2026-03-15 15:32:28 -0500] [10] [ERROR] Exception in worker process
+postor-app  | Traceback (most recent call last):
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 708, in spawn_worker
+postor-app  |     worker.init_process()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py", line 136, in init_process
+postor-app  |     self.load_wsgi()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py", line 148, in load_wsgi
+postor-app  |     self.wsgi = self.app.wsgi()
+postor-app  |                 ^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/base.py", line 66, in wsgi
+postor-app  |     self.callable = self.load()
+postor-app  |                     ^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+postor-app  |     return self.load_wsgiapp()
+postor-app  |            ^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+postor-app  |     return util.import_app(self.app_uri)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/util.py", line 377, in import_app
+postor-app  |     mod = importlib.import_module(module)
+postor-app  |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+postor-app  |     return _bootstrap._gcd_import(name[level:], package, level)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+postor-app  |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+postor-app  |   File "/app/restaurante/wsgi.py", line 16, in <module>
+postor-app  |     application = get_wsgi_application()
+postor-app  |                   ^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/core/wsgi.py", line 12, in get_wsgi_application
+postor-app  |     django.setup(set_prefix=False)
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/__init__.py", line 24, in setup
+postor-app  |     apps.populate(settings.INSTALLED_APPS)
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/apps/registry.py", line 91, in populate
+postor-app  |     app_config = AppConfig.create(entry)
+postor-app  |                  ^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/apps/config.py", line 193, in create
+postor-app  |     import_module(entry)
+postor-app  |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+postor-app  |     return _bootstrap._gcd_import(name[level:], package, level)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1138, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 1078, in _find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1507, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1479, in _get_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1619, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1662, in _fill_cache
+postor-app  | OSError: [Errno 12] Cannot allocate memory: '/app/app'
+postor-app  | [Errno 12] Cannot allocate memory: '/app/app'
+postor-app  | [2026-03-15 15:32:28 -0500] [10] [INFO] Worker exiting (pid: 10)
+postor-app  | [2026-03-15 20:32:29 +0000] [1] [ERROR] Worker (pid:8) exited with code 3.
+postor-app  | [2026-03-15 20:32:29 +0000] [1] [ERROR] Worker (pid:9) exited with code 3.
+postor-app  | Traceback (most recent call last):
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 242, in run
+postor-app  |     handler()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 267, in handle_chld
+postor-app  |     self.reap_workers()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 637, in reap_workers
+postor-app  |     raise HaltServer(reason, self.WORKER_BOOT_ERROR)
+postor-app  | gunicorn.errors.HaltServer: <HaltServer 'Worker failed to boot.' 3>
+postor-app  | 
+postor-app  | During handling of the above exception, another exception occurred:
+postor-app  | 
+postor-app  | Traceback (most recent call last):
+postor-app  |   File "/usr/local/bin/gunicorn", line 8, in <module>
+postor-app  |     sys.exit(run())
+postor-app  |              ^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 66, in run
+postor-app  |     WSGIApplication("%(prog)s [OPTIONS] [APP_MODULE]", prog=prog).run()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/base.py", line 235, in run
+postor-app  |     super().run()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/base.py", line 71, in run
+postor-app  |     Arbiter(self).run()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 250, in run
+postor-app  |     self.halt(reason=inst.reason, exit_status=inst.exit_status)
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 374, in halt
+postor-app  |     self.stop()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 454, in stop
+postor-app  |     self.reap_workers()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 637, in reap_workers
+postor-app  |     raise HaltServer(reason, self.WORKER_BOOT_ERROR)
+postor-app  | gunicorn.errors.HaltServer: <HaltServer 'Worker failed to boot.' 3>
+postor-app  | [2026-03-15 20:32:30 +0000] [1] [INFO] Starting gunicorn 25.1.0
+postor-app  | [2026-03-15 20:32:30 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+postor-app  | [2026-03-15 20:32:30 +0000] [1] [INFO] Using worker: sync
+postor-app  | [2026-03-15 20:32:30 +0000] [8] [INFO] Booting worker with pid: 8
+postor-app  | [2026-03-15 20:32:30 +0000] [1] [INFO] Control socket listening at /app/gunicorn.ctl
+postor-app  | [2026-03-15 20:32:30 +0000] [9] [INFO] Booting worker with pid: 9
+postor-app  | [2026-03-15 20:32:30 +0000] [10] [INFO] Booting worker with pid: 10
+postor-app  | [2026-03-15 20:32:30 +0000] [10] [ERROR] Exception in worker process
+postor-app  | Traceback (most recent call last):
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 708, in spawn_worker
+postor-app  |     worker.init_process()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py", line 136, in init_process
+postor-app  |     self.load_wsgi()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py", line 148, in load_wsgi
+postor-app  |     self.wsgi = self.app.wsgi()
+postor-app  |                 ^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/base.py", line 66, in wsgi
+postor-app  |     self.callable = self.load()
+postor-app  |                     ^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+postor-app  |     return self.load_wsgiapp()
+postor-app  |            ^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+postor-app  |     return util.import_app(self.app_uri)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/util.py", line 377, in import_app
+postor-app  |     mod = importlib.import_module(module)
+postor-app  |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+postor-app  |     return _bootstrap._gcd_import(name[level:], package, level)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1138, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 1078, in _find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1507, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1479, in _get_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1619, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1662, in _fill_cache
+postor-app  | OSError: [Errno 12] Cannot allocate memory: '/app/restaurante'
+postor-app  | [Errno 12] Cannot allocate memory: '/app/restaurante'
+postor-app  | [2026-03-15 20:32:30 +0000] [10] [INFO] Worker exiting (pid: 10)
+postor-app  | [2026-03-15 20:32:30 +0000] [1] [ERROR] Worker (pid:10) exited with code 3.
+postor-app  | [2026-03-15 20:32:30 +0000] [8] [ERROR] Exception in worker process
+postor-app  | Traceback (most recent call last):
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 708, in spawn_worker
+postor-app  |     worker.init_process()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py", line 136, in init_process
+postor-app  |     self.load_wsgi()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py", line 148, in load_wsgi
+postor-app  |     self.wsgi = self.app.wsgi()
+postor-app  |                 ^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/base.py", line 66, in wsgi
+postor-app  |     self.callable = self.load()
+postor-app  |                     ^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+postor-app  |     return self.load_wsgiapp()
+postor-app  |            ^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+postor-app  |     return util.import_app(self.app_uri)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/util.py", line 377, in import_app
+postor-app  |     mod = importlib.import_module(module)
+postor-app  |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+postor-app  |     return _bootstrap._gcd_import(name[level:], package, level)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+postor-app  |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+postor-app  |   File "/app/restaurante/wsgi.py", line 12, in <module>
+postor-app  |     from django.core.wsgi import get_wsgi_application
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/core/wsgi.py", line 2, in <module>
+postor-app  |     from django.core.handlers.wsgi import WSGIHandler
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/core/handlers/wsgi.py", line 5, in <module>
+postor-app  |     from django.core.handlers import base
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/core/handlers/base.py", line 11, in <module>
+postor-app  |     from django.urls import get_resolver, set_urlconf
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/urls/__init__.py", line 1, in <module>
+postor-app  |     from .base import (
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/urls/base.py", line 8, in <module>
+postor-app  |     from .exceptions import NoReverseMatch, Resolver404
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/urls/exceptions.py", line 1, in <module>
+postor-app  |     from django.http import Http404
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/http/__init__.py", line 9, in <module>
+postor-app  |     from django.http.response import (
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/http/response.py", line 19, in <module>
+postor-app  |     from django.core.serializers.json import DjangoJSONEncoder
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/core/serializers/__init__.py", line 23, in <module>
+postor-app  |     from django.core.serializers.base import SerializerDoesNotExist
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/core/serializers/base.py", line 9, in <module>
+postor-app  |     from django.db import models
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/db/models/__init__.py", line 3, in <module>
+postor-app  |     from django.db.models.aggregates import *  # NOQA
+postor-app  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/db/models/aggregates.py", line 5, in <module>
+postor-app  |     from django.db.models.expressions import Case, Func, Star, Value, When
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/db/models/expressions.py", line 12, in <module>
+postor-app  |     from django.db.models import fields
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/db/models/fields/__init__.py", line 14, in <module>
+postor-app  |     from django.core import checks, exceptions, validators
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/core/checks/__init__.py", line 18, in <module>
+postor-app  |     import django.core.checks.caches  # NOQA isort:skip
+postor-app  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/core/checks/caches.py", line 5, in <module>
+postor-app  |     from django.core.cache.backends.filebased import FileBasedCache
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/core/cache/backends/filebased.py", line 2, in <module>
+postor-app  |     import glob
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1138, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 1078, in _find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1507, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1479, in _get_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1619, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1662, in _fill_cache
+postor-app  | OSError: [Errno 12] Cannot allocate memory: '/app'
+postor-app  | [Errno 12] Cannot allocate memory: '/app'
+postor-app  | [2026-03-15 20:32:30 +0000] [8] [INFO] Worker exiting (pid: 8)
+postor-app  | [2026-03-15 20:32:30 +0000] [9] [ERROR] Exception in worker process
+postor-app  | Traceback (most recent call last):
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 708, in spawn_worker
+postor-app  |     worker.init_process()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py", line 136, in init_process
+postor-app  |     self.load_wsgi()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py", line 148, in load_wsgi
+postor-app  |     self.wsgi = self.app.wsgi()
+postor-app  |                 ^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/base.py", line 66, in wsgi
+postor-app  |     self.callable = self.load()
+postor-app  |                     ^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+postor-app  |     return self.load_wsgiapp()
+postor-app  |            ^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+postor-app  |     return util.import_app(self.app_uri)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/util.py", line 377, in import_app
+postor-app  |     mod = importlib.import_module(module)
+postor-app  |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+postor-app  |     return _bootstrap._gcd_import(name[level:], package, level)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+postor-app  |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+postor-app  |   File "/app/restaurante/wsgi.py", line 12, in <module>
+postor-app  |     from django.core.wsgi import get_wsgi_application
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/core/wsgi.py", line 2, in <module>
+postor-app  |     from django.core.handlers.wsgi import WSGIHandler
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/core/handlers/wsgi.py", line 5, in <module>
+postor-app  |     from django.core.handlers import base
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/core/handlers/base.py", line 11, in <module>
+postor-app  |     from django.urls import get_resolver, set_urlconf
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/urls/__init__.py", line 1, in <module>
+postor-app  |     from .base import (
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/urls/base.py", line 8, in <module>
+postor-app  |     from .exceptions import NoReverseMatch, Resolver404
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/urls/exceptions.py", line 1, in <module>
+postor-app  |     from django.http import Http404
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/http/__init__.py", line 9, in <module>
+postor-app  |     from django.http.response import (
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/http/response.py", line 19, in <module>
+postor-app  |     from django.core.serializers.json import DjangoJSONEncoder
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/core/serializers/__init__.py", line 23, in <module>
+postor-app  |     from django.core.serializers.base import SerializerDoesNotExist
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/core/serializers/base.py", line 9, in <module>
+postor-app  |     from django.db import models
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/db/models/__init__.py", line 3, in <module>
+postor-app  |     from django.db.models.aggregates import *  # NOQA
+postor-app  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/db/models/aggregates.py", line 5, in <module>
+postor-app  |     from django.db.models.expressions import Case, Func, Star, Value, When
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/db/models/expressions.py", line 12, in <module>
+postor-app  |     from django.db.models import fields
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/db/models/fields/__init__.py", line 11, in <module>
+postor-app  |     from django import forms
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/forms/__init__.py", line 6, in <module>
+postor-app  |     from django.forms.boundfield import *  # NOQA
+postor-app  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/forms/boundfield.py", line 4, in <module>
+postor-app  |     from django.forms.utils import pretty_name
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/forms/utils.py", line 7, in <module>
+postor-app  |     from django.forms.renderers import get_default_renderer
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/forms/renderers.py", line 5, in <module>
+postor-app  |     from django.template.backends.django import DjangoTemplates
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/template/__init__.py", line 44, in <module>
+postor-app  |     from .engine import Engine
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/template/engine.py", line 7, in <module>
+postor-app  |     from .base import Template
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/template/base.py", line 59, in <module>
+postor-app  |     from django.utils.formats import localize
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/utils/formats.py", line 9, in <module>
+postor-app  |     from django.utils import dateformat, numberformat
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/utils/dateformat.py", line 26, in <module>
+postor-app  |     from django.utils.timezone import (
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/django/utils/timezone.py", line 10, in <module>
+postor-app  |     import zoneinfo
+postor-app  |   File "/usr/local/lib/python3.11/zoneinfo/__init__.py", line 14, in <module>
+postor-app  |     from _zoneinfo import ZoneInfo
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1138, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 1078, in _find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1507, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1479, in _get_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1619, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1662, in _fill_cache
+postor-app  | OSError: [Errno 12] Cannot allocate memory: '/app'
+postor-app  | [Errno 12] Cannot allocate memory: '/app'
+postor-app  | [2026-03-15 20:32:30 +0000] [9] [INFO] Worker exiting (pid: 9)
+postor-app  | [2026-03-15 20:32:30 +0000] [1] [ERROR] Worker (pid:8) exited with code 3.
+postor-app  | Traceback (most recent call last):
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 242, in run
+postor-app  |     handler()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 267, in handle_chld
+postor-app  |     self.reap_workers()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 637, in reap_workers
+postor-app  |     raise HaltServer(reason, self.WORKER_BOOT_ERROR)
+postor-app  | gunicorn.errors.HaltServer: <HaltServer 'Worker failed to boot.' 3>
+postor-app  | 
+postor-app  | During handling of the above exception, another exception occurred:
+postor-app  | 
+postor-app  | Traceback (most recent call last):
+postor-app  |   File "/usr/local/bin/gunicorn", line 8, in <module>
+postor-app  |     sys.exit(run())
+postor-app  |              ^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 66, in run
+postor-app  |     WSGIApplication("%(prog)s [OPTIONS] [APP_MODULE]", prog=prog).run()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/base.py", line 235, in run
+postor-app  |     super().run()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/app/base.py", line 71, in run
+postor-app  |     Arbiter(self).run()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 250, in run
+postor-app  |     self.halt(reason=inst.reason, exit_status=inst.exit_status)
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 374, in halt
+postor-app  |     self.stop()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 454, in stop
+postor-app  |     self.reap_workers()
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 637, in reap_workers
+postor-app  |     raise HaltServer(reason, self.WORKER_BOOT_ERROR)
+postor-app  | gunicorn.errors.HaltServer: <HaltServer 'Worker failed to boot.' 3>
+postor-app  | 
+postor-app  | Error: class uri 'gunicorn.glogging.Logger' invalid or not found: 
+postor-app  | 
+postor-app  | [Traceback (most recent call last):
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/util.py", line 121, in load_class
+postor-app  |     mod = importlib.import_module('.'.join(components))
+postor-app  |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+postor-app  |     return _bootstrap._gcd_import(name[level:], package, level)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+postor-app  |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/glogging.py", line 7, in <module>
+postor-app  |     import json
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1138, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 1078, in _find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1507, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1479, in _get_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1619, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1662, in _fill_cache
+postor-app  | OSError: [Errno 12] Cannot allocate memory: '/app'
+postor-app  | ]
+postor-app  | 
+postor-app  | 
+postor-app  | Error: class uri 'gunicorn.glogging.Logger' invalid or not found: 
+postor-app  | 
+postor-app  | [Traceback (most recent call last):
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/util.py", line 121, in load_class
+postor-app  |     mod = importlib.import_module('.'.join(components))
+postor-app  |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+postor-app  |     return _bootstrap._gcd_import(name[level:], package, level)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+postor-app  |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/glogging.py", line 7, in <module>
+postor-app  |     import json
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1138, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 1078, in _find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1507, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1479, in _get_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1619, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1662, in _fill_cache
+postor-app  | OSError: [Errno 12] Cannot allocate memory: '/app'
+postor-app  | ]
+postor-app  | 
+postor-app  | 
+postor-app  | Error: class uri 'gunicorn.glogging.Logger' invalid or not found: 
+postor-app  | 
+postor-app  | [Traceback (most recent call last):
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/util.py", line 121, in load_class
+postor-app  |     mod = importlib.import_module('.'.join(components))
+postor-app  |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+postor-app  |     return _bootstrap._gcd_import(name[level:], package, level)
+postor-app  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+postor-app  |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+postor-app  |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+postor-app  |   File "/usr/local/lib/python3.11/site-packages/gunicorn/glogging.py", line 7, in <module>
+postor-app  |     import json
+postor-app  |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+postor-app  |   File "<frozen importlib._bootstrap>", line 1138, in _find_and_load_unlocked
+postor-app  |   File "<frozen importlib._bootstrap>", line 1078, in _find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1507, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1479, in _get_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1619, in find_spec
+postor-app  |   File "<frozen importlib._bootstrap_external>", line 1662, in _fill_cache
+postor-app  | OSError: [Errno 12] Cannot allocate memory: '/app'
+postor-app  | ]
+postor-app  | 
+postor-app  | [2026-03-15 20:32:35 +0000] [1] [INFO] Starting gunicorn 25.1.0
+postor-app  | [2026-03-15 20:32:35 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+postor-app  | [2026-03-15 20:32:35 +0000] [1] [INFO] Using worker: sync
+postor-app  | [2026-03-15 20:32:35 +0000] [1] [INFO] Control socket listening at /app/gunicorn.ctl
+postor-app  | [2026-03-15 20:32:35 +0000] [8] [INFO] Booting worker with pid: 8
+postor-app  | [2026-03-15 20:32:35 +0000] [9] [INFO] Booting worker with pid: 9
+postor-app  | [2026-03-15 20:32:35 +0000] [10] [INFO] Booting worker with pid: 10

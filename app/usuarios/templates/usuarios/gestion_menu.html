@@ -26,14 +26,14 @@
         margin: 0;
         font-size: 1.25rem;
         font-weight: 800;
-        color: #1F2937;
+        color: var(--primary-color);
         display: flex;
         align-items: center;
         gap: 8px;
     }
 
     .btn-nuevo-plato {
-        background: #FF5722;
+        background: var(--primary-color);
         color: white;
         border: none;
         padding: 10px 20px;
@@ -45,11 +45,11 @@
         align-items: center;
         gap: 8px;
         transition: background 0.2s, transform 0.1s;
-        box-shadow: 0 4px 12px rgba(255,87,34,0.25);
+        box-shadow: 0 4px 12px rgba(62, 67, 46, 0.2);
     }
 
     .btn-nuevo-plato:hover {
-        background: #E64A19;
+        background: var(--secondary-color);
         transform: translateY(-1px);
     }
 
@@ -78,7 +78,7 @@
     }
 
     .menu-table tbody tr:last-child { border-bottom: none; }
-    .menu-table tbody tr:hover { background: #FFF8F5; }
+    .menu-table tbody tr:hover { background: var(--bg-light); }
 
     .menu-table td { padding: 12px 18px; vertical-align: middle; }
 
@@ -170,8 +170,8 @@
         transition: all 0.15s;
     }
 
-    .btn-editar  { background: #FFF7ED; color: #C2410C; border: 1px solid #FED7AA; }
-    .btn-editar:hover  { background: #FF5722; color: white; border-color: #FF5722; }
+    .btn-editar  { background: var(--bg-cream); color: var(--primary-color); border: 1px solid var(--accent-color); }
+    .btn-editar:hover  { background: var(--primary-color); color: white; border-color: var(--primary-color); }
 
     .btn-receta  { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
     .btn-receta:hover  { background: #10B981; color: white; border-color: #10B981; }
@@ -195,13 +195,13 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
     <div>
         <h4 style="margin: 0; color: #9CA3AF; font-weight: 500; font-size: 0.9rem;">Panel Gerente</h4>
-        <h2 style="margin: 4px 0 0 0; font-size: 1.8rem; font-weight: 800; color: #1F2937;">
-            Gestión del <span style="color: #FF5722;">Menú</span>
+        <h2 style="margin: 4px 0 0 0; font-size: 1.8rem; font-weight: 800; color: var(--primary-color);">
+            Gestión del <span style="color: var(--secondary-color);">Menú</span>
         </h2>
     </div>
     <div style="background: white; padding: 6px 16px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); font-size: 0.85rem; color: #6B7280;">
-        <i class="fas fa-utensils" style="color: #FF5722; margin-right: 6px;"></i>
-        <strong style="color: #1F2937;">{{ productos|length }}</strong> plato{{ productos|length|pluralize }} en el menú
+        <i class="fas fa-utensils" style="color: var(--secondary-color); margin-right: 6px;"></i>
+        <strong style="color: var(--primary-color);">{{ productos|length }}</strong> plato{{ productos|length|pluralize }} en el menú
     </div>
 </div>
 

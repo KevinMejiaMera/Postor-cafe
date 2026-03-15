@@ -10,14 +10,14 @@
 <style>
     /* Override/Custom Styles for Report Page */
     :root {
-        /* Inherited from base but kept for specific elements if needed */
-        --primary: #FF5722;
-        --primary-dark: #E64A19;
-        --secondary: #1F2937;
-        --bg-light: #FFF5F2;
+        /* Inheriting from base but keeping naming for local compatibility */
+        --primary: var(--primary-color);
+        --primary-dark: var(--secondary-color);
+        --secondary: var(--primary-color);
+        --bg-light: var(--bg-light);
         --white: #ffffff;
-        --text-gray: #6B7280;
-        --border-color: #E5E7EB;
+        --text-gray: var(--text-muted);
+        --border-color: var(--bg-cream);
     }
 
     .report-header {
@@ -103,12 +103,15 @@
     }
 
     .btn-export {
-        background-color: #10B981;
-        color: var(--white);
+        background-color: var(--bg-cream);
+        color: var(--primary);
+        font-weight: 700;
+        border: 1px solid var(--accent-color);
     }
 
     .btn-export:hover {
-        background-color: #059669;
+        background-color: var(--primary);
+        color: var(--white);
     }
 
     /* KPI Cards */
@@ -144,19 +147,19 @@
         font-size: 1.5rem;
     }
 
-    .icon-orange {
-        background: #FFF7ED;
+    .icon-brand {
+        background: var(--bg-cream);
         color: var(--primary);
     }
 
-    .icon-blue {
-        background: #EFF6FF;
-        color: #3B82F6;
+    .icon-olive {
+        background: var(--bg-light);
+        color: var(--secondary-color);
     }
 
-    .icon-green {
-        background: #ECFDF5;
-        color: #10B981;
+    .icon-accent {
+        background: var(--bg-cream);
+        color: var(--accent-color);
     }
 
     .kpi-content h4 {
@@ -556,7 +559,8 @@
 
         // Cabecera "Bonita" para el PDF
         const header = `
-            <div style="text-align: center; border-bottom: 3px solid #FF5722; padding-bottom: 15px; margin-bottom: 25px;">
+            <div style="text-align: center; border-bottom: 3px solid var(--primary); padding-bottom: 15px; margin-bottom: 25px;">
+                <img src="{% static 'usuarios/imagenes/logo_postor.png' %}" style="height: 60px; margin-bottom: 10px;">
                 <h1 style="margin: 0; color: #1F2937; font-size: 24px; text-transform: uppercase;">Postor Café - San Pedro de Huaca</h1>
                 <p style="margin: 5px 0; color: #6B7280; font-size: 14px;">Reporte Operativo de Ventas</p>
                 <div style="display: flex; justify-content: space-between; margin-top: 15px; font-size: 12px; color: #374151;">

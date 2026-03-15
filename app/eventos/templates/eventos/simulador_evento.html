@@ -11,16 +11,18 @@
 
 <style>
     :root {
-        --primary-color: #FF5722;
-        --secondary-color: #FF8A65;
-        --text-color: #2B3674;
-        --text-muted: #A3AED0;
-        --bg-light: #FFF5F2;
-        --card-shadow: 0px 18px 40px rgba(112, 144, 176, 0.12);
-        --success-gradient: linear-gradient(135deg, #059669 0%, #34D399 100%);
-        --danger-gradient: linear-gradient(135deg, #E11D48 0%, #FB7185 100%);
-        --info-gradient: linear-gradient(135deg, #FF6347 0%, #FF4500 100%);
-        --warning-gradient: linear-gradient(135deg, #F59E0B 0%, #FCD34D 100%);
+        --primary-color: #3E432E;    /* Verde Café Profundo */
+        --secondary-color: #616F39;  /* Verde Olivo */
+        --accent-color: #A79C7D;     /* Dorado/Bronce */
+        --bg-cream: #F8F9F2;         /* Crema Suave */
+        --text-color: #2D2F23;
+        --text-muted: #6B7280;
+        --bg-light: #FDFDFB;
+        --card-shadow: 0px 18px 40px rgba(62, 67, 46, 0.08);
+        --success-gradient: linear-gradient(135deg, #616F39 0%, #3E432E 100%);
+        --danger-gradient: linear-gradient(135deg, #E11D48 0%, #991B1B 100%);
+        --info-gradient: linear-gradient(135deg, #3E432E 0%, #616F39 100%);
+        --warning-gradient: linear-gradient(135deg, #A79C7D 0%, #D4AF37 100%);
     }
 
     body {
@@ -66,14 +68,14 @@
     }
 
     .nav-pills-custom .nav-link:hover {
-        color: var(--primary-color);
-        background: rgba(255, 87, 34, 0.05);
+        color: var(--secondary-color);
+        background: var(--bg-cream);
     }
 
     .nav-pills-custom .nav-link.active {
-        background: var(--info-gradient);
+        background: var(--primary-color);
         color: white;
-        box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+        box-shadow: 0 4px 12px rgba(62, 67, 46, 0.3);
     }
 
     .table-custom {
@@ -111,7 +113,7 @@
     }
 
     .table-custom tr:hover td {
-        background-color: #FFF8F6;
+        background-color: var(--bg-cream);
     }
 
     .kpi-card {
@@ -160,19 +162,20 @@
     }
 
     .btn-gradient {
-        background: var(--info-gradient);
+        background: var(--primary-color);
         color: white;
         border: none;
         border-radius: 12px;
         padding: 10px 24px;
-        font-weight: 600;
-        box-shadow: 0 4px 10px rgba(255, 69, 0, 0.3);
+        font-weight: 700;
+        box-shadow: 0 4px 10px rgba(62, 67, 46, 0.2);
         transition: all 0.3s ease;
     }
 
     .btn-gradient:hover {
-        transform: scale(1.02);
-        box-shadow: 0 6px 15px rgba(255, 69, 0, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(62, 67, 46, 0.3);
+        background: var(--secondary-color);
         color: white;
     }
 
@@ -192,8 +195,8 @@
 
     .form-control:focus,
     .form-select:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.15);
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 3px rgba(97, 111, 57, 0.1);
         background-color: white;
     }
 
@@ -276,13 +279,13 @@
                                 <label class="form-label text-muted">Estado del Evento</label>
                                 <select name="estado" class="form-select"
                                     style="font-weight: 600; color: var(--primary-color);">
-                                    <option value="borrador" {% if evento.estado=='borrador' %}selected{% endif %}>🟡
+                                    <option value="borrador" {% if evento.estado=='borrador' %}selected{% endif %}>
                                         Borrador / Cotización</option>
                                     <option value="confirmado" {% if evento.estado=='confirmado' %}selected{% endif %}>
-                                        🟢 Confirmado</option>
+                                        Confirmado</option>
                                     <option value="finalizado" {% if evento.estado=='finalizado' %}selected{% endif %}>
-                                        🔵 Finalizado</option>
-                                    <option value="cancelado" {% if evento.estado=='cancelado' %}selected{% endif %}>🔴
+                                        Finalizado</option>
+                                    <option value="cancelado" {% if evento.estado=='cancelado' %}selected{% endif %}>
                                         Cancelado</option>
                                 </select>
                             </div>
@@ -301,7 +304,7 @@
                     <div class="card-custom">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="fw-bold mb-0" style="color: var(--primary-color);">2. Composición del Menú</h5>
-                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3" data-bs-toggle="collapse"
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-toggle="collapse"
                                 data-bs-target="#addDishForm">
                                 <i class="fas fa-plus me-1"></i> Agregar Plato
                             </button>

@@ -6,22 +6,28 @@ from django.contrib import messages
 from .models import Habitacion, Reserva, Huesped, TipoHabitacion
 
 from core.decorators import gerente_required
+from django.http import HttpResponse
+from .models import Habitacion, Reserva, Huesped, TipoHabitacion, SesionCajaHostal
+from django.db.models import Sum, Count
 
 @login_required
 @gerente_required
 def dashboard_hostal(request):
     habitaciones = Habitacion.objects.all().order_by('numero')
-    tipos = TipoHabitacion.objects.all() # Para el modal de crear habitación
-    
+    tipos = TipoHabitacion.objects.all()
+
     # Calcular KPIs
     ocupadas = habitaciones.filter(estado='ocupada').count()
     total = habitaciones.count()
     ocupacion_pct = int((ocupadas / total) * 100) if total > 0 else 0
-    
-    # Entradas/Salidas Hoy (Simple query por ahora)
+
+    # Entradas/Salidas Hoy
     hoy = timezone.now().date()
     entradas = Reserva.objects.filter(fecha_checkin__date=hoy).count()
-    salidas = Reserva.objects.filter(fecha_checkout__date=hoy).count()
+    salidas  = Reserva.objects.filter(fecha_checkout__date=hoy).count()
+
+    # Verificar si hay caja abierta
+    caja_abierta = SesionCajaHostal.objects.filter(usuario=request.user, estado=True).first()
 
     context = {
         'habitaciones': habitaciones,
@@ -29,6 +35,7 @@ def dashboard_hostal(request):
         'ocupacion_pct': ocupacion_pct,
         'entradas': entradas,
         'salidas': salidas,
+        'caja_abierta': caja_abierta,
     }
     return render(request, 'hostal/dashboard_hostal.html', context)
 
@@ -36,36 +43,56 @@ def dashboard_hostal(request):
 @gerente_required
 def crear_habitacion(request):
     if request.method == 'POST':
-        numero = request.POST.get('numero')
-        tipo_id = request.POST.get('tipo')
-        piso = request.POST.get('piso')
-        precio_input = request.POST.get('precio') # Nuevo campo
+        numero     = request.POST.get('numero')
+        tipo_id    = request.POST.get('tipo')
+        piso       = request.POST.get('piso')
+        precio_input = request.POST.get('precio')
         
         # Validar si ya existe
         if Habitacion.objects.filter(numero=numero).exists():
             messages.error(request, f'La habitación {numero} ya existe.')
-            return redirect('hostal:dashboard_hostal')
+            return redirect('hostal:gestion_habitaciones')
+        
+        if not precio_input:
+            messages.error(request, 'El precio por noche es obligatorio.')
+            return redirect('hostal:gestion_habitaciones')
         
         try:
             tipo = get_object_or_404(TipoHabitacion, id=tipo_id)
-            
-            # Limpiar precio
-            precio_personalizado = None
-            if precio_input and precio_input.strip():
-                precio_personalizado = float(precio_input)
             
             Habitacion.objects.create(
                 numero=numero,
                 tipo=tipo,
                 piso=piso,
-                precio_personalizado=precio_personalizado,
+                precio_personalizado=float(precio_input),  # Siempre se guarda como precio real
                 estado='disponible'
             )
-            messages.success(request, f'Habitación {numero} creada correctamente.')
+            messages.success(request, f'Habitación {numero} creada correctamente por ${precio_input}/noche.')
         except Exception as e:
             messages.error(request, f'Error al crear habitación: {str(e)}')
             
-    return redirect('hostal:dashboard_hostal')
+    return redirect('hostal:gestion_habitaciones')
+
+@login_required
+@gerente_required
+def crear_tipo_habitacion(request):
+    """Crea un nuevo TipoHabitacion. El precio es 0 por defecto (cada habitación define su propio precio)."""
+    if request.method == 'POST':
+        nombre      = request.POST.get('nombre', '').strip()
+        capacidad   = request.POST.get('capacidad_personas', 1)
+        descripcion = request.POST.get('descripcion', '')
+
+        if nombre:
+            TipoHabitacion.objects.create(
+                nombre=nombre,
+                precio_noche=0,          # No se usa; el precio va en cada Habitacion
+                capacidad_personas=int(capacidad),
+                descripcion=descripcion
+            )
+            messages.success(request, f'Tipo "{nombre}" creado correctamente.')
+        else:
+            messages.error(request, 'El nombre del tipo es obligatorio.')
+    return redirect('hostal:gestion_habitaciones')
 
 @login_required
 @gerente_required
@@ -93,15 +120,18 @@ def procesar_checkin(request):
             # 2. Calcular Fechas y Precios
             checkin = timezone.now()
             checkout = checkin + timedelta(days=noches)
-            precio_noche = habitacion.tipo.precio_noche
-            
-            # Lógica de Precio Manual (Interpretado como Precio por Noche según feedback)
+
+            # USAR precio_actual de la habitación (precio_personalizado si existe, si no el del tipo)
+            precio_noche_final = float(habitacion.precio_actual)
+
+            # Si el formulario envía un precio manual, tiene prioridad
             precio_manual = request.POST.get('precio_manual')
-            precio_noche_final = habitacion.tipo.precio_noche
-            
-            if precio_manual and float(precio_manual) >= 0:
-                precio_noche_final = float(precio_manual)
-                
+            if precio_manual and precio_manual.strip():
+                try:
+                    precio_noche_final = float(precio_manual)
+                except ValueError:
+                    pass
+
             total = precio_noche_final * noches
             
             # 3. Crear Reserva
@@ -290,12 +320,17 @@ def crear_reserva(request):
             # Calculate Total
             noches = (checkout - checkin).days
             if noches < 1: noches = 1
-            
-            # Lógica de Precio: Manual (prioridad) vs Automático
-            precio_noche_final = habitacion.tipo.precio_noche
-            if precio_manual and float(precio_manual) >= 0:
-                 precio_noche_final = float(precio_manual)
-            
+
+            # USAR precio_actual de la habitación (precio_personalizado si existe, si no el del tipo)
+            precio_noche_final = float(habitacion.precio_actual)
+
+            # Si el formulario envía un precio manual, tiene prioridad
+            if precio_manual and precio_manual.strip():
+                try:
+                    precio_noche_final = float(precio_manual)
+                except ValueError:
+                    pass
+
             total = precio_noche_final * noches
 
             # Create Reserva
@@ -452,4 +487,119 @@ def gestion_habitaciones(request):
         return redirect('hostal:gestion_habitaciones')
 
     habitaciones = Habitacion.objects.all().order_by('numero')
-    return render(request, 'hostal/gestion_habitaciones.html', {'habitaciones': habitaciones})
+    tipos = TipoHabitacion.objects.all()
+    return render(request, 'hostal/gestion_habitaciones.html', {
+        'habitaciones': habitaciones,
+        'tipos': tipos,
+    })
+
+@login_required
+@gerente_required
+def modal_nueva_reserva(request):
+    """Devuelve el HTML del modal de nueva reserva para HTMX."""
+    habitaciones = Habitacion.objects.filter(estado='disponible').order_by('numero')
+    tipos = TipoHabitacion.objects.all()
+    return render(request, 'hostal/modals/modal_nueva_reserva.html', {
+        'habitaciones': habitaciones,
+        'tipos': tipos,
+    })
+
+
+@login_required
+@gerente_required
+def caja_hostal(request):
+    """Gestión de la caja del hostal. Completamente separada del restaurante."""
+    caja_abierta = SesionCajaHostal.objects.filter(usuario=request.user, estado=True).first()
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'abrir':
+            monto = request.POST.get('monto_inicial')
+            SesionCajaHostal.objects.create(usuario=request.user, monto_inicial=monto)
+            messages.success(request, 'Caja del hostal aperturada correctamente.')
+            return redirect('hostal:caja_hostal')
+
+        elif action == 'cerrar' and caja_abierta:
+            dinero_fisico = float(request.POST.get('monto_fisico', 0))
+            # Ingresos del hostal desde apertura = reservas creadas en ese periodo
+            ventas_sistema = Reserva.objects.filter(
+                created_at__gte=caja_abierta.fecha_apertura
+            ).exclude(estado='cancelada').aggregate(total=Sum('precio_total'))['total'] or 0
+
+            caja_abierta.monto_final_sistema = ventas_sistema
+            caja_abierta.monto_final_fisico = dinero_fisico
+            caja_abierta.diferencia = float(dinero_fisico) - (float(caja_abierta.monto_inicial) + float(ventas_sistema))
+            caja_abierta.fecha_cierre = timezone.now()
+            caja_abierta.estado = False
+            caja_abierta.save()
+            messages.success(request, f'Caja cerrada. Diferencia: ${caja_abierta.diferencia:.2f}')
+            return redirect('hostal:caja_hostal')
+
+    historial = SesionCajaHostal.objects.all().order_by('-fecha_apertura')[:20]
+
+    ventas_actuales = 0
+    if caja_abierta:
+        ventas_actuales = Reserva.objects.filter(
+            created_at__gte=caja_abierta.fecha_apertura
+        ).exclude(estado='cancelada').aggregate(total=Sum('precio_total'))['total'] or 0
+
+    return render(request, 'hostal/caja_hostal.html', {
+        'caja_abierta': caja_abierta,
+        'historial': historial,
+        'ventas_actuales': ventas_actuales,
+    })
+
+
+@login_required
+@gerente_required
+def reportes_hostal(request):
+    """Reportes de ingresos del hostal por período (separados del restaurante)."""
+    from datetime import date, timedelta
+    from django.utils.dateparse import parse_date
+
+    hoy = timezone.now().date()
+    filtro = request.GET.get('filtro', '')
+    fecha_inicio_str = request.GET.get('fecha_inicio')
+    fecha_fin_str = request.GET.get('fecha_fin')
+
+    reservas_base = Reserva.objects.exclude(estado='cancelada').select_related('huesped', 'habitacion')
+    cajas_recientes = SesionCajaHostal.objects.all().order_by('-fecha_apertura')[:10]
+    sesion_filtrada = None
+
+    if filtro == 'hoy':
+        reservas = reservas_base.filter(created_at__date=hoy)
+    elif filtro == 'ayer':
+        reservas = reservas_base.filter(created_at__date=hoy - timedelta(days=1))
+    elif filtro == 'semana':
+        reservas = reservas_base.filter(created_at__date__gte=hoy - timedelta(days=7))
+    elif filtro.startswith('caja_'):
+        caja_id = int(filtro.split('_')[1])
+        sesion_filtrada = SesionCajaHostal.objects.filter(id=caja_id).first()
+        if sesion_filtrada:
+            reservas = reservas_base.filter(created_at__gte=sesion_filtrada.fecha_apertura)
+            if sesion_filtrada.fecha_cierre:
+                reservas = reservas.filter(created_at__lte=sesion_filtrada.fecha_cierre)
+        else:
+            reservas = reservas_base
+    elif fecha_inicio_str and fecha_fin_str:
+        fi = parse_date(fecha_inicio_str)
+        ff = parse_date(fecha_fin_str)
+        reservas = reservas_base.filter(created_at__date__gte=fi, created_at__date__lte=ff)
+    else:
+        reservas = reservas_base
+
+    total_ingresos = reservas.aggregate(total=Sum('precio_total'))['total'] or 0
+    cantidad_reservas = reservas.count()
+
+    return render(request, 'hostal/reportes_hostal.html', {
+        'reservas': reservas.order_by('-created_at')[:100],
+        'total_ingresos': total_ingresos,
+        'cantidad_reservas': cantidad_reservas,
+        'filtro': filtro,
+        'fecha_inicio': fecha_inicio_str or '',
+        'fecha_fin': fecha_fin_str or '',
+        'cajas_recientes': cajas_recientes,
+        'sesion_filtrada': sesion_filtrada,
+        'hoy': hoy,
+    })

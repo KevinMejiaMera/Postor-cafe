@@ -11,7 +11,7 @@
 
 {% for cliente in clientes %}
 <div class="cliente-item" onclick="seleccionarCliente({{ cliente.id }}, '{{ cliente.nombres }}', '{{ cliente.cedula_o_ruc }}')">
-    <div class="icon-avatar" style="background: #DBEAFE; color: #1D4ED8;">
+    <div class="icon-avatar">
         <i class="fas fa-user-tie"></i>
     </div>
     <div class="info">

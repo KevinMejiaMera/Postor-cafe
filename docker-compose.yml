@@ -67,7 +67,7 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 512M
+          memory: 1024M
 
   # ─────────────────────────────────────
   # PROXY NGINX

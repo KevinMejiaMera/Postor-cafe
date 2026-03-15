@@ -58,12 +58,17 @@
     }
 
     .btn-success {
-        background: #10B981;
+        background: var(--primary-color);
         color: white;
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(62, 67, 46, 0.2);
     }
 
     .btn-success:hover {
-        background: #059669;
+        background: var(--secondary-color);
+        transform: translateY(-2px);
     }
 
     .btn-danger {
@@ -102,8 +107,8 @@
     }
 
     .text-green {
-        color: #10B981;
-        font-weight: bold;
+        color: var(--secondary-color);
+        font-weight: 800;
     }
 
     .badge {
@@ -114,7 +119,9 @@
 
     .badge-open {
         background: #d1fae5;
-        color: #065f46;
+        color: var(--secondary-color);
+        font-weight: 800;
+        padding: 4px 10px;
     }
 
     .badge-closed {
@@ -126,7 +133,7 @@
 
 {% block content %}
 <div class="caja-container">
-    <h2>💰 Gestión de Caja</h2>
+    <h2><i class="fas fa-cash-register me-2"></i> Gestión de Caja</h2>
 
     <!-- MESSAGES -->
     {% if messages %}
@@ -142,7 +149,7 @@
         {% if not caja_abierta %}
         <!-- FORMULARIO DE APERTURA -->
         <div class="card action-card">
-            <h3>🔓 Abrir Caja</h3>
+            <h3><i class="fas fa-lock-open me-2"></i> Abrir Caja</h3>
             <p>Inicia tu turno registrando el dinero base.</p>
             <form method="post" class="caja-form">
                 {% csrf_token %}
@@ -157,10 +164,10 @@
         {% else %}
         <!-- INFORMACIÓN DE CAJA ACTUAL -->
         <div class="card info-card">
-            <h3>✅ Caja Abierta</h3>
+            <h3><i class="fas fa-check-circle me-2"></i> Caja Abierta</h3>
             <p>Aperturada el: <strong>{{ caja_abierta.fecha_apertura|date:"d M H:i" }}</strong></p>
             <p>Monto Inicial: <strong>${{ caja_abierta.monto_inicial }}</strong></p>
-            <p>Ventas del Sistema (Hasta ahora): <strong style="color: #2563EB;">${{ ventas_actuales }}</strong></p>
+            <p>Ventas del Sistema (Hasta ahora): <strong style="color: var(--primary-color); font-size: 1.2rem;">${{ ventas_actuales }}</strong></p>
             <div class="alert alert-info">
                 La caja se está registrando a nombre de: <strong>{{ user.username }}</strong>
             </div>
@@ -168,7 +175,7 @@
 
         <!-- FORMULARIO DE CIERRE -->
         <div class="card action-card closed-mode">
-            <h3>🔒 Cerrar Caja</h3>
+            <h3><i class="fas fa-lock me-2"></i> Cerrar Caja</h3>
             <p>Finaliza turno contando el dinero real.</p>
             <form method="post" class="caja-form">
                 {% csrf_token %}
@@ -185,7 +192,7 @@
 
     <!-- HISTORIAL -->
     <div class="historial-section">
-        <h3>📜 Historial Reciente</h3>
+        <h3><i class="fas fa-history me-2"></i> Historial Reciente</h3>
         <table>
             <thead>
                 <tr>

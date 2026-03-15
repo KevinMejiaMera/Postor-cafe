@@ -21,11 +21,11 @@
         margin: 0;
         font-size: 1.8rem;
         font-weight: 800;
-        color: var(--text-dark, #1F2937);
+        color: var(--primary-color);
     }
 
     .historial-header h2 span {
-        color: var(--primary-color, #FF5722);
+        color: var(--secondary-color);
     }
 
     /* ---- STAT CARDS ---- */
@@ -62,8 +62,8 @@
         flex-shrink: 0;
     }
 
-    .icon-orange { background: #FFF0EA; color: #FF5722; }
-    .icon-green  { background: #ECFDF5; color: #059669; }
+    .icon-orange { background: var(--bg-cream); color: var(--primary-color); }
+    .icon-green  { background: #ECFDF5; color: var(--secondary-color); }
     .icon-blue   { background: #EEF2FF; color: #4338CA; }
 
     .mini-stat-info p {
@@ -125,13 +125,13 @@
 
     .filter-group input:focus,
     .filter-group select:focus {
-        border-color: #FF5722;
+        border-color: var(--secondary-color);
         background: white;
     }
 
     .btn-filter {
         padding: 9px 20px;
-        background: #FF5722;
+        background: var(--primary-color);
         color: white;
         border: none;
         border-radius: 10px;
@@ -146,7 +146,7 @@
         align-self: flex-end;
     }
 
-    .btn-filter:hover { background: #E64A19; }
+    .btn-filter:hover { background: var(--secondary-color); }
 
     .btn-clear {
         padding: 9px 16px;
@@ -195,8 +195,8 @@
     }
 
     .count-badge {
-        background: #FFF0EA;
-        color: #FF5722;
+        background: var(--bg-cream);
+        color: var(--primary-color);
         font-size: 0.78rem;
         font-weight: 700;
         padding: 2px 10px;
@@ -232,7 +232,7 @@
     }
 
     .historial-table tbody tr:hover {
-        background: #FFF8F5;
+        background: var(--bg-light);
     }
 
     .historial-table td {
@@ -243,7 +243,7 @@
 
     .pedido-id {
         font-weight: 800;
-        color: #FF5722;
+        color: var(--primary-color);
         font-size: 0.95rem;
     }
 
@@ -298,18 +298,18 @@
         align-items: center;
         gap: 5px;
         padding: 5px 12px;
-        background: #FFF0EA;
-        color: #FF5722;
+        background: var(--bg-cream);
+        color: var(--primary-color);
         border-radius: 8px;
         font-size: 0.8rem;
         font-weight: 700;
         text-decoration: none;
         transition: background 0.2s;
-        border: 1px solid #FFD9CC;
+        border: 1px solid var(--accent-color);
     }
 
     .btn-ver-ticket:hover {
-        background: #FF5722;
+        background: var(--primary-color);
         color: white;
     }
 
@@ -360,8 +360,8 @@
         <h2>Historial de <span>Pedidos</span></h2>
     </div>
     <div style="background: white; padding: 6px 16px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 10px;">
-        <i class="fas fa-history" style="color: #FF5722;"></i>
-        <span style="font-weight: 700; color: #374151; font-size: 0.9rem;">Registro completo de ventas</span>
+        <i class="fas fa-history" style="color: var(--secondary-color);"></i>
+        <span style="font-weight: 700; color: var(--text-color); font-size: 0.9rem;">Registro completo de ventas</span>
     </div>
 </div>
 
@@ -433,7 +433,7 @@
 <div class="table-card">
     <div class="table-card-header">
         <h3>
-            <i class="fas fa-list-ul" style="color: #FF5722;"></i>
+            <i class="fas fa-list-ul" style="color: var(--secondary-color);"></i>
             Pedidos Registrados
             <span class="count-badge">{{ total_pedidos }}</span>
         </h3>
@@ -547,19 +547,23 @@
 
                     <!-- Acciones -->
                     <td>
-                        {% if pedido.estado == 'pagado' %}
-                        {% with factura=pedido.factura %}
-                        {% if factura %}
-                        <a href="{% url 'pedidos:ver_ticket' factura.id %}" class="btn-ver-ticket" target="_blank">
-                            <i class="fas fa-receipt"></i> Ticket
-                        </a>
-                        {% else %}
-                        <span style="color: #D1D5DB; font-size: 0.8rem;">Sin ticket</span>
-                        {% endif %}
-                        {% endwith %}
-                        {% else %}
-                        <span style="color: #D1D5DB; font-size: 0.8rem;">—</span>
-                        {% endif %}
+                        <div style="display: flex; gap: 6px;">
+                            <!-- Botón Detalles (Nuevo) -->
+                            <button class="btn-ver-ticket" style="border-color: var(--secondary); background: #fbfbfb; color: var(--secondary);"
+                                hx-get="{% url 'pedidos:detalle_pedido_modal' pedido.id %}" hx-target="#modal-container">
+                                <i class="fas fa-search-plus"></i> Detalles
+                            </button>
+
+                            {% if pedido.estado == 'pagado' %}
+                                {% with factura=pedido.factura %}
+                                {% if factura %}
+                                <a href="{% url 'pedidos:ver_ticket' factura.id %}" class="btn-ver-ticket" target="_blank">
+                                    <i class="fas fa-receipt"></i> Ticket
+                                </a>
+                                {% endif %}
+                                {% endwith %}
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -570,7 +574,7 @@
     <div class="empty-state">
         <i class="fas fa-inbox"></i>
         <p>No se encontraron pedidos con los filtros aplicados.</p>
-        <a href="{% url 'pedidos:historial_pedidos' %}" style="color: #FF5722; font-weight: 600; text-decoration: none; margin-top: 10px; display: inline-block;">
+        <a href="{% url 'pedidos:historial_pedidos' %}" style="color: var(--primary-color); font-weight: 600; text-decoration: none; margin-top: 10px; display: inline-block;">
             <i class="fas fa-redo"></i> Ver todos los pedidos
         </a>
     </div>

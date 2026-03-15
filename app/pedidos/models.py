@@ -141,6 +141,10 @@ class Factura(models.Model):
     total = models.DecimalField(max_digits=10, decimal_places=2)
     
     metodo_pago = models.CharField(max_length=20, choices=METODO_PAGO_CHOICES, default='efectivo')
+    
+    # Datos de pago (especialmente para efectivo)
+    monto_recibido = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    vuelto = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def __str__(self):
         return f"Factura #{self.id} - {self.razon_social}"

@@ -14,13 +14,13 @@
         --fc-button-text-color: #fff;
         --fc-button-bg-color: var(--primary-color);
         --fc-button-border-color: var(--primary-color);
-        --fc-button-hover-bg-color: #E64A19;
-        --fc-button-hover-border-color: #E64A19;
-        --fc-button-active-bg-color: #D84315;
-        --fc-button-active-border-color: #D84315;
+        --fc-button-hover-bg-color: var(--secondary-color);
+        --fc-button-hover-border-color: var(--secondary-color);
+        --fc-button-active-bg-color: var(--primary-color);
+        --fc-button-active-border-color: var(--primary-color);
         --fc-event-bg-color: #3788d8;
         --fc-event-border-color: #3788d8;
-        --fc-today-bg-color: rgba(255, 87, 34, 0.05) !important;
+        --fc-today-bg-color: var(--bg-cream) !important;
     }
 
     .agenda-container {
@@ -179,7 +179,7 @@
     }
 
     .btn-detalle:hover {
-        background: #E64A19;
+        background: var(--secondary-color);
         color: white;
     }
 
@@ -212,7 +212,7 @@
 {% block content %}
 <div class="agenda-container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="color: var(--text-color); margin: 0;">📅 Agenda de Eventos</h2>
+        <h2 style="color: var(--text-color); margin: 0;"><i class="fas fa-calendar-alt me-2"></i> Agenda de Eventos</h2>
         <a href="{% url 'eventos:dashboard_eventos' %}" class="btn-detalle"
             style="width: auto; margin: 0; padding: 10px 20px;">
             <i class="fas fa-plus-circle"></i> Gestionar Eventos
@@ -323,7 +323,7 @@
 
                 // Date formatting
                 let dateStr = info.event.start.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-                document.getElementById('modalDate').textContent = "📅 " + dateStr;
+                document.getElementById('modalDate').textContent = dateStr;
 
                 // Extended props info
                 let props = info.event.extendedProps;

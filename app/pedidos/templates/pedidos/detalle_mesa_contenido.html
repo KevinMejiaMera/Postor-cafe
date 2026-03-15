@@ -5,10 +5,10 @@
         height: 100%;
         width: 100%;
         gap: 20px;
-        background: #F8F9FA;
+        background: var(--bg-light);
         padding: 15px;
         box-sizing: border-box;
-        font-family: 'Segoe UI', sans-serif;
+        font-family: 'DM Sans', sans-serif;
     }
 
     .pos-left {
@@ -27,7 +27,8 @@
         background: white;
         padding: 15px 25px;
         border-radius: 12px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--bg-cream);
         margin-bottom: 15px;
         flex-shrink: 0;
     }
@@ -35,10 +36,11 @@
     .pos-header h2 {
         margin: 0;
         font-size: 1.3rem;
-        color: #1F2937;
+        color: var(--primary-color);
         display: flex;
         align-items: center;
         gap: 10px;
+        font-weight: 800;
     }
 
     /* FILTROS / CATEGORÍAS TIPO PILLS */
@@ -81,10 +83,10 @@
     }
 
     .cat-btn.active {
-        background: #3B82F6;
-        /* Azul moderno */
+        background: var(--secondary-color);
         color: white;
-        border-color: #3B82F6;
+        border-color: var(--secondary-color);
+        box-shadow: 0 4px 10px rgba(97, 111, 57, 0.2);
     }
 
     .cat-btn:hover:not(.active) {
@@ -167,8 +169,7 @@
     .pos-card-price {
         font-size: 0.95rem;
         font-weight: 800;
-        color: #10B981;
-        /* Verde precio */
+        color: var(--primary-color);
         margin: 0;
     }
 
@@ -178,7 +179,8 @@
         min-width: 320px;
         background: white;
         border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--bg-cream);
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -341,7 +343,7 @@
         padding: 12px;
         border-radius: 12px;
         border: none;
-        background: #10B981;
+        background: var(--primary-color);
         color: white;
         font-weight: 800;
         font-size: 1rem;
@@ -363,12 +365,18 @@
         width: 100%;
         padding: 10px;
         border-radius: 10px;
-        border: 1px solid #D1D5DB;
+        border: 2px solid var(--bg-cream);
         background: white;
-        color: #4B5563;
+        color: var(--text-muted);
         font-weight: 700;
         font-size: 0.9rem;
         cursor: pointer;
+        transition: 0.3s;
+    }
+    .btn-secondary:hover {
+        background: var(--bg-light);
+        color: var(--primary-color);
+        border-color: var(--primary-color);
     }
 </style>
 
