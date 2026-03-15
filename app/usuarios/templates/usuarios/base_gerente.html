@@ -30,10 +30,32 @@
             --warning-gradient: linear-gradient(135deg, #A79C7D 0%, #CBBF9D 100%);
         }
 
+        /* Personalized Scrollbar for Global */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-cream);
+            border-radius: 10px;
+            border: 2px solid #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-color);
+        }
+
         body {
             font-family: 'DM Sans', sans-serif;
             background-color: var(--bg-light) !important;
             color: var(--text-color);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
         }
 
         /* Sidebar override */
@@ -148,6 +170,88 @@
             transform: translateY(-2px);
         }
 
+        /* SIDEBAR COLLAPSE LOGIC */
+        .sidebar {
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        /* Personalized Scrollbar for Sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--bg-cream);
+            border-radius: 10px;
+        }
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-color);
+        }
+
+        .sidebar.collapsed {
+            width: 85px !important;
+            padding: 20px 10px !important;
+        }
+
+        .sidebar.collapsed .logo img {
+            max-width: 40px !important;
+        }
+
+        .sidebar.collapsed .nav-links a {
+            padding: 12px;
+            margin: 4px 5px;
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .nav-links a span,
+        .sidebar.collapsed .user-info {
+            display: none !important;
+        }
+
+        .sidebar.collapsed .nav-links a i {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .sidebar.collapsed .btn-hostal-switch {
+            padding: 12px 0;
+            margin: 20px 5px;
+        }
+        
+        .sidebar.collapsed .logout-btn {
+            margin-top: 20px;
+        }
+
+        .sidebar-toggle {
+            width: 30px;
+            height: 30px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: 0.3s;
+            margin: 0 0 10px auto; /* Align to right within padding */
+        }
+
+        .sidebar.collapsed .sidebar-toggle {
+            margin: 0 auto 20px auto;
+        }
+
+        .main-content {
+            transition: margin-left 0.3s ease;
+        }
+
         header h2 {
             color: var(--primary-color);
             font-weight: 800;
@@ -192,65 +296,74 @@
 
 <body>
 
-    <nav class="sidebar">
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-toggle" onclick="toggleSidebar()" id="sidebarToggle">
+            <i class="fas fa-chevron-left"></i>
+        </div>
+
         <div class="logo">
-            <img src="{% static 'usuarios/imagenes/logo_postor.png' %}" alt="El Postor Café" style="width: 100%; max-width: 180px; height: auto;">
+            <img src="{% static 'usuarios/imagenes/logo_postor.png' %}" alt="El Postor Café"
+                style="width: 100%; max-width: 180px; height: auto; transition: 0.3s;">
         </div>
 
         <!-- Perfil de Usuario -->
-        <div style="padding: 0 20px 20px 20px; border-bottom: 1px solid var(--bg-cream); margin-bottom: 20px; text-align: center;">
-            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=3E432E&color=fff&size=128" 
-                 alt="{{ user.username }}" 
-                 style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--bg-cream); margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-            <div style="font-weight: 800; color: var(--primary-color); font-size: 0.95rem;">{{ user.username|title }}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">{{ user.get_rol_display }}</div>
+        <div class="user-info"
+            style="padding: 0 20px 20px 20px; border-bottom: 1px solid var(--bg-cream); margin-bottom: 20px; text-align: center; transition: 0.3s;">
+            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=3E432E&color=fff&size=128"
+                alt="{{ user.username }}"
+                style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--bg-cream); margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            <div style="font-weight: 800; color: var(--primary-color); font-size: 0.95rem;">{{ user.username|title }}
+            </div>
+            <div
+                style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+                {{ user.get_rol_display }}</div>
         </div>
 
         <div class="nav-links">
             <!-- LINKS EXCLUSIVOS ADMINISTRACION -->
             {% if user.rol == 'gerente' or user.rol == 'admin' %}
             <a href="{% url 'usuarios:dashboard_gerente' %}" class="{% block active_dashboard %}{% endblock %}">
-                <i class="fas fa-home"></i> Dashboard
+                <i class="fas fa-home"></i> <span>Dashboard</span>
             </a>
             <a href="{% url 'pedidos:panel_mesas' %}" style="color: var(--primary-color);">
-                <i class="fas fa-utensils"></i> Punto de Venta
+                <i class="fas fa-utensils"></i> <span>Punto de Venta</span>
             </a>
             <a href="{% url 'pedidos:historial_pedidos' %}" class="{% block active_historial %}{% endblock %}">
-                <i class="fas fa-history"></i> Historial de Pedidos
+                <i class="fas fa-history"></i> <span>Historial de Pedidos</span>
             </a>
             <a href="{% url 'usuarios:gestion_menu' %}" class="{% block active_menu %}{% endblock %}">
-                <i class="fas fa-hamburger"></i> Menú
+                <i class="fas fa-hamburger"></i> <span>Menú</span>
             </a>
             <a href="{% url 'usuarios:gestion_inventario' %}" class="{% block active_inventario %}{% endblock %}">
-                <i class="fas fa-boxes"></i> Inventario
+                <i class="fas fa-boxes"></i> <span>Inventario</span>
             </a>
             <a href="{% url 'usuarios:reportes_ventas' %}" class="{% block active_reportes %}{% endblock %}">
-                <i class="fas fa-chart-line"></i> Reportes
+                <i class="fas fa-chart-line"></i> <span>Reportes</span>
             </a>
 
             <a href="{% url 'usuarios:lista_usuarios' %}" class="{% block active_personal %}{% endblock %}">
-                <i class="fas fa-users-cog"></i> Personal
+                <i class="fas fa-users-cog"></i> <span>Personal</span>
             </a>
             <a href="{% url 'clientes:lista' %}" class="{% block active_clientes %}{% endblock %}">
-                <i class="fas fa-users"></i> Clientes
+                <i class="fas fa-users"></i> <span>Clientes</span>
             </a>
             <a href="{% url 'eventos:dashboard_eventos' %}">
-                <i class="fas fa-calendar-alt"></i> Eventos
+                <i class="fas fa-calendar-alt"></i> <span>Eventos</span>
             </a>
             <a href="{% url 'usuarios:agenda_pedidos' %}" class="{% block active_agenda %}{% endblock %}">
-                <i class="fas fa-calendar-check"></i> Agenda
+                <i class="fas fa-calendar-check"></i> <span>Agenda</span>
             </a>
             {% endif %}
 
             <!-- LINKS ACCESIBLES PARA MESERO (Ademas de Admin/Gerente) -->
             <a href="{% url 'caja:gestion_caja' %}" class="{% block active_caja %}{% endblock %}">
-                <i class="fas fa-cash-register"></i> Caja
+                <i class="fas fa-cash-register"></i> <span>Caja</span>
             </a>
 
             <!-- ENLACE DIRECTO AL DASHBOARD DE MESERO -->
             {% if user.rol == 'mesero' %}
             <a href="{% url 'usuarios:dashboard_mesero' %}">
-                <i class="fas fa-concierge-bell"></i> Mis Mesas
+                <i class="fas fa-concierge-bell"></i> <span>Mis Mesas</span>
             </a>
             {% endif %}
 
@@ -260,12 +373,12 @@
             <!-- LINK A HOSTAL (SOLO GERENTE) -->
             {% if user.rol == 'gerente' or user.rol == 'admin' %}
             <a href="{% url 'hostal:dashboard_hostal' %}" class="btn-hostal-switch">
-                <i class="fas fa-bed"></i> Gestión Hostal
+                <i class="fas fa-bed"></i> <span>Gestión Hostal</span>
             </a>
             {% endif %}
 
             <a href="{% url 'usuarios:logout' %}" class="logout-btn">
-                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                <i class="fas fa-sign-out-alt"></i> <span>Cerrar Sesión</span>
             </a>
         </div>
     </nav>
@@ -276,6 +389,39 @@
     </main>
 
     <div id="modal-container"></div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.getElementById('sidebarToggle');
+            const icon = toggle.querySelector('i');
+            
+            sidebar.classList.toggle('collapsed');
+            
+            if (sidebar.classList.contains('collapsed')) {
+                icon.classList.remove('fa-chevron-left');
+                icon.classList.add('fa-chevron-right');
+                localStorage.setItem('sidebarCollapsed', 'true');
+            } else {
+                icon.classList.remove('fa-chevron-right');
+                icon.classList.add('fa-chevron-left');
+                localStorage.setItem('sidebarCollapsed', 'false');
+            }
+        }
+
+        // Apply state on load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                const sidebar = document.getElementById('sidebar');
+                const toggle = document.getElementById('sidebarToggle');
+                const icon = toggle.querySelector('i');
+                
+                sidebar.classList.add('collapsed');
+                icon.classList.remove('fa-chevron-left');
+                icon.classList.add('fa-chevron-right');
+            }
+        });
+    </script>
 
     {% block extra_scripts %}{% endblock %}
 
