@@ -1,5 +1,4 @@
 services:
-
   # ─────────────────────────────────────
   # BASE DE DATOS
   # ─────────────────────────────────────
@@ -10,19 +9,30 @@ services:
     volumes:
       - postor_db_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      POSTGRES_DB:                ${DB_NAME}
+      POSTGRES_USER:              ${DB_USER}
+      POSTGRES_PASSWORD:          ${DB_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD:  md5
+    expose:
+      - "5432"
     networks:
       - red_interna
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U $$DB_USER -d $$DB_NAME" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postorcafe_db"]
       interval: 10s
-      timeout: 5s
-      retries: 5
+      timeout: 10s
+      retries: 10
       start_period: 30s
     security_opt:
       - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - FOWNER
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
     deploy:
       resources:
         limits:
@@ -36,25 +46,38 @@ services:
     build: .
     container_name: postor-app
     restart: unless-stopped
-    command: gunicorn restaurante.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120
+    command: >-
+      sh -c "python manage.py migrate --noinput &&
+      python manage.py collectstatic --noinput &&
+      exec gunicorn
+      --bind 0.0.0.0:8000
+      --workers 3
+      --timeout 120
+      --worker-tmp-dir /dev/shm
+      --access-logfile -
+      --error-logfile -
+      restaurante.wsgi:application"
     volumes:
       - .:/app
       - ./staticfiles:/app/staticfiles
+      - postor_static_volume:/app/staticfiles
       - postor_media_volume:/app/media
     expose:
       - "8000"
     env_file:
       - .env
     environment:
-      - DB_HOST=db
+      - DB_HOST=postor-db
       - DB_PORT=5432
     depends_on:
       db:
         condition: service_healthy
     networks:
       - red_interna
+      - proxy-network
+      - general-net
     healthcheck:
-      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health/')\" || exit 1" ]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health/')\" || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -63,6 +86,9 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    cap_add:
+      - SETUID
+      - SETGID
     deploy:
       resources:
         limits:
@@ -99,18 +125,29 @@ services:
         limits:
           cpus: '0.2'
           memory: 128M
-
 # ─────────────────────────────────────
 # NETWORKS
 # ─────────────────────────────────────
 networks:
   red_interna:
     driver: bridge
+  proxy-network:
+    external: true
+    name: proxy-network
+  general-net:
+    external: true
+    name: general-net
 
 # ─────────────────────────────────────
 # VOLUMES
 # ─────────────────────────────────────
 volumes:
   postor_db_data:
+    name: postor_cafe_db_data
+    driver: local
   postor_static_volume:
+    name: postor_cafe_static
+    driver: local
   postor_media_volume:
+    name: postor_cafe_media
+    driver: local
