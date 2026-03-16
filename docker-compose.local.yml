@@ -1,0 +1,115 @@
+# ═══════════════════════════════════════════════════════════════
+# docker-compose.local.yml — Entorno LOCAL de desarrollo
+# ═══════════════════════════════════════════════════════════════
+# Uso:
+#   docker compose -f docker-compose.local.yml up --build
+#   docker compose -f docker-compose.local.yml down -v   (para borrar todo y empezar limpio)
+#
+# IMPORTANTE: Este archivo es completamente independiente de producción.
+#   - Usa volúmenes con nombres distintos (local_*)
+#   - Usa puertos distintos para no colisionar
+#   - Monta el código fuente en vivo (hot-reload con runserver)
+#   - NO requiere redes externas (proxy-network, general-net)
+# ═══════════════════════════════════════════════════════════════
+
+services:
+
+  # ─────────────────────────────────────
+  # BASE DE DATOS — PostgreSQL LOCAL
+  # ─────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: postor-local-db
+    restart: unless-stopped
+    ports:
+      - "5433:5432"           # Puerto 5433 → no colisiona con producción (5432)
+    volumes:
+      - local_db_data:/var/lib/postgresql/data
+    env_file:
+      - .env.local
+    environment:
+      POSTGRES_DB:                ${DB_NAME:-postor_cafe_local}
+      POSTGRES_USER:              ${DB_USER:-postgres}
+      POSTGRES_PASSWORD:          ${DB_PASSWORD:-postorpass}
+      POSTGRES_HOST_AUTH_METHOD:  md5
+    networks:
+      - local_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${DB_USER:-postgres} -d $${DB_NAME:-postor_cafe_local}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  # ─────────────────────────────────────
+  # APLICACIÓN DJANGO — Modo desarrollo
+  # ─────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.local          # Dockerfile ligero sin multi-stage ni usuario no-root
+    container_name: postor-local-app
+    restart: unless-stopped
+    # runserver de Django: recarga automáticamente al guardar archivos
+    command: >-
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput --clear &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app                              # Código fuente en vivo (hot-reload)
+      - local_static:/app/staticfiles
+      - local_media:/app/media
+    ports:
+      - "8000:8000"                         # Acceso directo a Django sin Nginx
+    env_file:
+      - .env.local
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - local_net
+
+  # ─────────────────────────────────────
+  # NGINX LOCAL — Proxy inverso local
+  # ─────────────────────────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: postor-local-nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"                           # Puerto 8080 → http://localhost:8080
+    volumes:
+      - ./nginx/nginx.local.conf:/etc/nginx/conf.d/default.conf:ro
+      - local_static:/app/staticfiles:ro
+      - local_media:/app/media:ro
+    depends_on:
+      - app
+    networks:
+      - local_net
+
+# ─────────────────────────────────────
+# REDES — Solo red interna local
+# (sin redes externas que requiere producción)
+# ─────────────────────────────────────
+networks:
+  local_net:
+    driver: bridge
+    name: postor_local_net
+
+# ─────────────────────────────────────
+# VOLÚMENES — Nombres con prefijo "local_"
+# para no mezclar con datos de producción
+# ─────────────────────────────────────
+volumes:
+  local_db_data:
+    name: postor_cafe_local_db
+    driver: local
+  local_static:
+    name: postor_cafe_local_static
+    driver: local
+  local_media:
+    name: postor_cafe_local_media
+    driver: local
