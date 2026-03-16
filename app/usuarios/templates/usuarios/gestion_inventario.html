@@ -16,6 +16,69 @@
     .edit-btn:hover {
         text-decoration: underline;
     }
+
+    /* === INVENTARIO RESPONSIVE === */
+    @media (max-width: 768px) {
+        header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        header div {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            width: 100%;
+        }
+
+        header .btn-confirmar {
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+            font-size: 0.85rem !important;
+            padding: 10px !important;
+        }
+
+        .audit-section {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .audit-section table thead {
+            display: none;
+        }
+
+        .audit-section table tbody tr {
+            display: block;
+            border: 1px solid var(--bg-cream);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            padding: 14px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .audit-section table tbody td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border: none;
+            font-size: 0.85rem;
+        }
+
+        .audit-section table tbody td::before {
+            content: attr(data-label);
+            font-weight: 700;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+            margin-right: 8px;
+        }
+    }
 </style>
 {% endblock %}
 

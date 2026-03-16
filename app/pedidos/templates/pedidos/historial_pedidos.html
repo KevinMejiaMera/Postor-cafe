@@ -337,15 +337,48 @@
         .historial-table thead { display: none; }
         .historial-table tbody tr {
             display: block;
-            border: 1px solid #F3F4F6;
-            border-radius: 12px;
-            margin: 10px;
-            padding: 12px;
+            border: 1px solid #E5E7EB;
+            border-radius: 14px;
+            margin-bottom: 12px;
+            padding: 14px;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
         }
         .historial-table td {
             display: flex;
             justify-content: space-between;
-            padding: 6px 8px;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px dotted #F3F4F6;
+        }
+
+        .historial-table td:last-child {
+            border-bottom: none;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .historial-table td::before {
+            content: attr(data-label);
+            font-weight: 700;
+            color: #6B7280;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+            margin-right: 12px;
+        }
+
+        .stat-row {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-card form {
+            flex-direction: column;
+        }
+
+        .filter-group {
+            width: 100%;
         }
     }
 </style>
@@ -459,16 +492,16 @@
                 {% for pedido in pedidos %}
                 <tr>
                     <!-- ID -->
-                    <td class="pedido-id">#{{ pedido.id }}</td>
+                    <td class="pedido-id" data-label="#">#{{ pedido.id }}</td>
 
                     <!-- Fecha -->
-                    <td>
+                    <td data-label="Fecha y Hora">
                         <div style="font-weight: 600; color: #1F2937;">{{ pedido.created_at|date:"d M Y" }}</div>
                         <div style="font-size: 0.78rem; color: #9CA3AF;">{{ pedido.created_at|date:"H:i" }}</div>
                     </td>
 
                     <!-- Mesa -->
-                    <td>
+                    <td data-label="Mesa / Tipo">
                         {% if pedido.mesa %}
                         <span class="mesa-tag">
                             <i class="fas fa-chair" style="font-size: 0.7rem;"></i>
@@ -488,7 +521,7 @@
                     </td>
 
                     <!-- Mesero -->
-                    <td>
+                    <td data-label="Mesero">
                         {% if pedido.mesero %}
                         <div style="display: flex; align-items: center; gap: 7px;">
                             <img src="https://ui-avatars.com/api/?name={{ pedido.mesero.username }}&background=f28500&color=fff&size=28"
@@ -501,7 +534,7 @@
                     </td>
 
                     <!-- Cliente -->
-                    <td>
+                    <td data-label="Cliente">
                         {% if pedido.cliente %}
                         <span style="font-weight: 600; color: #374151;">{{ pedido.cliente.nombres }}</span>
                         {% else %}
@@ -510,7 +543,7 @@
                     </td>
 
                     <!-- Productos -->
-                    <td>
+                    <td data-label="Productos">
                         <div class="items-preview" title="{% for item in pedido.items.all %}{{ item.cantidad }}x {{ item.producto.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}">
                             {% for item in pedido.items.all %}
                                 {{ item.cantidad }}x {{ item.producto.nombre }}{% if not forloop.last %}, {% endif %}
@@ -526,7 +559,7 @@
                     </td>
 
                     <!-- Estado -->
-                    <td>
+                    <td data-label="Estado">
                         {% if pedido.estado == 'pagado' %}
                         <span class="estado-badge estado-pagado"><i class="fas fa-check-circle"></i> Pagado</span>
                         {% elif pedido.estado == 'confirmado' %}
@@ -543,10 +576,10 @@
                     </td>
 
                     <!-- Total -->
-                    <td class="total-cell">${{ pedido.total|floatformat:2 }}</td>
+                    <td class="total-cell" data-label="Total">${{ pedido.total|floatformat:2 }}</td>
 
                     <!-- Acciones -->
-                    <td>
+                    <td data-label="Acciones">
                         <div style="display: flex; gap: 6px;">
                             <!-- Botón Detalles (Nuevo) -->
                             <button class="btn-ver-ticket" style="border-color: var(--secondary); background: #fbfbfb; color: var(--secondary);"

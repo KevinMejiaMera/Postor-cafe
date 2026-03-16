@@ -158,6 +158,71 @@
         color: white;
         transform: scale(1.1);
     }
+
+    /* === CLIENTES RESPONSIVE === */
+    @media (max-width: 768px) {
+        .clientes-container {
+            padding: 1rem;
+        }
+
+        .header-section {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .header-section .btn-primary {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+        }
+
+        .input-group-custom {
+            flex-direction: column;
+        }
+
+        .input-group-custom button {
+            width: 100%;
+        }
+
+        /* Tabla en modo tarjeta */
+        .custom-table thead {
+            display: none;
+        }
+
+        .custom-table tbody tr {
+            display: block;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            padding: 14px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(62, 67, 46, 0.06);
+            border: 1px solid var(--bg-cream);
+        }
+
+        .custom-table td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border: none;
+            font-size: 0.87rem;
+        }
+
+        .custom-table td::before {
+            content: attr(data-label);
+            font-weight: 700;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+            margin-right: 10px;
+        }
+    }
 </style>
 
 <div class="clientes-container">

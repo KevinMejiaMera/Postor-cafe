@@ -208,29 +208,217 @@
         }
     }
 
-    @media (max-width: 600px) {
-        .pos-header {
+    @media (max-width: 768px) {
+        .pos-modern {
             flex-direction: column;
+            padding: 8px;
             gap: 10px;
-            text-align: center;
+            height: auto;
+            overflow: visible;
         }
+
+        .pos-left {
+            height: auto;
+            min-height: calc(100dvh - 120px);
+        }
+
+        .pos-right {
+            display: none !important;
+        }
+
+        .pos-right.mobile-cart-open {
+            display: flex !important;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 85vh;
+            z-index: 2000;
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
+            animation: slideUpCart 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            min-width: 0;
+            flex: none;
+        }
+
+        @keyframes slideUpCart {
+            from { transform: translateY(100%); opacity: 0.5; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .mobile-cart-btn {
+            display: flex !important;
+        }
+
+        .pos-header {
+            padding: 12px 15px;
+        }
+
+        .pos-header h2 {
+            font-size: 1.1rem;
+        }
+
         .pos-categories-wrapper {
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
+
         #buscador-pos-modern {
             width: 100%;
         }
+
         .pos-grid {
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 8px;
         }
+
         .pos-card {
-            height: 160px;
+            height: 150px;
             padding: 8px;
         }
+
         .pos-card-img {
             height: 70px;
+        }
+
+        .pos-card-title {
+            font-size: 0.7rem;
+        }
+
+        .pos-card-price {
+            font-size: 0.85rem;
+        }
+
+        .mobile-cart-header {
+            display: flex !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .pos-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .pos-card {
+            height: 130px;
+            padding: 6px;
+        }
+
+        .pos-card-img {
+            height: 60px;
+        }
+    }
+
+    /* BOTÓN FLOTANTE CARRITO */
+    .mobile-cart-btn {
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1998;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 14px 28px;
+        font-size: 1rem;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 8px 25px rgba(62, 67, 46, 0.4);
+        align-items: center;
+        gap: 10px;
+        min-width: 200px;
+        justify-content: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+        animation: bouncein 0.4s ease-out;
+        white-space: nowrap;
+    }
+
+    @keyframes bouncein {
+        0% { transform: translateX(-50%) translateY(20px); opacity: 0; }
+        100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+
+    .mobile-cart-btn:hover, .mobile-cart-btn:active {
+        box-shadow: 0 12px 30px rgba(62, 67, 46, 0.5);
+        transform: translateX(-50%) translateY(-2px);
+    }
+
+    .mobile-cart-btn .cart-badge {
+        background: white;
+        color: var(--primary-color);
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 900;
+    }
+
+    /* OVERLAY oscuro detrás del carrito */
+    .cart-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1999;
+        backdrop-filter: blur(3px);
+    }
+
+    .cart-overlay.active {
+        display: block;
+    }
+
+    /* Header móvil del carrito */
+    .mobile-cart-header {
+        display: none;
+        padding: 16px 20px 10px 20px;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #F3F4F6;
+        flex-shrink: 0;
+    }
+
+    .mobile-cart-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--primary-color);
+    }
+
+    .mobile-cart-close {
+        width: 36px;
+        height: 36px;
+        background: #F3F4F6;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6B7280;
+        font-size: 1rem;
+        transition: 0.2s;
+    }
+
+    /* Drag handle para el drawer */
+    .cart-drag-handle {
+        display: none;
+        width: 40px;
+        height: 4px;
+        background: #E5E7EB;
+        border-radius: 2px;
+        margin: 10px auto 4px auto;
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 768px) {
+        .cart-drag-handle {
+            display: block;
         }
     }
 
@@ -380,6 +568,16 @@
     }
 </style>
 
+<!-- OVERLAY DEL CARRITO MÓVIL -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeMobileCart()"></div>
+
+<!-- BOTÓN FLOTANTE DEL CARRITO (solo móvil) -->
+<button class="mobile-cart-btn" id="mobileCartBtn" onclick="openMobileCart()">
+    <i class="fas fa-shopping-cart"></i>
+    <span id="mobileCartText">Ver Pedido</span>
+    <span class="cart-badge" id="mobileCartBadge">0</span>
+</button>
+
 <div class="pos-modern">
     <!-- PANEL IZQUIERDO: PRODUCTOS -->
     <div class="pos-left">
@@ -455,7 +653,18 @@
 </div>
 
 <!-- PANEL DERECHO: ORDEN ACTUAL -->
-<div class="pos-right">
+<div class="pos-right" id="posCartPanel">
+    <!-- DRAG HANDLE (móvil) -->
+    <div class="cart-drag-handle"></div>
+
+    <!-- HEADER MÓVIL CON BOTÓN DE CIERRE -->
+    <div class="mobile-cart-header">
+        <h3><i class="fas fa-receipt"></i> Detalle del Pedido</h3>
+        <button class="mobile-cart-close" onclick="closeMobileCart()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
     {% include 'pedidos/partials/orden_actual.html' %}
 </div>
 </div>
@@ -491,4 +700,43 @@
         btn.classList.add('active');
         filtrarListaPOS();
     }
+
+    // === FUNCIONES DEL CARRITO MÓVIL ===
+    function openMobileCart() {
+        const cart = document.getElementById('posCartPanel');
+        const overlay = document.getElementById('cartOverlay');
+        cart.classList.add('mobile-cart-open');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileCart() {
+        const cart = document.getElementById('posCartPanel');
+        const overlay = document.getElementById('cartOverlay');
+        cart.classList.remove('mobile-cart-open');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function actualizarBadgeCarrito() {
+        const orderItems = document.querySelectorAll('.order-list .order-item');
+        const badge = document.getElementById('mobileCartBadge');
+        const text = document.getElementById('mobileCartText');
+        
+        if (badge) badge.textContent = orderItems.length;
+
+        const totalEl = document.querySelector('.order-total-amount');
+        if (text) {
+            text.textContent = orderItems.length > 0
+                ? 'Ver Pedido' + (totalEl ? ' · ' + totalEl.textContent.trim() : '')
+                : 'Ver Pedido';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        actualizarBadgeCarrito();
+        document.body.addEventListener('htmx:afterSwap', () => {
+            actualizarBadgeCarrito();
+        });
+    });
 </script>

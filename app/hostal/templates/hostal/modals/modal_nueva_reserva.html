@@ -155,6 +155,34 @@
     .rm-val { font-weight: 800; color: white; }
     .rm-sum-total { font-size: 1.2rem; margin-top: 4px; padding-top: 12px; }
     .rm-sum-total .rm-val { font-size: 1.4rem; }
+
+    /* === RESPONSIVE MÓVIL === */
+    @media (max-width: 768px) {
+        .hostal-modal-wide {
+            width: 95% !important;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 16px;
+        }
+        
+        .hostal-modal-body {
+            grid-template-columns: 1fr !important;
+            gap: 15px !important;
+        }
+
+        .hm-grid-2 {
+            grid-template-columns: 1fr !important;
+        }
+
+        .hostal-modal-footer {
+            flex-direction: column;
+        }
+
+        .btn-hm-save, .btn-hm-cancel {
+            width: 100%;
+            justify-content: center;
+        }
+    }
 </style>
 
 <script>

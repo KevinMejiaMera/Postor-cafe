@@ -128,6 +128,74 @@
         background: #e5e7eb;
         color: #374151;
     }
+
+    /* === RESPONSIVE MÓVIL === */
+    @media (max-width: 768px) {
+        .caja-container {
+            padding: 1rem;
+        }
+
+        .caja-container h2 {
+            font-size: 1.3rem;
+        }
+
+        .actions-grid {
+            grid-template-columns: 1fr !important;
+            gap: 14px;
+        }
+
+        .card {
+            padding: 18px;
+        }
+
+        .historial-section {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Historial en modo tarjetas en móvil */
+        .historial-section table thead {
+            display: none;
+        }
+
+        .historial-section table tbody tr {
+            display: block;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            padding: 14px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .historial-section table tbody td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border: none;
+            font-size: 0.85rem;
+        }
+
+        .historial-section table tbody td::before {
+            content: attr(data-label);
+            font-weight: 700;
+            color: #6B7280;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn {
+            padding: 14px;
+            font-size: 1rem;
+        }
+
+        input[type="number"] {
+            padding: 12px;
+            font-size: 1rem;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -209,17 +277,17 @@
             <tbody>
                 {% for s in historial %}
                 <tr>
-                    <td><strong>{{ s.usuario.username }}</strong></td>
-                    <td>{{ s.fecha_apertura|date:"d/m H:i" }}</td>
-                    <td>{{ s.fecha_cierre|date:"H:i"|default:"-" }}</td>
-                    <td>${{ s.monto_inicial }}</td>
-                    <td>{% if s.monto_final_sistema is not None %}${{ s.monto_final_sistema }}{% else %}-{% endif %}
+                    <td data-label="Usuario"><strong>{{ s.usuario.username }}</strong></td>
+                    <td data-label="Fecha Apertura">{{ s.fecha_apertura|date:"d/m H:i" }}</td>
+                    <td data-label="Cierre">{{ s.fecha_cierre|date:"H:i"|default:"-" }}</td>
+                    <td data-label="Inicial">${{ s.monto_inicial }}</td>
+                    <td data-label="Ventas (Sis)">{% if s.monto_final_sistema is not None %}${{ s.monto_final_sistema }}{% else %}-{% endif %}
                     </td>
-                    <td>{% if s.monto_final_fisico is not None %}${{ s.monto_final_fisico }}{% else %}-{% endif %}</td>
-                    <td class="{% if s.diferencia < 0 %}text-red{% elif s.diferencia > 0 %}text-green{% endif %}">
+                    <td data-label="Físico">{% if s.monto_final_fisico is not None %}${{ s.monto_final_fisico }}{% else %}-{% endif %}</td>
+                    <td data-label="Diferencia" class="{% if s.diferencia < 0 %}text-red{% elif s.diferencia > 0 %}text-green{% endif %}">
                         {% if s.diferencia is not None %}${{ s.diferencia }}{% else %}-{% endif %}
                     </td>
-                    <td>
+                    <td data-label="Estado">
                         {% if s.estado %}
                         <span class="badge badge-open">Abierta</span>
                         {% else %}

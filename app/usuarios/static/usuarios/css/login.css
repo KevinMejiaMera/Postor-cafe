@@ -365,10 +365,69 @@ html {
 @media (max-width: 900px) {
     .split-screen {
         grid-template-columns: 1fr;
+        height: 100dvh;
     }
 
     .left-pane {
         display: none;
-        /* Ocultar imagen en móvil para dar prioridad al login */
+    }
+
+    .right-pane {
+        padding: 24px 20px;
+        justify-content: center;
+        background: var(--bg-light);
+    }
+
+    .login-container {
+        max-width: 100%;
+        padding: 10px;
+    }
+
+    .brand-header {
+        margin-bottom: 30px;
+    }
+
+    .brand-header img {
+        width: 110px !important;
+    }
+
+    .login-form {
+        gap: 18px;
+    }
+
+    .form-group input {
+        padding: 14px 15px;
+        font-size: 1rem;
+        border-radius: 12px;
+    }
+
+    .btn-primary {
+        padding: 16px;
+        font-size: 1.05rem;
+        border-radius: 12px;
+        min-height: 52px;
+    }
+
+    .footer-copy {
+        margin-top: 30px;
+        font-size: 0.65rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .right-pane {
+        padding: 20px 18px;
+    }
+
+    .brand-header img {
+        width: 90px !important;
+    }
+
+    .brand-header {
+        margin-bottom: 24px;
+    }
+
+    .form-group label {
+        font-size: 0.7rem;
     }
 }

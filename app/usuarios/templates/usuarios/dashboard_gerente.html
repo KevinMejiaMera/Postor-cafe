@@ -195,6 +195,68 @@
         font-size: 1.8rem;
         font-weight: 800;
     }
+
+    /* === RESPONSIVE DASHBOARD === */
+    @media (max-width: 768px) {
+        .quick-actions-panel {
+            padding: 16px;
+        }
+
+        .quick-btn {
+            padding: 12px;
+            gap: 12px;
+        }
+
+        .btn-text strong {
+            font-size: 0.95rem;
+        }
+
+        .charts-section {
+            grid-template-columns: 1fr !important;
+        }
+
+        .chart-card {
+            padding: 18px !important;
+        }
+
+        .audit-section {
+            padding: 16px;
+            overflow-x: auto;
+        }
+
+        /* Tabla de actividad en modo tarjeta */
+        .audit-section table thead {
+            display: none;
+        }
+
+        .audit-section table tbody tr {
+            display: block;
+            border-bottom: 1px solid var(--bg-cream);
+            padding: 10px 0;
+        }
+
+        .audit-section table tbody td {
+            display: block;
+            padding: 3px 0;
+            font-size: 0.85rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .stat-card {
+            padding: 16px;
+        }
+
+        .stat-icon {
+            width: 46px;
+            height: 46px;
+            font-size: 1.2rem;
+        }
+
+        .stat-info h2 {
+            font-size: 1.5rem;
+        }
+    }
 </style>
 
 <div class="stats-grid">

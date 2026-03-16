@@ -206,15 +206,49 @@
         height: 12px;
         border-radius: 50%;
     }
+
+    /* === RESPONSIVE MÓVIL === */
+    @media (max-width: 768px) {
+        .agenda-container {
+            padding: 1rem;
+            margin: 10px;
+        }
+
+        .fc-toolbar {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .fc-toolbar-title {
+            font-size: 1.2rem !important;
+            text-align: center;
+        }
+
+        .legend {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .modal-content {
+            width: 95%;
+            margin: 10% auto;
+            padding: 15px;
+        }
+
+        .fc .fc-button {
+            padding: 6px 10px;
+            font-size: 0.85rem;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="agenda-container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div class="agenda-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
         <h2 style="color: var(--text-color); margin: 0;"><i class="fas fa-calendar-alt me-2"></i> Agenda de Eventos</h2>
         <a href="{% url 'eventos:dashboard_eventos' %}" class="btn-detalle"
-            style="width: auto; margin: 0; padding: 10px 20px;">
+            style="width: auto; margin: 0; padding: 10px 20px; text-decoration: none;">
             <i class="fas fa-plus-circle"></i> Gestionar Eventos
         </a>
     </div>

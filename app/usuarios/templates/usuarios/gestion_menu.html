@@ -187,6 +187,78 @@
         padding: 60px 20px;
         color: #9CA3AF;
     }
+
+    /* === RESPONSIVE MÓVIL === */
+    @media (max-width: 768px) {
+        .menu-table-header {
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .btn-nuevo-plato {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .menu-table thead {
+            display: none;
+        }
+
+        .menu-table tbody tr {
+            display: block;
+            border: 1px solid #E5E7EB;
+            border-radius: 14px;
+            margin: 12px;
+            padding: 14px;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            position: relative;
+        }
+
+        .menu-table td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px dotted #F3F4F6;
+        }
+
+        .menu-table td:last-child {
+            border-bottom: none;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .menu-table td::before {
+            content: attr(data-label);
+            font-weight: 700;
+            color: #6B7280;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+            margin-right: 12px;
+        }
+
+        /* Ocultar labels para foto y acciones visuales */
+        .menu-table td:first-child::before,
+        .menu-table td:last-child::before {
+            display: none;
+        }
+
+        .action-btns {
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .btn-accion {
+            flex: 1;
+            justify-content: center;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -248,21 +320,23 @@
                     </td>
 
                     <!-- NOMBRE Y CATEGORÍA -->
-                    <td>
-                        <div class="prod-nombre">{{ p.nombre }}</div>
-                        {% if p.categoria %}
-                        <div class="prod-cat">
-                            <i class="fas fa-tag" style="font-size: 0.65rem;"></i>
-                            {{ p.categoria.nombre }}
+                    <td data-label="Producto">
+                        <div>
+                            <div class="prod-nombre">{{ p.nombre }}</div>
+                            {% if p.categoria %}
+                            <div class="prod-cat">
+                                <i class="fas fa-tag" style="font-size: 0.65rem;"></i>
+                                {{ p.categoria.nombre }}
+                            </div>
+                            {% endif %}
                         </div>
-                        {% endif %}
                     </td>
 
                     <!-- PRECIO DE VENTA -->
-                    <td class="precio-cell">${{ p.precio }}</td>
+                    <td data-label="Precio" class="precio-cell">${{ p.precio }}</td>
 
                     <!-- STOCK -->
-                    <td>
+                    <td data-label="Stock">
                         <span class="stock-cell {% if p.stock <= 5 %}stock-low{% else %}stock-ok{% endif %}">
                             {% if p.stock <= 5 %}
                             <i class="fas fa-exclamation-triangle" style="font-size: 0.75rem;"></i>
@@ -272,7 +346,7 @@
                     </td>
 
                     <!-- ESTADO -->
-                    <td>
+                    <td data-label="Estado">
                         {% if p.disponible %}
                         <span class="estado-badge estado-disponible">
                             <i class="fas fa-eye"></i> Disponible
@@ -285,7 +359,7 @@
                     </td>
 
                     <!-- ACCIONES -->
-                    <td>
+                    <td data-label="Acciones">
                         <div class="action-btns">
                             <button class="btn-accion btn-editar"
                                     hx-get="{% url 'pedidos:editar_producto' p.id %}"

@@ -147,6 +147,42 @@
         margin-bottom: 6px;
         color: var(--text-dark);
     }
+
+    /* === RESPONSIVE HOSTAL DASHBOARD === */
+    @media (max-width: 768px) {
+        .header-section {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .header-section > div:last-child {
+            width: 100%;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-primary-hostal {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .room-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .room-card {
+            min-height: auto;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+        }
+
+        .kpi-row {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 
 

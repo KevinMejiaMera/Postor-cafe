@@ -4,6 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>{% block title %}Gerencia - Postor Cafe San Pedro de Huaca{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&display=swap"
         rel="stylesheet">
@@ -250,6 +251,194 @@
 
         .main-content {
             transition: margin-left 0.3s ease;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* === MOBILE HAMBURGER MENU === */
+        .mobile-topbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: white;
+            z-index: 1100;
+            padding: 0 16px;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(62, 67, 46, 0.1);
+            border-bottom: 1px solid var(--bg-cream);
+        }
+
+        .mobile-topbar .mobile-logo img {
+            height: 36px;
+            width: auto;
+        }
+
+        .hamburger-btn {
+            width: 42px;
+            height: 42px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+
+        .hamburger-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 32, 20, 0.55);
+            z-index: 1049;
+            backdrop-filter: blur(3px);
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                height: auto;
+                overflow: auto;
+                flex-direction: column;
+            }
+
+            .mobile-topbar {
+                display: flex !important;
+            }
+
+            .sidebar {
+                position: fixed !important;
+                top: 0 !important;
+                left: -300px !important;
+                width: 280px !important;
+                height: 100vh !important;
+                z-index: 1050 !important;
+                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                overflow-y: auto !important;
+                box-shadow: 4px 0 30px rgba(0,0,0,0.2) !important;
+                padding: 20px 0 !important;
+            }
+
+            .sidebar.mobile-open {
+                left: 0 !important;
+            }
+
+            /* Reset collapsed state on mobile */
+            .sidebar.collapsed {
+                width: 280px !important;
+                padding: 20px 0 !important;
+            }
+
+            .sidebar.collapsed .nav-links a span,
+            .sidebar.collapsed .user-info {
+                display: block !important;
+            }
+
+            .sidebar.collapsed .nav-links a {
+                padding: 12px 18px !important;
+                margin: 4px 15px !important;
+                justify-content: flex-start !important;
+            }
+
+            .sidebar.collapsed .nav-links a i {
+                margin: 0 !important;
+                font-size: 1rem !important;
+                width: 25px !important;
+            }
+
+            .sidebar.collapsed .btn-hostal-switch {
+                padding: 12px !important;
+                margin: 20px 15px !important;
+            }
+
+            .sidebar-toggle {
+                display: none !important;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                padding: 16px !important;
+                padding-top: 72px !important;
+                width: 100% !important;
+                box-sizing: border-box;
+            }
+
+            /* General mobile table responsiveness */
+            .table-responsive-mobile thead {
+                display: none;
+            }
+
+            .table-responsive-mobile tbody tr {
+                display: block;
+                border: 1px solid var(--bg-cream);
+                border-radius: 12px;
+                margin-bottom: 12px;
+                padding: 12px;
+                background: white;
+            }
+
+            .table-responsive-mobile tbody td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 6px 8px;
+                border: none;
+                font-size: 0.85rem;
+            }
+
+            .table-responsive-mobile tbody td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                color: var(--text-muted);
+                font-size: 0.7rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-right: 8px;
+                flex-shrink: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 12px !important;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+
+            header h2 {
+                font-size: 1.4rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .main-content {
+                padding: 12px !important;
+                padding-top: 68px !important;
+            }
         }
 
         header h2 {
@@ -295,6 +484,19 @@
 </head>
 
 <body>
+
+    <!-- MOBILE TOP BAR -->
+    <div class="mobile-topbar" id="mobileTopbar">
+        <div class="mobile-logo">
+            <img src="{% static 'usuarios/imagenes/logo_postor.png' %}" alt="El Postor Café">
+        </div>
+        <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileSidebar()" aria-label="Menu">
+            <i class="fas fa-bars" id="hamburgerIcon"></i>
+        </button>
+    </div>
+
+    <!-- OVERLAY para cerrar sidebar en móvil -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
 
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-toggle" onclick="toggleSidebar()" id="sidebarToggle">
@@ -409,16 +611,56 @@
             }
         }
 
-        // Apply state on load
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const icon = document.getElementById('hamburgerIcon');
+            
+            const isOpen = sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active', isOpen);
+
+            if (isOpen) {
+                icon.classList.replace('fa-bars', 'fa-times');
+                document.body.style.overflow = 'hidden';
+            } else {
+                icon.classList.replace('fa-times', 'fa-bars');
+                document.body.style.overflow = '';
+            }
+        }
+
+        function closeMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const icon = document.getElementById('hamburgerIcon');
+            
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('active');
+            icon.classList.replace('fa-times', 'fa-bars');
+            document.body.style.overflow = '';
+        }
+
+        // Close sidebar links on mobile
         document.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('sidebarCollapsed') === 'true') {
+            // Apply desktop collapse state
+            if (window.innerWidth > 768 && localStorage.getItem('sidebarCollapsed') === 'true') {
                 const sidebar = document.getElementById('sidebar');
                 const toggle = document.getElementById('sidebarToggle');
-                const icon = toggle.querySelector('i');
-                
-                sidebar.classList.add('collapsed');
-                icon.classList.remove('fa-chevron-left');
-                icon.classList.add('fa-chevron-right');
+                if (toggle) {
+                    const icon = toggle.querySelector('i');
+                    sidebar.classList.add('collapsed');
+                    icon.classList.remove('fa-chevron-left');
+                    icon.classList.add('fa-chevron-right');
+                }
+            }
+
+            // Close sidebar on mobile when a nav link is clicked
+            if (window.innerWidth <= 768) {
+                const navLinks = document.querySelectorAll('.sidebar .nav-links a, .sidebar .btn-hostal-switch, .sidebar .logout-btn');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        closeMobileSidebar();
+                    });
+                });
             }
         });
     </script>

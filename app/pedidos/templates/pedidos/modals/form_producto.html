@@ -222,6 +222,29 @@
     .btn-save-prod:hover { filter: brightness(1.2); transform: translateY(-2px); box-shadow: 0 12px 25px rgba(62, 67, 46, 0.3); }
     .btn-save-prod:disabled { background: var(--text-muted); box-shadow: none; transform: none; cursor: not-allowed; }
 
+    /* === RESPONSIVE MÓVIL === */
+    @media (max-width: 768px) {
+        .form-fields-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .modal-box-prod {
+            width: 95vw;
+            max-height: 95vh;
+            border-radius: 16px;
+        }
+
+        .modal-footer-prod {
+            flex-direction: column-reverse;
+            gap: 12px;
+        }
+
+        .btn-cancel-prod, .btn-save-prod {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
 </style>
 
 <div class="modal-backdrop-prod" onclick="cerrarModalProducto(event)">

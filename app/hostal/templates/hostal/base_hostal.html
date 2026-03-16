@@ -4,6 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>{% block title %}Hostal - Postor Cafe San Pedro de Huaca{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&display=swap"
         rel="stylesheet">
@@ -249,13 +250,133 @@
         .info-note { background: rgba(97,111,57,0.08); border: 1px solid rgba(97,111,57,0.2); border-radius: 12px; padding: 12px 16px; font-size: 0.83rem; color: var(--secondary-color); display: flex; align-items: center; gap: 10px; margin-top: 16px; }
         @keyframes htFadeIn  { from { opacity: 0; } to { opacity: 1; } }
         @keyframes htSlideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* === MOBILE HAMBURGER MENU === */
+        .mobile-topbar-hostal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: white;
+            z-index: 1100;
+            padding: 0 16px;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(62, 67, 46, 0.1);
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .mobile-topbar-hostal .mobile-logo img {
+            height: 36px;
+            width: auto;
+        }
+
+        .hamburger-btn-hostal {
+            width: 42px;
+            height: 42px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .hostal-sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 32, 20, 0.55);
+            z-index: 1049;
+            backdrop-filter: blur(3px);
+        }
+
+        .hostal-sidebar-overlay.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-topbar-hostal {
+                display: flex !important;
+            }
+
+            .sidebar {
+                position: fixed !important;
+                top: 0 !important;
+                left: -300px !important;
+                width: 280px !important;
+                height: 100vh !important;
+                z-index: 1050 !important;
+                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                overflow-y: auto !important;
+                box-shadow: 4px 0 30px rgba(0,0,0,0.2) !important;
+            }
+
+            .sidebar.mobile-open {
+                left: 0 !important;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                padding: 16px !important;
+                padding-top: 72px !important;
+                width: 100% !important;
+                box-sizing: border-box;
+                overflow-x: hidden;
+            }
+
+            /* Tables go card-mode */
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .hm-grid-2 {
+                grid-template-columns: 1fr !important;
+            }
+
+            .hostal-modal {
+                width: 95vw !important;
+                border-radius: 16px !important;
+            }
+
+            .hostal-modal-body {
+                padding: 16px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 12px !important;
+                padding-top: 68px !important;
+            }
+        }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
 
 <body>
 
-    <nav class="sidebar">
+    <!-- MOBILE TOP BAR HOSTAL -->
+    <div class="mobile-topbar-hostal" id="mobileTopbarHostal">
+        <div class="mobile-logo">
+            <img src="{% static 'usuarios/imagenes/logo_postor.png' %}" alt="El Postor Café">
+        </div>
+        <button class="hamburger-btn-hostal" id="hamburgerBtnHostal" onclick="toggleHostalSidebar()" aria-label="Menu">
+            <i class="fas fa-bars" id="hamburgerIconHostal"></i>
+        </button>
+    </div>
+
+    <!-- OVERLAY -->
+    <div class="hostal-sidebar-overlay" id="hostalSidebarOverlay" onclick="closeHostalSidebar()"></div>
+
+    <nav class="sidebar" id="hostalSidebar">
         <a href="{% url 'hostal:dashboard_hostal' %}" class="brand" style="text-decoration: none; padding: 20px 10px; display: block; text-align: center;">
             <img src="{% static 'usuarios/imagenes/logo_postor.png' %}" alt="El Postor Café" style="width: 100%; max-width: 180px; height: auto; margin-bottom: 10px;">
             <div style="font-size: 0.8rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">Módulo Hostal</div>
@@ -307,6 +428,45 @@
     <div id="hostal-modal-container"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleHostalSidebar() {
+            const sidebar = document.getElementById('hostalSidebar');
+            const overlay = document.getElementById('hostalSidebarOverlay');
+            const icon = document.getElementById('hamburgerIconHostal');
+            
+            const isOpen = sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active', isOpen);
+
+            if (isOpen) {
+                icon.classList.replace('fa-bars', 'fa-times');
+                document.body.style.overflow = 'hidden';
+            } else {
+                icon.classList.replace('fa-times', 'fa-bars');
+                document.body.style.overflow = '';
+            }
+        }
+
+        function closeHostalSidebar() {
+            const sidebar = document.getElementById('hostalSidebar');
+            const overlay = document.getElementById('hostalSidebarOverlay');
+            const icon = document.getElementById('hamburgerIconHostal');
+            
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('active');
+            icon.classList.replace('fa-times', 'fa-bars');
+            document.body.style.overflow = '';
+        }
+
+        // Close on nav link click (mobile)
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.innerWidth <= 768) {
+                const navLinks = document.querySelectorAll('#hostalSidebar .nav-item, #hostalSidebar .btn-restaurant, #hostalSidebar .logout-link');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', () => closeHostalSidebar());
+                });
+            }
+        });
+    </script>
     {% block extra_scripts %}{% endblock %}
 </body>
 

@@ -1,5 +1,24 @@
+<style>
+    /* === RESPONSIVE MODAL === */
+    @media (max-width: 768px) {
+        .detalle-modal-content {
+            width: 95% !important;
+            max-height: 90vh;
+            overflow-y: auto !important;
+        }
+        .detalle-mobile-grid {
+            grid-template-columns: 1fr !important;
+        }
+        .desglose-mobile-grid {
+            grid-template-columns: 1fr !important;
+        }
+        .detalle-modal-content table {
+            font-size: 0.8rem;
+        }
+    }
+</style>
 <div class="modal-overlay">
-    <div class="modal-content" style="width: 600px; border-radius: 25px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+    <div class="modal-content detalle-modal-content" style="width: 600px; border-radius: 25px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
         <div class="modal-header" style="background: var(--primary-color); color: white; padding: 20px 25px;">
             <div style="display: flex; flex-direction: column;">
                 <h3 style="margin: 0; color: white;"><i class="fas fa-search-plus" style="color: var(--accent-color); margin-right: 10px;"></i> Detalles del Pedido</h3>
@@ -10,7 +29,7 @@
 
         <div class="modal-body" style="background: #F8F9F2; padding: 25px;">
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+            <div class="detalle-mobile-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
                 <div class="info-box" style="background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--bg-cream);">
                     <small style="display: block; color: var(--text-muted); font-weight: 800; text-transform: uppercase; font-size: 0.7rem; margin-bottom: 5px;">Atendido por</small>
                     <div style="display: flex; align-items: center; gap: 10px;">
@@ -65,7 +84,7 @@
                     <span style="color: var(--accent-color); font-family: monospace;">${{ pedido.factura.total|floatformat:2 }}</span>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="desglose-mobile-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; text-align: center;">
                         <small style="display: block; opacity: 0.6; font-size: 0.7rem; text-transform: uppercase;">Dinero Recibido</small>
                         <span style="font-size: 1.1rem; font-weight: 800; color: white;">${{ pedido.factura.monto_recibido|default:pedido.factura.total|floatformat:2 }}</span>
