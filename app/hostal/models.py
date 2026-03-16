@@ -6,11 +6,11 @@ from clientes.models import Cliente
 class TipoHabitacion(models.Model):
     nombre = models.CharField(max_length=50)  # Ej: Simple, Doble, Matrimonial
     descripcion = models.TextField(blank=True, null=True)
-    precio_noche = models.DecimalField(max_digits=10, decimal_places=2)
+    precio_persona = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     capacidad_personas = models.PositiveIntegerField(default=1)
     
     def __str__(self):
-        return f"{self.nombre} - ${self.precio_noche}"
+        return f"{self.nombre} - ${self.precio_persona} p/p"
 
 class Habitacion(models.Model):
     ESTADOS = [
@@ -36,10 +36,10 @@ class Habitacion(models.Model):
     
     @property
     def precio_actual(self):
-        """Devuelve el precio personalizado si existe, o el del tipo."""
+        """Devuelve el precio personalizado si existe, o el del tipo (ahora por persona)."""
         if self.precio_personalizado:
             return self.precio_personalizado
-        return self.tipo.precio_noche if self.tipo else 0
+        return self.tipo.precio_persona if self.tipo else 0
         
     @property
     def reserva_actual(self):

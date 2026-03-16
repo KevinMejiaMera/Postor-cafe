@@ -47,6 +47,7 @@ def crear_habitacion(request):
         tipo_id    = request.POST.get('tipo')
         piso       = request.POST.get('piso')
         precio_input = request.POST.get('precio')
+        descripcion = request.POST.get('descripcion', '')
         
         # Validar si ya existe
         if Habitacion.objects.filter(numero=numero).exists():
@@ -54,7 +55,7 @@ def crear_habitacion(request):
             return redirect('hostal:gestion_habitaciones')
         
         if not precio_input:
-            messages.error(request, 'El precio por noche es obligatorio.')
+            messages.error(request, 'El precio por persona es obligatorio.')
             return redirect('hostal:gestion_habitaciones')
         
         try:
@@ -64,10 +65,11 @@ def crear_habitacion(request):
                 numero=numero,
                 tipo=tipo,
                 piso=piso,
-                precio_personalizado=float(precio_input),  # Siempre se guarda como precio real
+                precio_personalizado=float(precio_input),
+                descripcion=descripcion,
                 estado='disponible'
             )
-            messages.success(request, f'Habitación {numero} creada correctamente por ${precio_input}/noche.')
+            messages.success(request, f'Habitación {numero} creada correctamente por ${precio_input}/persona.')
         except Exception as e:
             messages.error(request, f'Error al crear habitación: {str(e)}')
             
@@ -76,16 +78,17 @@ def crear_habitacion(request):
 @login_required
 @gerente_required
 def crear_tipo_habitacion(request):
-    """Crea un nuevo TipoHabitacion. El precio es 0 por defecto (cada habitación define su propio precio)."""
+    """Crea un nuevo TipoHabitacion con precio por persona."""
     if request.method == 'POST':
         nombre      = request.POST.get('nombre', '').strip()
         capacidad   = request.POST.get('capacidad_personas', 1)
         descripcion = request.POST.get('descripcion', '')
+        precio_persona = request.POST.get('precio_persona', 0)
 
         if nombre:
             TipoHabitacion.objects.create(
                 nombre=nombre,
-                precio_noche=0,          # No se usa; el precio va en cada Habitacion
+                precio_persona=float(precio_persona or 0),
                 capacidad_personas=int(capacidad),
                 descripcion=descripcion
             )
@@ -121,18 +124,19 @@ def procesar_checkin(request):
             checkin = timezone.now()
             checkout = checkin + timedelta(days=noches)
 
-            # USAR precio_actual de la habitación (precio_personalizado si existe, si no el del tipo)
-            precio_noche_final = float(habitacion.precio_actual)
+            # USAR precio_actual de la habitación (precio por persona)
+            precio_persona_final = float(habitacion.precio_actual)
 
             # Si el formulario envía un precio manual, tiene prioridad
             precio_manual = request.POST.get('precio_manual')
             if precio_manual and precio_manual.strip():
                 try:
-                    precio_noche_final = float(precio_manual)
+                    precio_persona_final = float(precio_manual)
                 except ValueError:
                     pass
 
-            total = precio_noche_final * noches
+            # Cobro por PERSONA (no por noche como antes)
+            total = precio_persona_final * personas
             
             # 3. Crear Reserva
             Reserva.objects.create(
@@ -143,7 +147,7 @@ def procesar_checkin(request):
                 cantidad_personas=personas,
                 estado='checkin', # Ya está hospedado
                 precio_total=total,
-                pagado=0 # Se paga al checkout usualmente, o checkin
+                pagado=0
             )
             
             # 4. Actualizar Habitación
@@ -317,21 +321,17 @@ def crear_reserva(request):
             if not habitacion:
                 raise ValueError("Debe seleccionar una habitación o tipo válido.")
 
-            # Calculate Total
-            noches = (checkout - checkin).days
-            if noches < 1: noches = 1
-
-            # USAR precio_actual de la habitación (precio_personalizado si existe, si no el del tipo)
-            precio_noche_final = float(habitacion.precio_actual)
+            # Calculate Total (PER PERSON)
+            precio_persona_final = float(habitacion.precio_actual)
 
             # Si el formulario envía un precio manual, tiene prioridad
             if precio_manual and precio_manual.strip():
                 try:
-                    precio_noche_final = float(precio_manual)
+                    precio_persona_final = float(precio_manual)
                 except ValueError:
                     pass
 
-            total = precio_noche_final * noches
+            total = precio_persona_final * personas
 
             # Create Reserva
             estado_reserva = 'pendiente'
@@ -339,9 +339,6 @@ def crear_reserva(request):
             # Check if reservation is for TODAY => Auto Check-In
             from django.utils import timezone
             hoy = timezone.now().date()
-            
-            # Convert parsed dates to matching types for comparison if needed, 
-            # though parse_date returns a date object.
             
             if checkin == hoy:
                 estado_reserva = 'checkin'
@@ -472,6 +469,11 @@ def gestion_habitaciones(request):
         if nuevo_estado in dict(Habitacion.ESTADOS):
             habitacion.estado = nuevo_estado
         
+        # Actualizar Descripción
+        descripcion = request.POST.get('descripcion')
+        if descripcion is not None:
+            habitacion.descripcion = descripcion
+
         # Actualizar Precio Personalizado
         precio_input = request.POST.get('precio')
         if precio_input:

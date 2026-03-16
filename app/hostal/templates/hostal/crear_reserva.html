@@ -221,7 +221,7 @@
                         <select class="form-select" name="tipo_habitacion" id="tipoSelect" required>
                             <option value="">Seleccionar tipo...</option>
                             {% for t in tipos %}
-                            <option value="{{ t.id }}" data-precio="{{ t.precio_noche }}">{{ t.nombre }}</option>
+                            <option value="{{ t.id }}" data-precio="{{ t.precio_persona }}">{{ t.nombre }}</option>
                             {% endfor %}
                         </select>
                     </div>

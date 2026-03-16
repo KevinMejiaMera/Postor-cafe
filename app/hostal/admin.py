@@ -3,7 +3,7 @@ from .models import TipoHabitacion, Habitacion, Huesped, Reserva
 
 @admin.register(TipoHabitacion)
 class TipoHabitacionAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'precio_noche', 'capacidad_personas')
+    list_display = ('nombre', 'precio_persona', 'capacidad_personas')
 
 @admin.register(Habitacion)
 class HabitacionAdmin(admin.ModelAdmin):
