@@ -35,3 +35,14 @@ class RecetaForm(forms.ModelForm):
             'insumo': forms.Select(attrs={'class': 'form-input', 'style': 'width: 100%; padding: 8px;'}),
             'cantidad_necesaria': forms.NumberInput(attrs={'class': 'form-input', 'style': 'width: 100%; padding: 8px;', 'step': 'any'}),
         }
+
+from .models import Mesa
+
+class MesaForm(forms.ModelForm):
+    class Meta:
+        model = Mesa
+        fields = ['numero', 'capacidad']
+        widgets = {
+            'numero': forms.NumberInput(attrs={'class': 'form-input', 'style': 'width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;'}),
+            'capacidad': forms.NumberInput(attrs={'class': 'form-input', 'style': 'width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;'}),
+        }

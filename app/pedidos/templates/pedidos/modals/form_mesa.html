@@ -1,0 +1,40 @@
+<div class="modal-backdrop" onclick="document.getElementById('modal-container').innerHTML = ''">
+    <div class="modal-content-wrapper" style="max-width: 500px; height: auto; padding: 30px; position: relative;" onclick="event.stopPropagation()">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h2 style="margin: 0; color: var(--primary-color); font-size: 1.5rem; font-weight: 800;">Nueva Mesa</h2>
+            <button onclick="document.getElementById('modal-container').innerHTML = ''" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #9CA3AF;">&times;</button>
+        </div>
+
+        <form hx-post="{% url 'pedidos:crear_mesa' %}" hx-swap="none">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Número de Mesa</label>
+                {{ form.numero }}
+                {% if form.numero.errors %}
+                <div style="color: #EF4444; font-size: 0.85rem; margin-top: 5px;">{{ form.numero.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Capacidad (Personas)</label>
+                {{ form.capacidad }}
+                {% if form.capacidad.errors %}
+                <div style="color: #EF4444; font-size: 0.85rem; margin-top: 5px;">{{ form.capacidad.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 10px;">
+                <button type="button" onclick="document.getElementById('modal-container').innerHTML = ''" 
+                        style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #D1D5DB; background: white; color: #374151; font-weight: 600; cursor: pointer;">
+                    Cancelar
+                </button>
+                <button type="submit" 
+                        style="flex: 1; padding: 12px; border-radius: 10px; border: none; background: var(--primary-color); color: white; font-weight: 700; cursor: pointer;">
+                    Guardar Mesa
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,222 @@
+{% extends 'usuarios/base_gerente.html' %}
+{% load static %}
+
+{% block title %}Gestión de Mesas - Postor Cafe San Pedro de Huaca{% endblock %}
+
+{% block active_mesas %}active{% endblock %}
+
+{% block extra_head %}
+<style>
+    .mesas-table-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .mesas-table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 24px;
+        border-bottom: 1px solid #F3F4F6;
+    }
+
+    .mesas-table-header h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-nueva-mesa {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s, transform 0.1s;
+        box-shadow: 0 4px 12px rgba(62, 67, 46, 0.2);
+    }
+
+    .btn-nueva-mesa:hover {
+        background: var(--secondary-color);
+        transform: translateY(-1px);
+    }
+
+    .mesas-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    .mesas-table thead th {
+        background: #F9FAFB;
+        padding: 12px 18px;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6B7280;
+        border-bottom: 1px solid #F3F4F6;
+    }
+
+    .mesas-table tbody tr {
+        border-bottom: 1px solid #F9FAFB;
+        transition: background 0.15s;
+    }
+
+    .mesas-table tbody tr:hover { background: var(--bg-light); }
+    .mesas-table td { padding: 12px 18px; vertical-align: middle; }
+
+    .mesa-numero {
+        font-weight: 800;
+        color: #1F2937;
+        font-size: 1.1rem;
+    }
+
+    .mesa-capacidad {
+        color: #6B7280;
+        font-weight: 500;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .status-libre { background: #D1FAE5; color: #065F46; }
+    .status-ocupada { background: #DBEAFE; color: #1E40AF; }
+
+    .btn-eliminar {
+        background: #FEF2F2;
+        color: #991B1B;
+        border: 1px solid #FECACA;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .btn-eliminar:hover {
+        background: #EF4444;
+        color: white;
+        border-color: #EF4444;
+    }
+
+    @media (max-width: 768px) {
+        .mesas-table thead { display: none; }
+        .mesas-table tbody tr {
+            display: block;
+            border: 1px solid #E5E7EB;
+            border-radius: 14px;
+            margin: 12px;
+            padding: 14px;
+        }
+        .mesas-table td {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dotted #F3F4F6;
+        }
+        .mesas-table td:last-child { border-bottom: none; }
+        .mesas-table td::before {
+            content: attr(data-label);
+            font-weight: 700;
+            color: #6B7280;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px;">
+    <div>
+        <h4 style="margin: 0; color: #9CA3AF; font-weight: 500; font-size: 0.9rem;">Panel Gerente</h4>
+        <h2 style="margin: 4px 0 0 0; font-size: 1.8rem; font-weight: 800; color: var(--primary-color);">
+            Gestión de <span style="color: var(--secondary-color);">Mesas</span>
+        </h2>
+    </div>
+</div>
+
+<div class="mesas-table-card">
+    <div class="mesas-table-header">
+        <h2>
+            <i class="fas fa-chair" style="color: var(--accent-color);"></i>
+            Listado de Mesas
+        </h2>
+        <button class="btn-nueva-mesa"
+                hx-get="{% url 'pedidos:crear_mesa' %}"
+                hx-target="#modal-container"
+                hx-swap="innerHTML">
+            <i class="fas fa-plus"></i> Agregar Mesa
+        </button>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table class="mesas-table">
+            <thead>
+                <tr>
+                    <th>N° Mesa</th>
+                    <th>Capacidad</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in mesas %}
+                <tr>
+                    <td data-label="N° Mesa" class="mesa-numero">Mesa {{ m.numero|stringformat:"02d" }}</td>
+                    <td data-label="Capacidad" class="mesa-capacidad">
+                        <i class="fas fa-users" style="font-size: 0.8rem; margin-right: 4px;"></i>
+                        {{ m.capacidad }} personas
+                    </td>
+                    <td data-label="Estado">
+                        {% if m.estado == 'libre' %}
+                        <span class="status-badge status-libre">Libre</span>
+                        {% else %}
+                        <span class="status-badge status-ocupada">Ocupada</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Acciones">
+                        <button class="btn-eliminar"
+                                hx-post="{% url 'pedidos:eliminar_mesa' m.pk %}"
+                                hx-confirm="¿Estás seguro de eliminar la Mesa {{ m.numero }}?"
+                                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                            <i class="fas fa-trash-alt"></i> Eliminar
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 60px 20px; color: #9CA3AF;">
+                        <i class="fas fa-chair" style="font-size: 2.5rem; opacity: 0.2; display: block; margin-bottom: 12px;"></i>
+                        <p style="margin: 0; font-weight: 600;">No hay mesas registradas.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

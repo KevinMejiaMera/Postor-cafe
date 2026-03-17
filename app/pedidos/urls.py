@@ -6,6 +6,7 @@ app_name = 'pedidos'
 
 urlpatterns = [
     path('mesa/<int:mesa_id>/', views.detalle_mesa, name='detalle_mesa'),
+    path('gestion/', views.gestion_mesas, name='gestion_mesas'),
     path('agregar/<int:pedido_id>/<int:producto_id>/', views.agregar_producto, name='agregar_producto'),
     path('confirmar/<int:pedido_id>/', views.confirmar_pedido, name='confirmar_pedido'),
     path('pagar/<int:pedido_id>/', views.pagar_pedido, name='pagar_pedido'),
@@ -23,6 +24,8 @@ urlpatterns = [
     path('productos/nuevo/', views.crear_producto, name='crear_producto'),
     path('productos/editar/<int:pk>/', views.editar_producto, name='editar_producto'),
     path('productos/eliminar/<int:pk>/', views.eliminar_producto, name='eliminar_producto'),
+    path('mesas/nueva/', views.crear_mesa, name='crear_mesa'),
+    path('mesas/eliminar/<int:pk>/', views.eliminar_mesa, name='eliminar_mesa'),
     path('productos/categorias/nueva/', views.crear_categoria, name='crear_categoria'),
     path('productos/<int:producto_id>/receta/', views.gestion_receta, name='gestion_receta'),
     path('receta/eliminar/<int:receta_id>/', views.eliminar_ingrediente, name='eliminar_ingrediente'),

@@ -108,7 +108,7 @@
                         <p class="col-title"><i class="fas fa-map-marker-alt"></i> Destino del Pedido</p>
                         <select name="mesa_id" class="c-select">
                             <option value="">Consumo en local / sin mesa</option>
-                            <option value="llevar">Para llevar</option>
+
                             {% for m in mesas_libres %}
                             <option value="{{ m.id }}">Mesa {{ m.numero }}</option>
                             {% endfor %}

@@ -196,8 +196,8 @@ def pagar_pedido(request, pedido_id):
             ip_address=get_client_ip(request),
             action=f"Cobró cuenta: Pedido #{pedido.id} - Total ${pedido.total}"
         )
-    
-    return redirect('usuarios:dashboard_mesero')
+    messages.success(request, f"Venta cerrada: Pedido #{pedido.id}")
+    return redirect('pedidos:panel_mesas')
 
 # --- VISTAS DE COCINA ---
 
@@ -401,8 +401,9 @@ def procesar_pago(request, pedido_id):
                         observacion=f"Venta Final Pedido #{pedido.id}: {cantidad_vendida}x {producto.nombre}"
                     )
 
-        # 4. Redirigir al Ticket
-        return redirect('pedidos:ver_ticket', factura_id=factura.id)
+        # 4. Mensaje de Éxito y Redirección
+        messages.success(request, f"Venta Realizada: Pedido #{factura.pedido.id} - Total: ${factura.total} - Cambio: ${factura.vuelto}")
+        return redirect('pedidos:panel_mesas')
 
 def ver_ticket(request, factura_id):
     factura = get_object_or_404(Factura, pk=factura_id)
@@ -507,10 +508,36 @@ def editar_producto(request, pk):
 @require_POST
 @gerente_required
 def eliminar_producto(request, pk):
-    
     producto = get_object_or_404(Producto, pk=pk)
     producto.delete()
     return HttpResponse(status=204, headers={'HX-Refresh': 'true'})
+
+from .forms import MesaForm
+@login_required
+@gerente_required
+def crear_mesa(request):
+    if request.method == 'POST':
+        form = MesaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponse(status=204, headers={'HX-Refresh': 'true'})
+    else:
+        form = MesaForm()
+    return render(request, 'pedidos/modals/form_mesa.html', {'form': form})
+
+@login_required
+@gerente_required
+@require_POST
+def eliminar_mesa(request, pk):
+    mesa = get_object_or_404(Mesa, pk=pk)
+    mesa.delete()
+    return HttpResponse(status=204, headers={'HX-Refresh': 'true'})
+
+@login_required
+@gerente_required
+def gestion_mesas(request):
+    mesas = Mesa.objects.all().order_by('numero')
+    return render(request, 'pedidos/gestion_mesas.html', {'mesas': mesas})
 
 @login_required
 @mesero_required
