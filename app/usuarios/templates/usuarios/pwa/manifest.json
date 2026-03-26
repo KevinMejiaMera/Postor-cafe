@@ -9,19 +9,19 @@
   "theme_color": "#3E432E",
   "icons": [
     {
-      "src": "{% static 'usuarios/imagenes/logo_postor.png' %}",
+      "src": "{% static 'usuarios/imagenes/logo_postor_v2.png' %}",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "{% static 'usuarios/imagenes/logo_postor.png' %}",
+      "src": "{% static 'usuarios/imagenes/logo_postor_v2.png' %}",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "{% static 'usuarios/imagenes/logo_postor.png' %}",
+      "src": "{% static 'usuarios/imagenes/logo_postor_v2.png' %}",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"

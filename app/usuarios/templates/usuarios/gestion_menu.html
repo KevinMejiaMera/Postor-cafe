@@ -257,12 +257,13 @@
             width: 100%;
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            gap: 8px;
         }
         
-        .btn-accion {
-            width: 100%;
-            justify-content: center;
+        @media (max-width: 480px) {
+            .action-btns { grid-template-columns: 1fr; }
+            .prod-nombre { font-size: 0.85rem; }
+            .precio-cell { font-size: 0.95rem; }
         }
     }
 

@@ -13,9 +13,9 @@
     
     <!-- PWA & Favicon -->
     <meta name="theme-color" content="#3E432E">
-    <link rel="icon" type="image/png" href="{% static 'usuarios/imagenes/logo_postor.png' %}">
-    <link rel="shortcut icon" href="{% static 'usuarios/imagenes/logo_postor.png' %}">
-    <link rel="apple-touch-icon" href="{% static 'usuarios/imagenes/logo_postor.png' %}">
+    <link rel="icon" type="image/png" href="{% static 'usuarios/imagenes/logo_postor_v2.png' %}">
+    <link rel="shortcut icon" href="{% static 'usuarios/imagenes/logo_postor_v2.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'usuarios/imagenes/logo_postor_v2.png' %}">
     <link rel="manifest" href="/manifest.json">
     <script>
         if ('serviceWorker' in navigator) {
@@ -72,8 +72,15 @@
             color: var(--text-color);
             margin: 0;
             display: flex;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
+        }
+
+        /* Prevent scroll bleed on desktop only if sidebar is fixed */
+        @media (min-width: 992px) {
+            body { 
+                height: 100vh; 
+                overflow: hidden; 
+            }
         }
 
         /* Sidebar override */

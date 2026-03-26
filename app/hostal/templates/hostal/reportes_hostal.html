@@ -114,6 +114,15 @@
     .amount { font-weight: 900; font-family: monospace; }
     .tfoot-total td { background: var(--bg-light); font-weight: 800; color: var(--primary-color); font-size: 1rem; padding: 14px 16px; }
 
+    @media (max-width: 992px) {
+        .main-layout { flex-direction: column; }
+        .sidebar-filters { flex: 1; width: 100%; }
+        .report-header { flex-direction: column; align-items: stretch; text-align: center; }
+        .filter-form { justify-content: center; }
+        .kpi-grid { grid-template-columns: 1fr; }
+        .kpi-val { font-size: 1.4rem; }
+    }
+    
     @media print { .sidebar, .report-header button, .sidebar-filters { display: none !important; } .main-layout { flex-direction: column; } }
 </style>
 
