@@ -49,4 +49,6 @@ urlpatterns = [
     # Historial de Pedidos (Gerente)
     path('historial/', views.historial_pedidos, name='historial_pedidos'),
     path('historial/detalle/<int:pedido_id>/', views.detalle_pedido_modal, name='detalle_pedido_modal'),
+    path('historial/eliminar/<int:pedido_id>/', views.eliminar_pedido, name='eliminar_pedido'),
+    path('historial/reabrir/<int:pedido_id>/', views.reabrir_pedido, name='reabrir_pedido'),
 ]

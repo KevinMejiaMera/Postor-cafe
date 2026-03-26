@@ -1,5 +1,5 @@
 <!-- MODAL: NUEVA RESERVA HOSTAL (cargado vía HTMX) -->
-<div class="hostal-overlay" onclick="if(event.target===this) cerrarModalReserva()">
+<div class="hostal-overlay" onclick="if(event.target===this) cerrarHostalModal()">
     <div class="hostal-modal hostal-modal-wide" onclick="event.stopPropagation()">
 
         <div class="hostal-modal-header">
@@ -7,7 +7,7 @@
                 <h3><i class="fas fa-calendar-plus"></i> Nueva Reserva</h3>
                 <small>Ingresa los datos del huésped y la estancia</small>
             </div>
-            <button class="hostal-modal-close" onclick="cerrarModalReserva()">
+            <button class="hostal-modal-close" onclick="cerrarHostalModal()">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -121,7 +121,7 @@
             </div>
 
             <div class="hostal-modal-footer">
-                <button type="button" class="btn-hm-cancel" onclick="cerrarModalReserva()">Cancelar</button>
+                <button type="button" class="btn-hm-cancel" onclick="cerrarHostalModal()">Cancelar</button>
                 <button type="submit" class="btn-hm-save">
                     <i class="fas fa-check-circle"></i> Confirmar Reserva
                 </button>
@@ -186,10 +186,6 @@
 </style>
 
 <script>
-    function cerrarModalReserva() {
-        document.getElementById('hostal-modal-container').innerHTML = '';
-    }
-
     (function() {
         const checkin  = document.getElementById('rm_checkin');
         const checkout = document.getElementById('rm_checkout');

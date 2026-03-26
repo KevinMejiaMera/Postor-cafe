@@ -17,6 +17,22 @@
     <!-- Estilos -->
     <link rel="stylesheet" href="{% static 'usuarios/css/login.css' %}?v=4.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- PWA & Favicon -->
+    <meta name="theme-color" content="#3E432E">
+    <link rel="icon" type="image/png" href="{% static 'usuarios/imagenes/logo_postor.png' %}">
+    <link rel="shortcut icon" href="{% static 'usuarios/imagenes/logo_postor.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'usuarios/imagenes/logo_postor.png' %}">
+    <link rel="manifest" href="/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                .then(function(registration) { console.log('ServiceWorker registered'); }, 
+                function(err) { console.log('ServiceWorker registration failed: ', err); });
+            });
+        }
+    </script>
 </head>
 
 <body>

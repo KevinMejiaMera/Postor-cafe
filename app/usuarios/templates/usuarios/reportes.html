@@ -196,6 +196,118 @@
         color: var(--secondary);
     }
 
+    /* === RESPONSIVE REPORTS === */
+    .reports-main-layout {
+        display: flex;
+        gap: 30px;
+        align-items: flex-start;
+    }
+
+    .reports-sidebar {
+        flex: 0 0 280px;
+        background: var(--white);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .reports-results {
+        flex: 1;
+    }
+
+    .quick-filter-btn {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 15px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--primary);
+        background: #FFF5F2;
+        font-weight: 700;
+        transition: 0.2s;
+        border: 1px solid var(--primary);
+        margin-bottom: 10px;
+    }
+    .quick-filter-btn.active { background: var(--primary); color: white; }
+
+    .period-list, .shift-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .period-link, .shift-link {
+        display: block;
+        padding: 10px 15px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--secondary);
+        background: #F9FAFB;
+        font-weight: 500;
+        transition: 0.2s;
+    }
+    .period-link.active, .shift-link.active { background: var(--primary); color: white; }
+    .shift-time { font-size: 0.8rem; color: #9CA3AF; }
+    .shift-link.active .shift-time { color: rgba(255,255,255,0.7); }
+
+    @media (max-width: 992px) {
+        .reports-main-layout {
+            flex-direction: column;
+        }
+
+        .reports-sidebar {
+            flex: none;
+            width: 100%;
+        }
+
+        .report-header {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 15px;
+        }
+
+        .filter-form {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .date-input-group input {
+            width: 100%;
+        }
+
+        .btn-filter, .btn-export {
+            margin-top: 5px;
+            width: 100%;
+        }
+
+        .kpi-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .kpi-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .report-title h2 {
+            font-size: 1.4rem;
+        }
+
+        td, th {
+            padding: 10px 15px;
+            font-size: 0.85rem;
+        }
+    }
     /* Table Section */
     .table-container {
         background: var(--white);
@@ -203,6 +315,7 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         overflow: hidden;
         padding-bottom: 20px;
+        margin-top: 25px;
     }
 
     .table-header {
@@ -298,17 +411,16 @@
         </button>
     </form>
 </div>
-
-<div style="display: flex; gap: 30px; align-items: flex-start;">
+<div class="reports-main-layout">
     <!-- SIDEBAR DE FILTROS RÁPIDOS Y TURNOS -->
-    <div style="flex: 0 0 250px; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 15px;">
+    <div class="reports-sidebar">
         
         <div>
             <h3 style="margin-top: 0; font-size: 1.1em; color: var(--secondary); margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
                 <i class="fas fa-calendar-day" style="color: var(--primary);"></i> Reporte Diario
             </h3>
             
-            <a href="?filtro=hoy" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border-radius: 8px; text-decoration: none; color: {% if filtro == 'hoy' %}white{% else %}var(--primary){% endif %}; background: {% if filtro == 'hoy' %}var(--primary){% else %}#FFF5F2{% endif %}; font-weight: 700; transition: 0.2s; border: 1px solid var(--primary); margin-bottom: 10px;">
+            <a href="?filtro=hoy" class="quick-filter-btn {% if filtro == 'hoy' %}active{% endif %}">
                 <span><i class="fas fa-file-invoice-dollar"></i> TODO EL DÍA</span>
                 <i class="fas fa-chevron-right"></i>
             </a>
@@ -317,24 +429,19 @@
                 <i class="fas fa-calendar-alt" style="color: #6B7280;"></i> Otros Periodos
             </h3>
             
-            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+            <ul class="period-list">
                 <li>
-                    <a href="?filtro=ayer" style="display: block; padding: 10px 15px; border-radius: 8px; text-decoration: none; color: {% if filtro == 'ayer' %}white{% else %}var(--secondary){% endif %}; background: {% if filtro == 'ayer' %}var(--primary){% else %}#F9FAFB{% endif %}; font-weight: 500; transition: 0.2s;">
-                        <i class="fas fa-history" style="width: 20px;"></i> Ayer (Completo)
-                    </a>
-                </li>
-                <li>
-                    <a href="?filtro=ayer" style="display: block; padding: 10px 15px; border-radius: 8px; text-decoration: none; color: {% if filtro == 'ayer' %}white{% else %}var(--secondary){% endif %}; background: {% if filtro == 'ayer' %}var(--primary){% else %}#F9FAFB{% endif %}; font-weight: 500; transition: 0.2s;">
+                    <a href="?filtro=ayer" class="period-link {% if filtro == 'ayer' %}active{% endif %}">
                         <i class="fas fa-history" style="width: 20px;"></i> Ayer
                     </a>
                 </li>
                 <li>
-                    <a href="?filtro=semana" style="display: block; padding: 10px 15px; border-radius: 8px; text-decoration: none; color: {% if filtro == 'semana' %}white{% else %}var(--secondary){% endif %}; background: {% if filtro == 'semana' %}var(--primary){% else %}#F9FAFB{% endif %}; font-weight: 500; transition: 0.2s;">
+                    <a href="?filtro=semana" class="period-link {% if filtro == 'semana' %}active{% endif %}">
                         <i class="fas fa-calendar-week" style="width: 20px;"></i> Esta Semana
                     </a>
                 </li>
                 <li>
-                    <a href="{% url 'usuarios:reportes_ventas' %}" style="display: block; padding: 10px 15px; border-radius: 8px; text-decoration: none; color: {% if not filtro and not fecha_inicio and not sesion_filtrada %}white{% else %}var(--secondary){% endif %}; background: {% if not filtro and not fecha_inicio and not sesion_filtrada %}var(--primary){% else %}#F9FAFB{% endif %}; font-weight: 500; transition: 0.2s;">
+                    <a href="{% url 'usuarios:reportes_ventas' %}" class="period-link {% if not filtro and not fecha_inicio and not sesion_filtrada %}active{% endif %}">
                         <i class="fas fa-globe" style="width: 20px;"></i> Histórico Completo
                     </a>
                 </li>
@@ -346,12 +453,12 @@
                 <i class="fas fa-cash-register" style="color: #10B981;"></i> Reportes por Turno
             </h3>
 
-            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+            <ul class="shift-list">
                 {% for caja in cajas_recientes %}
                 <li>
-                    <a href="?filtro=caja_{{ caja.id }}" style="display: block; padding: 10px 15px; border-radius: 8px; text-decoration: none; border-left: 4px solid {% if caja.fecha_cierre %}#10B981{% else %}#F59E0B{% endif %}; color: {% if sesion_filtrada and sesion_filtrada.id == caja.id %}white{% else %}var(--secondary){% endif %}; background: {% if sesion_filtrada and sesion_filtrada.id == caja.id %}var(--primary){% else %}#F9FAFB{% endif %}; font-weight: 500; transition: 0.2s; font-size: 0.85rem;">
-                        <div style="font-weight: 700;">{{ caja.fecha_apertura|date:"d M" }} - Turno {{ caja.usuario.username }}</div>
-                        <div style="color: {% if sesion_filtrada and sesion_filtrada.id == caja.id %}#FFEDDA{% else %}#9CA3AF{% endif %}; font-size: 0.8rem;">
+                    <a href="?filtro=caja_{{ caja.id }}" class="shift-link {% if sesion_filtrada and sesion_filtrada.id == caja.id %}active{% endif %}" style="border-left: 4px solid {% if caja.fecha_cierre %}#10B981{% else %}#F59E0B{% endif %};">
+                        <div style="font-weight: 700;">{{ caja.fecha_apertura|date:"d M" }} - {{ caja.usuario.username }}</div>
+                        <div class="shift-time">
                             {{ caja.fecha_apertura|time:"H:i" }} hasta 
                             {% if caja.fecha_cierre %}
                                 {{ caja.fecha_cierre|time:"H:i" }}
@@ -362,20 +469,20 @@
                     </a>
                 </li>
                 {% empty %}
-                <li style="color: #9CA3AF; font-size: 0.85rem; text-align: center;">No hay turnos registrados hoy ni ayer.</li>
+                <li style="color: #9CA3AF; font-size: 0.85rem; text-align: center;">No hay turnos registrados.</li>
                 {% endfor %}
             </ul>
         </div>
 
         <div style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 5px;">
-            <button onclick="window.location.href='?filtro=hoy&descargar_directo=true'" class="btn-export" style="width: 100%; justify-content: center; background-color: #3B82F6; font-size: 0.85rem; padding: 12px;">
+            <button onclick="window.location.href='?filtro=hoy&descargar_directo=true'" class="btn-export" style="width: 100%; justify-content: center; background-color: #3B82F6; font-size: 0.85rem; padding: 12px; margin-top: 0;">
                 <i class="fas fa-cloud-download-alt"></i> Descargar Todo Hoy
             </button>
         </div>
     </div>
 
     <!-- MAIN CONTENT AREA -->
-    <div style="flex: 1;" id="reporte-resultados">
+    <div class="reports-results" id="reporte-resultados">
         <!-- 2. KPI Cards -->
         <div class="kpi-grid">
             <div class="kpi-card">
@@ -412,6 +519,7 @@
                 </div>
             </div>
         </div>
+</div>
 
         <!-- 3. Table Section (Productos Vendidos) -->
         <div class="table-container">

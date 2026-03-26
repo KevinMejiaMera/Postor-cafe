@@ -1,0 +1,22 @@
+{
+  "name": "Postor Cafe",
+  "short_name": "Postor",
+  "description": "Sistema de Gestión Postor Cafe - Restaurante y Hostal",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F9F2",
+  "theme_color": "#3E432E",
+  "icons": [
+    {
+      "src": "/static/usuarios/imagenes/logo_postor.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/usuarios/imagenes/logo_postor.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "orientation": "portrait-primary"
+}

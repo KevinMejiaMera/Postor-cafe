@@ -168,12 +168,16 @@ def confirmar_pedido(request, pedido_id):
             action=f"Envió a cocina: Pedido #{pedido.id} (Mesa {pedido.mesa.numero})"
         )
 
-        # ELIMINADO: El descuento de inventario se centraliza en el pago (procesar_pago)
-        # para evitar errores de doble descuento y cumplir con el flujo solicitado.
+        # Redirect logic: if from history (as Gerente), refresh history.
+        if request.user.rol == 'gerente':
+             return redirect('pedidos:historial_pedidos')
         
         return redirect('usuarios:dashboard_mesero')
     else:
-        return redirect('pedidos:detalle_mesa', mesa_id=pedido.mesa.id)
+        # Si no hay items, volver al pedido
+        if pedido.mesa:
+             return redirect('pedidos:detalle_mesa', mesa_id=pedido.mesa.id)
+        return redirect('pedidos:editar_pedido_directo', pedido_id=pedido.id)
 
 @login_required
 @mesero_required
@@ -402,7 +406,16 @@ def procesar_pago(request, pedido_id):
                     )
 
         # 4. Mensaje de Éxito y Redirección
-        messages.success(request, f"Venta Realizada: Pedido #{factura.pedido.id} - Total: ${factura.total} - Cambio: ${factura.vuelto}")
+        messages.success(request, f"Venta Realizada: Pedido #{factura.pedido.id} - Total: ${factura.total}")
+        
+        # SI ES HTMX (Usado en el modal de cobro), devolvemos el modal de éxito
+        if request.headers.get('HX-Request'):
+             return render(request, 'pedidos/modals/venta_exitosa.html', {'factura': factura})
+
+        # Redirección inteligente (fallback para forms normales)
+        if request.user.rol == 'gerente':
+             return redirect('pedidos:historial_pedidos')
+             
         return redirect('pedidos:panel_mesas')
 
 def ver_ticket(request, factura_id):
@@ -813,27 +826,50 @@ def editar_pedido_directo(request, pedido_id):
 @gerente_required
 def historial_pedidos(request):
     from django.db.models import Q
-    from datetime import date, timedelta
+    from datetime import date, datetime, timedelta
 
     # Filtros desde GET
     estado_filtro = request.GET.get('estado', '')
+    fecha_str = request.GET.get('fecha', '') # Usaremos 'fecha' para el día específico
     fecha_desde = request.GET.get('fecha_desde', '')
     fecha_hasta = request.GET.get('fecha_hasta', '')
     busqueda = request.GET.get('q', '')
 
-    # Base queryset: todos los pedidos excepto borradores vacíos
+    # Si no hay filtros de fecha, por defecto mostramos HOY
+    hoy = date.today()
+    if not any([fecha_str, fecha_desde, fecha_hasta, busqueda]):
+         fecha_actual = hoy
+    elif fecha_str:
+         fecha_actual = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+    else:
+         fecha_actual = None
+
+    # Base queryset
     pedidos_qs = Pedido.objects.exclude(
         estado='borrador'
     ).select_related('mesa', 'mesero', 'cliente').prefetch_related('items__producto').order_by('-created_at')
 
-    if estado_filtro:
-        pedidos_qs = pedidos_qs.filter(estado=estado_filtro)
-
-    if fecha_desde:
-        pedidos_qs = pedidos_qs.filter(created_at__date__gte=fecha_desde)
+    # Aplicar filtros (Sincronizado con Factura/Pago)
+    if fecha_actual:
+        # Mostramos pedidos creados hoy O pagados hoy (para que coincida con el dashboard)
+        pedidos_qs = pedidos_qs.filter(
+            Q(created_at__date=fecha_actual) | 
+            Q(factura__fecha_emision__date=fecha_actual)
+        ).distinct()
+    elif fecha_desde:
+        pedidos_qs = pedidos_qs.filter(
+            Q(created_at__date__gte=fecha_desde) |
+            Q(factura__fecha_emision__date__gte=fecha_desde)
+        ).distinct()
 
     if fecha_hasta:
-        pedidos_qs = pedidos_qs.filter(created_at__date__lte=fecha_hasta)
+        pedidos_qs = pedidos_qs.filter(
+            Q(created_at__date__lte=fecha_hasta) |
+            Q(factura__fecha_emision__date__lte=fecha_hasta)
+        ).distinct()
+
+    if estado_filtro:
+        pedidos_qs = pedidos_qs.filter(estado=estado_filtro)
 
     if busqueda:
         pedidos_qs = pedidos_qs.filter(
@@ -843,13 +879,26 @@ def historial_pedidos(request):
             Q(cliente__nombres__icontains=busqueda)
         )
 
-    # Estadísticas rápidas del día
-    hoy = date.today()
-    pedidos_hoy = Pedido.objects.filter(created_at__date=hoy).exclude(estado='borrador')
-    total_hoy = sum(p.total for p in pedidos_hoy if p.estado == 'pagado')
+    # Navegación
+    prev_day = (fecha_actual - timedelta(days=1)).strftime('%Y-%m-%d') if fecha_actual else None
+    next_day = (fecha_actual + timedelta(days=1)).strftime('%Y-%m-%d') if fecha_actual else None
+    
+    # Estadísticas rápidas del día (Sincronizadas con Dashboard)
+    # Sumamos las Facturas del día para que el total de ventas siempre sea igual al dashboard
+    pedidos_hoy = Pedido.objects.filter(
+        Q(created_at__date=hoy) | Q(factura__fecha_emision__date=hoy)
+    ).exclude(estado='borrador').distinct()
+    
+    # El total real de ventas es la suma de las facturas generadas hoy
+    from django.db.models import Sum
+    total_hoy = Factura.objects.filter(fecha_emision__date=hoy).aggregate(Sum('total'))['total__sum'] or 0
     
     return render(request, 'pedidos/historial_pedidos.html', {
         'pedidos': pedidos_qs,
+        'fecha_actual': fecha_actual,
+        'es_hoy': fecha_actual == hoy,
+        'prev_day': prev_day,
+        'next_day': next_day,
         'estado_filtro': estado_filtro,
         'fecha_desde': fecha_desde,
         'fecha_hasta': fecha_hasta,
@@ -860,3 +909,114 @@ def historial_pedidos(request):
         'estados': Pedido.ESTADO_CHOICES,
     })
 
+@login_required
+@gerente_required
+@require_POST
+def eliminar_pedido(request, pedido_id):
+    pedido = get_object_or_404(Pedido, pk=pedido_id)
+    
+    # 1. SI ESTABA PAGADO, REVERTIMOS INVENTARIO
+    if pedido.estado == 'pagado':
+        for item in pedido.items.all():
+            producto = item.producto
+            cantidad_revertir = item.cantidad
+            
+            # A. Revertir stock del producto
+            if producto.stock >= 0: # Si se gestiona stock
+                producto.stock += cantidad_revertir
+                producto.save()
+            
+            # B. Revertir ingredientes (Receta) -> Crear "entrada" de ajuste
+            if producto.receta.exists():
+                for ingrediente in producto.receta.all():
+                    insumo = ingrediente.insumo
+                    cantidad_a_reponer = ingrediente.cantidad_necesaria * cantidad_revertir
+                    
+                    # Registramos el re-ingreso en el Kardex
+                    MovimientoKardex.objects.create(
+                        insumo=insumo,
+                        tipo='entrada', # Es una entrada porque devolvemos lo "consumido"
+                        cantidad=cantidad_a_reponer,
+                        costo_total=cantidad_a_reponer * insumo.costo_unitario, 
+                        observacion=f"DEVOLUCIÓN (Eliminación Pedido #{pedido.id}): {cantidad_revertir}x {producto.nombre}"
+                    )
+    
+    # 2. ELIMINAR EL PEDIDO (Esto disparará CASCADE para DetallePedido y Factura)
+    pedido.delete()
+    
+    # Audit Log
+    AuditLog.objects.create(
+        user=request.user,
+        ip_address=get_client_ip(request),
+        action=f"Eliminó Pedido #{pedido_id} (Historial/Devolución)"
+    )
+    
+    messages.success(request, f"Pedido #{pedido_id} eliminado y stock revertido (si aplica).")
+    
+    # Si viene de HTMX, enviamos refresh o borramos la fila (por simplicidad, refresh)
+    if request.headers.get('HX-Request'):
+         return HttpResponse(status=204, headers={'HX-Refresh': 'true'})
+    
+    return redirect('pedidos:historial_pedidos')
+
+@login_required
+@gerente_required
+def reabrir_pedido(request, pedido_id):
+    pedido = get_object_or_404(Pedido, pk=pedido_id)
+    
+    # Solo reabrimos si ya estaba pagado/confirmado/listo
+    if pedido.estado in ['confirmado', 'listo', 'entregado', 'pagado']:
+        
+        # SI ESTABA PAGADO, REVERTIMOS INVENTARIO PARA QUE SE VUELVA A CALCULAR AL PAGAR DE NUEVO
+        if pedido.estado == 'pagado':
+            for item in pedido.items.all():
+                producto = item.producto
+                cantidad_revertir = item.cantidad
+                
+                # A. Revertir stock del producto
+                if producto.stock >= 0:
+                    producto.stock += cantidad_revertir
+                    producto.save()
+                
+                # B. Revertir ingredientes (Receta)
+                if producto.receta.exists():
+                    for ingrediente in producto.receta.all():
+                        insumo = ingrediente.insumo
+                        cantidad_a_reponer = ingrediente.cantidad_necesaria * cantidad_revertir
+                        MovimientoKardex.objects.create(
+                            insumo=insumo,
+                            tipo='entrada',
+                            cantidad=cantidad_a_reponer,
+                            costo_total=cantidad_a_reponer * insumo.costo_unitario, 
+                            observacion=f"RE-APERTURA (Edición Pedido #{pedido.id}): {cantidad_revertir}x {producto.nombre}"
+                        )
+            
+            # ELIMINAR FACTURA ASOCIADA (CASCADE no ocurre aquí si no borramos el pedido, así que lo hacemos manual)
+            if hasattr(pedido, 'factura'):
+                pedido.factura.delete()
+
+        # PONER EN ESTADO BORRADOR PARA PODER EDITAR
+        pedido.estado = 'borrador'
+        pedido.save()
+        
+        # Audit Log
+    AuditLog.objects.create(
+        user=request.user,
+        ip_address=get_client_ip(request),
+        action=f"Re-abrió para edición: Pedido #{pedido.id}"
+    )
+    
+    # Si es HTMX, devolvemos el modal de edición directamente (POS)
+    if request.headers.get('HX-Request'):
+        productos = Producto.objects.filter(disponible=True).order_by('categoria__nombre', 'nombre')
+        categorias = CategoriaProducto.objects.all().order_by('nombre')
+        return render(request, 'pedidos/detalle_mesa_contenido.html', {
+            'pedido': pedido,
+            'productos': productos,
+            'categorias': categorias,
+            'mesa': pedido.mesa,
+            'is_htmx': True
+        })
+        
+    messages.success(request, f"Pedido #{pedido.id} re-abierto para edición.")
+    return redirect('pedidos:editar_pedido_directo', pedido_id=pedido.id)

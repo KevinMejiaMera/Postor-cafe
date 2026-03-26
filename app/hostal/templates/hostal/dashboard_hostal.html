@@ -149,7 +149,7 @@
     }
 
     /* === RESPONSIVE HOSTAL DASHBOARD === */
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
         .header-section {
             flex-direction: column;
             align-items: flex-start;
@@ -168,19 +168,25 @@
         }
 
         .room-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .room-card {
-            min-height: auto;
-        }
-
-        .page-title {
-            font-size: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
         }
 
         .kpi-row {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .kpi-row {
             grid-template-columns: 1fr;
+        }
+        .room-grid {
+            grid-template-columns: 1fr;
+        }
+        .page-title {
+            font-size: 1.5rem;
         }
     }
 </style>
@@ -196,13 +202,20 @@
         <span style="background: #DCFCE7; color: #166534; padding: 8px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; display: flex; align-items: center; gap: 6px;">
             <i class="fas fa-check-circle"></i> Caja Abierta
         </span>
-        {% endif %}
         <button class="btn-primary-hostal"
             hx-get="{% url 'hostal:modal_nueva_reserva' %}"
             hx-target="#hostal-modal-container"
             hx-swap="innerHTML">
             <i class="fas fa-calendar-plus"></i> Nueva Reserva
         </button>
+        {% else %}
+        <span style="background: #FEE2E2; color: #B91C1C; padding: 8px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+            <i class="fas fa-lock"></i> Caja Cerrada
+        </span>
+        <button class="btn-primary-hostal opacity-50" disabled title="Debe abrir caja para realizar reservas">
+            <i class="fas fa-calendar-plus"></i> Nueva Reserva
+        </button>
+        {% endif %}
     </div>
 </div>
 
@@ -316,9 +329,15 @@
                 <span class="price-tag">${{ hab.precio_actual|floatformat:2 }}</span>
                 <span class="text-muted small">/ persona</span>
             </div>
+            {% if caja_abierta %}
             <button class="btn-primary-hostal w-100" onclick="abrirCheckIn('{{ hab.id }}', '{{ hab.numero }}')">
                 <i class="fas fa-key me-2"></i> Registrar Check-in
             </button>
+            {% else %}
+            <button class="btn-primary-hostal w-100 opacity-50" disabled title="Abra caja para registrar ingresos">
+                <i class="fas fa-lock me-2"></i> Caja Cerrada
+            </button>
+            {% endif %}
         </div>
 
         {% elif hab.estado == 'ocupada' %}

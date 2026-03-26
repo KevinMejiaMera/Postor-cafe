@@ -1,0 +1,8 @@
+﻿Operations to perform:
+  Apply all migrations: admin, auth, axes, caja, clientes, contenttypes, eventos, hostal, inventario, pedidos, sessions, usuarios
+Running migrations:
+  No migrations to apply.
+  Your models in app(s): 'hostal' have changes that are not yet reflected in a migration, and so won't be applied.
+  Run 'manage.py makemigrations' to make new migrations, and then re-run 'manage.py migrate' to apply them.
+Found another file with the destination path 'admin/js/popup_response.js'. It will be ignored since only the first encountered file is collected. If this is not what you want, make sure every static file has a unique path.
+Found another file with the destination path 'admin/js/cancel.js'. It will be ignored since only the first encountered file is collected. If this is not what you want, make sure every static file has a unique path.

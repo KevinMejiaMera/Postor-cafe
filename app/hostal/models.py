@@ -83,6 +83,7 @@ class Reserva(models.Model):
     estado = models.CharField(max_length=20, choices=ESTADOS_RESERVA, default='pendiente')
     
     # Finanzas
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Recepcionista")
     precio_total = models.DecimalField(max_digits=10, decimal_places=2, help_text="Costo total del alojamiento")
     pagado = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     observaciones = models.TextField(blank=True, null=True)

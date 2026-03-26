@@ -1,0 +1,83 @@
+<div class="hostal-overlay" onclick="if(event.target===this) cerrarHostalModal()">
+    <div class="hostal-modal" onclick="event.stopPropagation()" style="max-width: 600px;">
+        <div class="hostal-modal-header">
+            <div>
+                <h3><i class="fas fa-receipt"></i> Detalle Reserva #{{ reserva.id }}</h3>
+                <small>Información completa del hospedaje</small>
+            </div>
+            <button class="hostal-modal-close" onclick="cerrarHostalModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="hostal-modal-body">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <!-- Huésped -->
+                <div>
+                    <p style="font-size: 0.72rem; font-weight: 800; color: var(--secondary-color); text-transform: uppercase; margin-bottom: 10px;">
+                        <i class="fas fa-user"></i> Huésped
+                    </p>
+                    <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--bg-cream);">
+                        <div style="font-weight: 800; color: var(--primary-color); font-size: 1.1rem;">{{ reserva.huesped.nombre_completo }}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-light);">{{ reserva.huesped.documento_identidad|default:"Sin documento" }}</div>
+                        <div style="margin-top: 8px; font-size: 0.85rem;">
+                            {% if reserva.huesped.telefono %}<i class="fas fa-phone-alt opacity-50"></i> {{ reserva.huesped.telefono }}<br>{% endif %}
+                            {% if reserva.huesped.email %}<i class="fas fa-envelope opacity-50"></i> {{ reserva.huesped.email }}{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Habitación -->
+                <div>
+                    <p style="font-size: 0.72rem; font-weight: 800; color: var(--secondary-color); text-transform: uppercase; margin-bottom: 10px;">
+                        <i class="fas fa-door-open"></i> Alojamiento
+                    </p>
+                    <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--bg-cream);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="hab-pill">Hab. {{ reserva.habitacion.numero }}</span>
+                            <span style="font-weight: 700; color: var(--primary-color);">{{ reserva.habitacion.tipo.nombre }}</span>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 0.85rem; color: var(--text-light);">
+                            {{ reserva.fecha_checkin|date:"d M" }} — {{ reserva.fecha_checkout|date:"d M" }}
+                            <br><strong>{{ reserva.cantidad_personas }}</strong> persona{{ reserva.cantidad_personas|pluralize }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Finanzas -->
+                <div style="grid-column: span 2;">
+                    <div style="background: var(--primary-color); color: white; padding: 20px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="font-size: 0.7rem; text-transform: uppercase; opacity: 0.7; font-weight: 800;">Total Transacción</span>
+                            <div style="font-size: 1.8rem; font-weight: 900;">$ {{ reserva.precio_total|floatformat:2 }}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 0.7rem; text-transform: uppercase; opacity: 0.7; font-weight: 800;">Estado</span>
+                            <div style="font-weight: 700; padding: 4px 12px; background: rgba(255,255,255,0.15); border-radius: 20px; font-size: 0.8rem; margin-top: 4px;">
+                                {{ reserva.get_estado_display }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if reserva.observaciones %}
+                <div style="grid-column: span 2;">
+                    <p style="font-size: 0.72rem; font-weight: 800; color: var(--text-light); text-transform: uppercase; margin-bottom: 5px;">Notas</p>
+                    <div style="background: #fefce8; border: 1px solid #fef08a; padding: 12px; border-radius: 12px; font-size: 0.88rem; color: #854d0e; font-style: italic;">
+                        {{ reserva.observaciones }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="hostal-modal-footer">
+            <button type="button" class="btn-hm-cancel" onclick="cerrarHostalModal()">Cerrar</button>
+            <button class="btn-hm-save" style="background: #3b82f6;"
+                hx-get="{% url 'hostal:editar_reserva_modal' reserva.id %}"
+                hx-target="#hostal-modal-container">
+                <i class="fas fa-edit"></i> Editar Datos
+            </button>
+        </div>
+    </div>
+</div>

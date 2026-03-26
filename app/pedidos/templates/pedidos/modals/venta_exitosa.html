@@ -1,0 +1,145 @@
+{% load l10n %}
+<div class="cobrar-overlay">
+    <div class="success-card">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        
+        <h2>¡Venta Realizada con Éxito!</h2>
+        <p class="order-ref">Comprobante de Pedido #{{ factura.pedido.id }}</p>
+
+        <div class="summary-details">
+            <div class="summary-line">
+                <span>Total Cobrado:</span>
+                <strong class="total-val">${{ factura.total|floatformat:2 }}</strong>
+            </div>
+            {% if factura.vuelto > 0 %}
+            <div class="summary-line highlight">
+                <span>Cambio a Entregar:</span>
+                <strong class="cambio-val">${{ factura.vuelto|floatformat:2 }}</strong>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="action-grid">
+            <a href="{% url 'pedidos:ver_ticket' factura.id %}" target="_blank" class="btn-print">
+                <i class="fas fa-print"></i> Imprimir Ticket
+            </a>
+            
+            <button type="button" class="btn-close-success" onclick="finalizarUX()">
+                <i class="fas fa-plus"></i> Nueva Venta / Cerrar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function finalizarUX() {
+        // Cerramos el modal
+        document.getElementById('modal-container').innerHTML = '';
+        // Si estamos en el historial, refrescamos la tabla
+        if (window.location.pathname.includes('/historial/')) {
+            window.location.reload();
+        } else if (window.location.pathname.includes('/mesas/')) {
+            window.location.reload();
+        } else {
+            // Refresco general por seguridad
+            window.location.reload();
+        }
+    }
+</script>
+
+<style>
+    .success-card {
+        background: white;
+        border-radius: 28px;
+        width: 450px;
+        max-width: 90vw;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        animation: successPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes successPop {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .success-icon {
+        font-size: 5rem;
+        color: var(--secondary-color);
+        margin-bottom: 20px;
+    }
+
+    .success-card h2 {
+        color: var(--primary-color);
+        margin: 0 0 10px 0;
+        font-size: 1.6rem;
+        font-weight: 800;
+    }
+
+    .order-ref {
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-bottom: 30px;
+    }
+
+    .summary-details {
+        background: var(--bg-light);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .summary-line {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .summary-line.highlight {
+        color: var(--secondary-color);
+        font-size: 1.1rem;
+        border-top: 1px solid var(--bg-cream);
+        padding-top: 10px;
+        margin-top: 10px;
+    }
+
+    .action-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .btn-print {
+        background: var(--primary-color);
+        color: white;
+        text-decoration: none;
+        padding: 14px;
+        border-radius: 14px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: 0.2s;
+    }
+
+    .btn-print:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+    .btn-close-success {
+        background: white;
+        color: var(--text-muted);
+        border: 2px solid var(--bg-cream);
+        padding: 12px;
+        border-radius: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-close-success:hover { background: var(--bg-light); color: var(--primary-color); border-color: var(--primary-color); }
+</style>

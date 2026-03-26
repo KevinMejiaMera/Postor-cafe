@@ -4,7 +4,10 @@
 <div class="cobrar-overlay">
     <div class="cobrar-box">
 
-        <form action="{% url 'pedidos:procesar_pago' pedido.id %}" method="POST" style="display: flex; flex-direction: column; height: 100%;">
+        <form class="cobrar-form"
+            hx-post="{% url 'pedidos:procesar_pago' pedido.id %}" 
+            hx-target="#modal-container" 
+            style="display: flex; flex-direction: column; height: 100%;">
             {% csrf_token %}
 
             <!-- HEADER -->
@@ -126,7 +129,7 @@
                                 <div class="money-input">
                                     <span>$</span>
                                     <input type="number" id="efectivo_recibido" name="efectivo_recibido"
-                                        placeholder="0.00" step="0.01"
+                                        placeholder="Vuelto Justo" step="0.01"
                                         oninput="calcularVuelto()" autofocus>
                                 </div>
                             </div>
@@ -217,10 +220,12 @@
     }
 
     function calcularVuelto() {
-        let recibido = parseFloat(document.getElementById('efectivo_recibido').value) || 0;
+        let recibidoStr = document.getElementById('efectivo_recibido').value;
+        // Si está vacío, asumimos pago justo para mostrarlo en el label (aunque el backend ya lo hace)
+        let recibido = recibidoStr === '' ? TOTAL_PEDIDO : parseFloat(recibidoStr) || 0;
         let label    = document.getElementById('vuelto_label');
 
-        if (recibido === 0) {
+        if (recibidoStr === '') {
             label.textContent = '0.00';
             label.style.color = 'var(--text-muted)';
             return;
@@ -548,8 +553,8 @@
     @keyframes cobrarFadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes cobrarSlideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-    /* === RESPONSIVE MÓVIL === */
-    @media (max-width: 768px) {
+    /* === RESPONSIVE MÓVIL Y TABLET === */
+    @media (max-width: 1150px) {
         .cobrar-box {
             width: 100vw;
             height: 100vh;
@@ -591,7 +596,7 @@
         .cobrar-footer-row {
             flex-direction: column;
             gap: 12px;
-            padding-bottom: 20px;
+            padding-bottom: 30px; /* Mas espacio para el boton inferior */
         }
 
         .btn-finalizar {
@@ -600,7 +605,13 @@
         }
         
         .calc-row {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, 1fr); /* 2 columnas en lugar de 1 si hay espacio lateral */
+        }
+
+        @media (max-width: 480px) {
+            .calc-row {
+                grid-template-columns: 1fr;
+            }
         }
 
         .search-box input {

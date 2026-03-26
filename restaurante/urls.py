@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.views.generic import RedirectView
+from django.views.generic import RedirectView, TemplateView
 from django.http import JsonResponse
 from django.db import connection
 from django.conf import settings
@@ -44,6 +44,10 @@ urlpatterns = [
     path('caja/', include('caja.urls')),
     path('eventos/', include('eventos.urls')),
     path('hostal/', include('hostal.urls')),
+    
+    # PWA
+    path('sw.js', TemplateView.as_view(template_name='usuarios/pwa/sw.js', content_type='application/javascript'), name='sw.js'),
+    path('manifest.json', TemplateView.as_view(template_name='usuarios/pwa/manifest.json', content_type='application/json'), name='manifest.json'),
 ]
 
 # Servir archivos media siempre (en producción lo maneja Nginx/el volumen Docker)

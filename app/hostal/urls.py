@@ -18,5 +18,10 @@ urlpatterns = [
     path('habitaciones/', views.gestion_habitaciones, name='gestion_habitaciones'),
     path('caja/', views.caja_hostal, name='caja_hostal'),
     path('reportes/', views.reportes_hostal, name='reportes_hostal'),
+    # Gestión de Reservas
+    path('reservas/detalle/<int:reserva_id>/', views.detalle_reserva_modal, name='detalle_reserva_modal'),
+    path('reservas/editar/<int:reserva_id>/', views.editar_reserva_modal, name='editar_reserva_modal'),
+    path('reservas/actualizar/<int:reserva_id>/', views.actualizar_reserva, name='actualizar_reserva'),
+    path('reservas/eliminar/<int:reserva_id>/', views.eliminar_reserva, name='eliminar_reserva'),
 ]
 

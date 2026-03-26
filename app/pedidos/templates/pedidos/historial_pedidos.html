@@ -333,7 +333,7 @@
         font-weight: 500;
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
         .historial-table thead { display: none; }
         .historial-table tbody tr {
             display: block;
@@ -348,13 +348,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 6px 0;
+            padding: 8px 0;
             border-bottom: 1px dotted #F3F4F6;
         }
 
         .historial-table td:last-child {
             border-bottom: none;
-            justify-content: space-between;
+            justify-content: flex-end;
             margin-top: 10px;
         }
 
@@ -370,15 +370,30 @@
         }
 
         .stat-row {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, 1fr);
         }
 
         .filter-card form {
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
         }
 
         .filter-group {
             width: 100%;
+        }
+
+        .btn-filter, .btn-clear {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 550px) {
+        .stat-row {
+            grid-template-columns: 1fr;
+        }
+        .filter-card form {
+            grid-template-columns: 1fr;
         }
     }
 </style>
@@ -420,13 +435,38 @@
     </div>
     <div class="mini-stat">
         <div class="mini-stat-icon icon-blue">
-            <i class="fas fa-filter"></i>
+            <i class="fas fa-calendar-day"></i>
         </div>
         <div class="mini-stat-info">
-            <p>Resultados Filtrados</p>
-            <strong>{{ total_pedidos }}</strong>
+            <p>Día Visualizado</p>
+            <strong>{% if es_hoy %}Hoy{% elif fecha_actual %}{{ fecha_actual|date:"d M" }}{% else %}Filtrado{% endif %}</strong>
         </div>
     </div>
+</div>
+
+<!-- NAVEGACIÓN POR DÍAS -->
+<div style="display: flex; gap: 10px; margin-bottom: 20px; align-items: center; justify-content: center; background: white; padding: 12px; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.05);">
+    <a href="?fecha={{ prev_day }}" class="btn-clear" style="margin:0; padding: 10px 15px;">
+        <i class="fas fa-chevron-left"></i> Anterior
+    </a>
+    
+    <div style="text-align: center; min-width: 150px;">
+        <span style="display: block; font-size: 0.75rem; color: #6B7280; font-weight: 700; text-transform: uppercase;">Mostrando Pedidos de:</span>
+        <span style="font-size: 1.1rem; font-weight: 800; color: var(--primary-color);">
+            {% if fecha_actual %}{{ fecha_actual|date:"l, d F Y" }}{% else %}Rango Personalizado{% endif %}
+        </span>
+    </div>
+
+    {% if not es_hoy %}
+    <a href="?fecha={{ next_day }}" class="btn-clear" style="margin:0; padding: 10px 15px;">
+        Siguiente <i class="fas fa-chevron-right"></i>
+    </a>
+    <a href="{% url 'pedidos:historial_pedidos' %}" class="btn-filter" style="margin:0; padding: 10px 15px; background: var(--secondary-color);">
+        <i class="fas fa-calendar-check"></i> Ir a Hoy
+    </a>
+    {% else %}
+    <div style="width: 110px;"></div> <!-- Spacer -->
+    {% endif %}
 </div>
 
 <!-- FILTROS -->
@@ -581,17 +621,37 @@
                     <!-- Acciones -->
                     <td data-label="Acciones">
                         <div style="display: flex; gap: 6px;">
-                            <!-- Botón Detalles (Nuevo) -->
-                            <button class="btn-ver-ticket" style="border-color: var(--secondary); background: #fbfbfb; color: var(--secondary);"
-                                hx-get="{% url 'pedidos:detalle_pedido_modal' pedido.id %}" hx-target="#modal-container">
-                                <i class="fas fa-search-plus"></i> Detalles
+                            <!-- Botón Detalles -->
+                            <button class="btn-ver-ticket" style="border-color: #6B7280; background: #f9fafb; color: #374151;"
+                                hx-get="{% url 'pedidos:detalle_pedido_modal' pedido.id %}" hx-target="#modal-container" title="Detalles">
+                                <i class="fas fa-eye"></i>
+                            </button>
+
+                            <!-- Botón Editar (Modal POS) -->
+                            <button class="btn-ver-ticket" 
+                                style="border-color: #3B82F6; background: #eff6ff; color: #1d4ed8;"
+                                hx-get="{% url 'pedidos:reabrir_pedido' pedido.id %}" hx-target="#modal-container"
+                                hx-confirm="¿Re-abrir pedido? Se anulará la factura actual y se revertirá el inventario para edición."
+                                title="Editar Pedido">
+                                <i class="fas fa-edit"></i>
+                            </button>
+
+                            <!-- Botón Eliminar -->
+                            <button class="btn-ver-ticket" 
+                                style="border-color: #EF4444; background: #fef2f2; color: #b91c1c;"
+                                hx-post="{% url 'pedidos:eliminar_pedido' pedido.id %}"
+                                hx-confirm="¿Estás seguro de eliminar este pedido permanentemente?"
+                                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                title="Eliminar">
+                                <i class="fas fa-trash-alt"></i>
                             </button>
 
                             {% if pedido.estado == 'pagado' %}
                                 {% with factura=pedido.factura %}
                                 {% if factura %}
-                                <a href="{% url 'pedidos:ver_ticket' factura.id %}" class="btn-ver-ticket" target="_blank">
-                                    <i class="fas fa-receipt"></i> Ticket
+                                <a href="{% url 'pedidos:ver_ticket' factura.id %}" class="btn-ver-ticket" target="_blank" 
+                                    style="border-color: var(--secondary-color); background: #f0fdf4; color: #166534;" title="Ver Ticket">
+                                    <i class="fas fa-print"></i>
                                 </a>
                                 {% endif %}
                                 {% endwith %}

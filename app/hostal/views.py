@@ -100,6 +100,12 @@ def crear_tipo_habitacion(request):
 @login_required
 @gerente_required
 def procesar_checkin(request):
+    # Verificar Caja Obligatoria
+    caja = SesionCajaHostal.objects.filter(usuario=request.user, estado=True).first()
+    if not caja:
+        messages.error(request, 'Debe abrir la CAJA del hostal antes de realizar un Check-In.')
+        return redirect('hostal:caja_hostal')
+
     if request.method == 'POST':
         try:
             hab_id = request.POST.get('habitacion_id')
@@ -139,15 +145,16 @@ def procesar_checkin(request):
             total = precio_persona_final * personas
             
             # 3. Crear Reserva
-            Reserva.objects.create(
+            reserva = Reserva.objects.create(
                 huesped=huesped,
                 habitacion=habitacion,
-                fecha_checkin=checkin,
-                fecha_checkout=checkout,
+                fecha_checkin=timezone.now(),
+                fecha_checkout=timezone.now() + timezone.timedelta(days=noches),
                 cantidad_personas=personas,
-                estado='checkin', # Ya está hospedado
                 precio_total=total,
-                pagado=0
+                pagado=total,
+                estado='checkin',
+                usuario=request.user
             )
             
             # 4. Actualizar Habitación
@@ -260,6 +267,12 @@ def calendario_reservas(request):
 @login_required
 @gerente_required
 def crear_reserva(request):
+    # Verificar Caja Obligatoria
+    caja = SesionCajaHostal.objects.filter(usuario=request.user, estado=True).first()
+    if not caja:
+        messages.error(request, 'Debe abrir la CAJA del hostal antes de crear reservas.')
+        return redirect('hostal:caja_hostal')
+
     if request.method == 'POST':
         try:
             # Guest Info
@@ -429,29 +442,28 @@ def finanzas_hostal(request):
     # Base Query: Reservas activas o finalizadas (excluir canceladas)
     reservas = Reserva.objects.exclude(estado='cancelada')
     
-    # 1. Ingresos Hoy (Check-ins creados hoy o cobros hoy - simplificado a fecha reserva)
-    query_hoy = reservas.filter(
-        created_at__date=hoy
-    ).aggregate(total=Sum('precio_total'), cant=Count('id'))
-    ingreso_hoy = query_hoy['total'] or 0
-    cantidad_hoy = query_hoy['cant'] or 0
+    # 1. Ingresos Hoy (Check-ins creados hoy)
+    q_hoy = reservas.filter(created_at__date=hoy).aggregate(
+        total=Sum('precio_total'), 
+        cant=Count('id')
+    )
+    total_hoy = float(q_hoy['total'] or 0)
     
-    # 2. Ingresos Mes Actual
-    query_mes = reservas.filter(
-        created_at__month=mes_actual,
-        created_at__year=anio_actual
-    ).aggregate(total=Sum('precio_total'), cant=Count('id'))
-    ingreso_mes = query_mes['total'] or 0
-    cantidad_mes = query_mes['cant'] or 0
+    # 2. Reservas Activas (hospedados actualmente)
+    reservas_activas = int(Reserva.objects.filter(estado='checkin').count())
     
-    # 3. Listado Reciente (Últimas 50)
-    ultimas_reservas = reservas.select_related('huesped', 'habitacion').order_by('-created_at')[:50]
+    # 3. Huéspedes Hoy (Suma de personas en reservas de hoy)
+    huespedes_hoy = int(reservas.filter(created_at__date=hoy).aggregate(
+        total_h=Sum('cantidad_personas')
+    )['total_h'] or 0)
+    
+    # 4. Listado Reciente (Últimas 50) con el usuario incluido
+    ultimas_reservas = reservas.select_related('huesped', 'habitacion', 'usuario').order_by('-created_at')[:50]
     
     context = {
-        'ingreso_hoy': ingreso_hoy,
-        'cantidad_hoy': cantidad_hoy,
-        'ingreso_mes': ingreso_mes,
-        'cantidad_mes': cantidad_mes,
+        'total_hoy': total_hoy,
+        'reservas_activas': reservas_activas,
+        'huespedes_hoy': huespedes_hoy,
         'ultimas_reservas': ultimas_reservas,
         'hoy': hoy,
     }
@@ -499,6 +511,11 @@ def gestion_habitaciones(request):
 @gerente_required
 def modal_nueva_reserva(request):
     """Devuelve el HTML del modal de nueva reserva para HTMX."""
+    # Verificar caja antes de siquiera mostrar el modal
+    caja = SesionCajaHostal.objects.filter(usuario=request.user, estado=True).first()
+    if not caja:
+        return HttpResponse('<div class="hostal-overlay" onclick="cerrarHostalModal()"><div class="hostal-modal p-4 text-center"><h3>Caja Cerrada</h3><p>Abra la caja del hostal para continuar.</p><button class="btn btn-primary" onclick="cerrarHostalModal()">Entendido</button></div></div>')
+
     habitaciones = Habitacion.objects.filter(estado='disponible').order_by('numero')
     tipos = TipoHabitacion.objects.all()
     return render(request, 'hostal/modals/modal_nueva_reserva.html', {
@@ -605,3 +622,99 @@ def reportes_hostal(request):
         'sesion_filtrada': sesion_filtrada,
         'hoy': hoy,
     })
+
+# --- GESTIÓN DE RESERVAS (ELIMINAR, EDITAR, DETALLE) ---
+
+@login_required
+@gerente_required
+def detalle_reserva_modal(request, reserva_id):
+    reserva = get_object_or_404(Reserva, id=reserva_id)
+    return render(request, 'hostal/modals/modal_detalle_reserva.html', {'reserva': reserva})
+
+@login_required
+@gerente_required
+def editar_reserva_modal(request, reserva_id):
+    reserva = get_object_or_404(Reserva, id=reserva_id)
+    habitaciones = Habitacion.objects.all().order_by('numero')
+    # Precios de sugerencia
+    precio_actual = reserva.habitacion.precio_actual
+    
+    return render(request, 'hostal/modals/modal_editar_reserva.html', {
+        'reserva': reserva,
+        'habitaciones': habitaciones,
+        'precio_actual': precio_actual
+    })
+
+@login_required
+@gerente_required
+def actualizar_reserva(request, reserva_id):
+    if request.method == 'POST':
+        reserva = get_object_or_404(Reserva, id=reserva_id)
+        habitacion_viej = reserva.habitacion
+        
+        try:
+            # 1. Update Huesped (General Info)
+            huesped = reserva.huesped
+            huesped.nombre_completo = request.POST.get('nombre_completo', huesped.nombre_completo)
+            huesped.email = request.POST.get('email', huesped.email)
+            huesped.telefono = request.POST.get('telefono', huesped.telefono)
+            huesped.save()
+            
+            # 2. Update Reserva Details
+            from django.utils.dateparse import parse_date
+            checkin_str = request.POST.get('fecha_checkin')
+            checkout_str = request.POST.get('fecha_checkout')
+            if checkin_str: reserva.fecha_checkin = parse_date(checkin_str)
+            if checkout_str: reserva.fecha_checkout = parse_date(checkout_str)
+            
+            reserva.cantidad_personas = int(request.POST.get('cantidad_personas', reserva.cantidad_personas))
+            reserva.precio_total = float(request.POST.get('precio_total', reserva.precio_total))
+            reserva.pagado = float(request.POST.get('pagado', reserva.pagado))
+            reserva.observaciones = request.POST.get('observaciones', reserva.observaciones)
+            
+            nuevo_estado = request.POST.get('estado')
+            if nuevo_estado in dict(Reserva.ESTADOS_RESERVA):
+                # Sincronizar habitación si cambia estado
+                reserva.estado = nuevo_estado
+                
+                if nuevo_estado == 'checkout' or nuevo_estado == 'cancelada':
+                    reserva.habitacion.estado = 'disponible' if nuevo_estado == 'cancelada' else 'limpieza'
+                    reserva.habitacion.save()
+                elif nuevo_estado == 'checkin':
+                    reserva.habitacion.estado = 'ocupada'
+                    reserva.habitacion.save()
+
+            reserva.save()
+            messages.success(request, f'Reserva #{reserva.id} actualizada correctamente.')
+            
+            # Redirect intelligently
+            return HttpResponse(status=204, headers={'HX-Refresh': 'true'})
+            
+        except Exception as e:
+            messages.error(request, f"Error al actualizar reserva: {str(e)}")
+            
+    return redirect('hostal:finanzas_hostal')
+
+@login_required
+@gerente_required
+def eliminar_reserva(request, reserva_id):
+    if request.method == 'POST':
+        reserva = get_object_or_404(Reserva, id=reserva_id)
+        habitacion = reserva.habitacion
+        
+        # Si estaba ocupando la habitación, la liberamos
+        if reserva.estado == 'checkin':
+            habitacion.estado = 'disponible'
+            habitacion.save()
+        
+        # Eliminar
+        reserva_id_display = reserva.id
+        reserva.delete()
+        
+        messages.success(request, f'Reserva #{reserva_id_display} eliminada permanentemente. Los datos han sido restados de las finanzas.')
+        
+        # Devolver señal de refresh para HTMX o redirect normal
+        if request.headers.get('HX-Request'):
+             return HttpResponse(status=204, headers={'HX-Refresh': 'true'})
+             
+    return redirect('hostal:finanzas_hostal')

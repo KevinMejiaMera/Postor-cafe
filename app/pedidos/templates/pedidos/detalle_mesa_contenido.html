@@ -195,31 +195,17 @@
     }
 
     /* RESPONSIVE DESIGN */
-    @media (max-width: 1024px) {
+    @media (max-width: 1150px) {
         .pos-modern {
-            flex-direction: column;
             padding: 10px;
-        }
-        .pos-right {
-            flex: none;
-            width: 100%;
-            min-width: 0;
-            max-height: 500px;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .pos-modern {
-            flex-direction: column;
-            padding: 8px;
             gap: 10px;
             height: auto;
-            overflow: visible;
+            position: relative;
         }
 
         .pos-left {
-            height: auto;
-            min-height: calc(100dvh - 120px);
+            flex: 1;
+            width: 100%;
         }
 
         .pos-right {
@@ -239,15 +225,36 @@
             animation: slideUpCart 0.35s cubic-bezier(0.16, 1, 0.3, 1);
             min-width: 0;
             flex: none;
+            width: 100%;
+        }
+
+        .mobile-cart-btn {
+            display: flex !important;
+        }
+
+        .mobile-cart-header {
+            display: flex !important;
+        }
+
+        /* En tabletas un poco más de rejilla */
+        .pos-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .pos-modern {
+            padding: 8px;
+            overflow: visible;
+        }
+
+        .pos-left {
+            min-height: calc(100dvh - 120px);
         }
 
         @keyframes slideUpCart {
             from { transform: translateY(100%); opacity: 0.5; }
             to { transform: translateY(0); opacity: 1; }
-        }
-
-        .mobile-cart-btn {
-            display: flex !important;
         }
 
         .pos-header {
@@ -287,10 +294,6 @@
 
         .pos-card-price {
             font-size: 0.85rem;
-        }
-
-        .mobile-cart-header {
-            display: flex !important;
         }
     }
 

@@ -5,6 +5,58 @@
 
 {% block active_personal %}active{% endblock %}
 
+{% block extra_head %}
+<style>
+    @media (max-width: 992px) {
+        header {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 15px;
+        }
+        header a {
+            width: 100% !important;
+            text-align: center;
+        }
+
+        .audit-section table thead {
+            display: none;
+        }
+
+        .audit-section table tbody tr {
+            display: block;
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid var(--bg-cream);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        }
+
+        .audit-section table tbody td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--bg-light);
+        }
+
+        .audit-section table tbody td:last-child {
+            border-bottom: none;
+            padding-top: 15px;
+            justify-content: center;
+        }
+
+        .audit-section table tbody td::before {
+            content: attr(data-label);
+            font-weight: 700;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px;">
     <h2 style="color: var(--primary-color); font-weight: 800; margin: 0;">Gestión de Personal</h2>
@@ -28,15 +80,15 @@
         <tbody>
             {% for u in usuarios %}
             <tr>
-                <td>
+                <td data-label="Nombre">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <img src="https://ui-avatars.com/api/?name={{ u.username }}&background=random&color=fff"
                             style="border-radius: 50%; width: 30px;">
                         {{ u.username }}
                     </div>
                 </td>
-                <td>{{ u.email }}</td>
-                <td>
+                <td data-label="Email">{{ u.email }}</td>
+                <td data-label="Rol">
                     {% if u.rol == 'admin' %}
                     <span
                         style="padding: 5px 12px; border-radius: 15px; font-size: 0.75rem; font-weight: 700; background: #fee2e2; color: #991b1b; text-transform: uppercase;">
@@ -50,7 +102,7 @@
                                 {{ u.get_rol_display }}
                             </span>
                 </td>
-                <td>
+                <td data-label="Estado">
                     {% if u.last_activity and u.last_activity >= time_threshold %}
                     <span
                         style="color: var(--secondary-color); font-weight: 800; background: #e8f5e9; padding: 5px 12px; border-radius: 12px; font-size: 0.8rem;">
@@ -67,7 +119,7 @@
                     </div>
                     {% endif %}
                 </td>
-                <td>
+                <td data-label="Acciones">
                     <a href="{% url 'usuarios:editar_usuario' u.id %}"
                         style="color: var(--primary-color); font-weight: 800; text-decoration: none; border: 1px solid var(--bg-cream); padding: 5px 15px; border-radius: 8px; background: var(--bg-light); transition: 0.2s;">
                         Editar
