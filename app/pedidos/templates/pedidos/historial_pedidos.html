@@ -45,12 +45,21 @@
     .mini-stat {
         background: white;
         border-radius: 16px;
-        padding: 18px 20px;
+        padding: 12px 15px;
         box-shadow: 0 2px 12px rgba(0,0,0,0.05);
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 12px;
         transition: transform 0.2s;
+    }
+
+    @media (max-width: 800px) {
+        #btn-toggle-filtros { display: flex !important; margin-top: 10px; }
+        #filter-container { display: none; }
+        #filter-container.active { display: block; }
+        .mini-stat { padding: 10px; }
+        .mini-stat-icon { width: 36px; height: 36px; font-size: 1rem; }
+        .mini-stat-info strong { font-size: 1.1rem; }
     }
 
     .mini-stat:hover {
@@ -486,8 +495,13 @@
     {% endif %}
 </div>
 
+<!-- TOGGLE FILTROS (Solo Móvil) -->
+<button class="btn-filter" id="btn-toggle-filtros" style="margin-bottom: 15px; width: 100%; display: none; background: var(--secondary-color);">
+    <i class="fas fa-filter"></i> Mostrar / Ocultar Filtros
+</button>
+
 <!-- FILTROS -->
-<div class="filter-card">
+<div class="filter-card" id="filter-container">
     <form method="GET" action="">
         <div class="filter-group">
             <label><i class="fas fa-search"></i> Buscar</label>
@@ -691,4 +705,15 @@
     {% endif %}
 </div>
 
+<script>
+    const btnToggle = document.getElementById('btn-toggle-filtros');
+    if (btnToggle) {
+        btnToggle.addEventListener('click', function() {
+            const container = document.getElementById('filter-container');
+            if (container) {
+                container.classList.toggle('active');
+            }
+        });
+    }
+</script>
 {% endblock %}

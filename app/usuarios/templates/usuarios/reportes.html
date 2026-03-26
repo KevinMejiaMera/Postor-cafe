@@ -299,6 +299,10 @@
             grid-template-columns: 1fr;
         }
         
+        #btn-toggle-filtros-rep { display: flex !important; margin-top: 10px; }
+        #filter-rep-container { display: none !important; }
+        #filter-rep-container.active { display: flex !important; }
+
         .report-title h2 {
             font-size: 1.4rem;
         }
@@ -391,7 +395,12 @@
         <p>Selecciona un turno de caja o un periodo personalizado para exportar a PDF.</p>
     </div>
 
-    <form method="get" class="filter-form" style="flex-wrap: wrap;">
+    <!-- TOGGLE FILTROS (Solo Móvil) -->
+    <button class="btn-filter" id="btn-toggle-filtros-rep" style="margin-bottom: 15px; width: 100%; display: none; background: var(--secondary-color);">
+        <i class="fas fa-filter"></i> Mostrar / Ocultar Filtros
+    </button>
+
+    <form method="get" class="filter-form" id="filter-rep-container" style="flex-wrap: wrap;">
         <div class="date-input-group">
             <label>Desde</label>
             <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}">
@@ -654,6 +663,17 @@
             setTimeout(descargarPDF, 1000);
         }
     };
+
+    // Función para el toggle de filtros en móvil
+    const btnToggleRep = document.getElementById('btn-toggle-filtros-rep');
+    if (btnToggleRep) {
+        btnToggleRep.addEventListener('click', function() {
+            const containerRep = document.getElementById('filter-rep-container');
+            if (containerRep) {
+                containerRep.classList.toggle('active');
+            }
+        });
+    }
 
     // Función para exportar a PDF
     function descargarPDF() {

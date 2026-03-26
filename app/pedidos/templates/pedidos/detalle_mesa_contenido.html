@@ -56,16 +56,13 @@
         display: flex;
         gap: 10px;
         overflow-x: auto;
-        padding-bottom: 5px;
+        padding-bottom: 10px;
+        -webkit-overflow-scrolling: touch; /* Suavidad táctil */
+        scrollbar-width: none; /* Ocultar scrollbar FF */
     }
 
     .pos-categories::-webkit-scrollbar {
-        height: 6px;
-    }
-
-    .pos-categories::-webkit-scrollbar-thumb {
-        background: #E5E7EB;
-        border-radius: 10px;
+        display: none; /* Ocultar scrollbar Chrome/Safari */
     }
 
     .cat-btn {
@@ -298,18 +295,31 @@
     }
 
     @media (max-width: 480px) {
+        .pos-header { padding: 10px; margin-bottom: 8px; }
+        .pos-header h2 { font-size: 0.95rem; }
         .pos-grid {
             grid-template-columns: repeat(3, 1fr);
             gap: 6px;
         }
 
         .pos-card {
-            height: 130px;
-            padding: 6px;
+            height: 125px; /* Even more compact */
+            padding: 5px;
+            border-radius: 8px;
         }
 
         .pos-card-img {
-            height: 60px;
+            height: 55px; /* Smallest image */
+            margin-bottom: 5px;
+        }
+        
+        .pos-card-title {
+            font-size: 0.68rem;
+            -webkit-line-clamp: 2;
+        }
+        
+        .pos-card-price {
+            font-size: 0.8rem;
         }
     }
 

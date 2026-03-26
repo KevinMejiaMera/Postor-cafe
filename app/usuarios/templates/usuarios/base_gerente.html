@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{% block title %}Gerencia - Postor Cafe San Pedro de Huaca{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&display=swap"
         rel="stylesheet">
@@ -66,13 +66,16 @@
             background: var(--accent-color);
         }
 
-        body {
+        html, body {
             font-family: 'DM Sans', sans-serif;
             background-color: var(--bg-light) !important;
             color: var(--text-color);
             margin: 0;
             display: flex;
             min-height: 100vh;
+            overflow-x: hidden;
+            width: 100%;
+            touch-action: pan-y; /* Only vertical scroll by default */
         }
 
         /* Prevent scroll bleed on desktop only if sidebar is fixed */
@@ -280,6 +283,18 @@
             overflow-x: hidden;
         }
 
+        @media (max-width: 991px) {
+            body {
+                overflow-x: hidden;
+                overflow-y: auto;
+                display: block; /* Stack sidebar and content */
+            }
+            .main-content {
+                overflow: visible; /* Let body scroll */
+                padding-top: 70px; /* Space for fixed mobile topbar */
+                width: 100%;
+            }
+        }
         /* === MOBILE HAMBURGER MENU === */
         .mobile-topbar {
             display: none;
@@ -431,8 +446,11 @@
 
         @media (max-width: 600px) {
             .stats-grid {
-                grid-template-columns: 1fr;
-                gap: 12px;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .stats-grid .card {
+                padding: 10px !important;
             }
         }
 
