@@ -45,24 +45,25 @@
 
     /* FILTROS / CATEGORÍAS TIPO PILLS */
     .pos-categories-wrapper {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        display: block; /* Stack instead of flex to allow horizontal overflow */
         margin-bottom: 15px;
         flex-shrink: 0;
+        width: 100%;
     }
 
     .pos-categories {
         display: flex;
         gap: 10px;
         overflow-x: auto;
-        padding-bottom: 10px;
-        -webkit-overflow-scrolling: touch; /* Suavidad táctil */
-        scrollbar-width: none; /* Ocultar scrollbar FF */
+        padding: 5px 0 15px 0; /* More padding bottom for better touch area */
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+        width: 100%; /* Ensure it spans full width */
     }
 
     .pos-categories::-webkit-scrollbar {
-        display: none; /* Ocultar scrollbar Chrome/Safari */
+        display: none;
     }
 
     .cat-btn {
