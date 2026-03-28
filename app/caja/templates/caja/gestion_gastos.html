@@ -1,0 +1,125 @@
+{% extends 'usuarios/base_gerente.html' %}
+{% load static %}
+
+{% block title %}Control de Gastos - Postor Cafe{% endblock %}
+{% block active_gastos %}active{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 30px;">
+    <h4 style="margin: 0; color: var(--text-muted); font-weight: 500;">Administración de Caja</h4>
+    <h2 style="margin: 5px 0 0 0; color: var(--primary-color); font-size: 1.8rem; font-weight: 800;">
+        Control de Gastos {% if modulo_fijo == 'restaurante' %}(Restaurante){% elif modulo_fijo == 'hostal' %}(Hostal){% endif %}
+    </h2>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; align-items: flex-start;">
+    
+    <!-- FORMULARIO DE REGISTRO -->
+    <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--card-shadow); border: 1.5px solid var(--bg-cream);">
+        <h3 style="margin-top: 0; margin-bottom: 20px; color: var(--primary-color); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-plus-circle" style="color: var(--secondary-color);"></i> Registrar Nuevo Gasto
+        </h3>
+        
+        {% if not caja_abierta %}
+        <div style="background: #FEF2F2; color: #991B1B; padding: 15px; border-radius: 12px; font-size: 0.9rem; margin-bottom: 20px; border: 1px solid #FECACA;">
+            <i class="fas fa-exclamation-triangle"></i> <strong>Caja Cerrada:</strong> Debe abrir turno en Caja para poder registrar gastos del día.
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% if modulo_fijo == 'restaurante' %}{% url 'caja:gestion_gastos_restaurante' %}{% elif modulo_fijo == 'hostal' %}{% url 'caja:gestion_gastos_hostal' %}{% else %}{% url 'caja:gestion_gastos' %}{% endif %}" style="display: flex; flex-direction: column; gap: 15px;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="crear">
+            
+            <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-light); margin-bottom: 6px; text-transform: uppercase;">Descripción del Gasto</label>
+                <input type="text" name="descripcion" placeholder="Ej: Compra de leche, Pan, Gas..." required 
+                       style="width: 100%; padding: 12px; border: 2px solid var(--bg-cream); border-radius: 12px; outline: none; transition: 0.2s;"
+                       {% if not caja_abierta %}disabled{% endif %}>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-light); margin-bottom: 6px; text-transform: uppercase;">Monto ($)</label>
+                    <input type="number" step="0.01" name="monto" placeholder="0.00" required
+                           style="width: 100%; padding: 12px; border: 2px solid var(--bg-cream); border-radius: 12px; outline: none;"
+                           {% if not caja_abierta %}disabled{% endif %}>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-light); margin-bottom: 6px; text-transform: uppercase;">Módulo</label>
+                    <select name="modulo" required style="width: 100%; padding: 12px; border: 2px solid var(--bg-cream); border-radius: 12px; background: white;" {% if not caja_abierta or modulo_fijo %}disabled{% endif %}>
+                        <option value="restaurante" {% if modulo_fijo == 'restaurante' %}selected{% endif %}>Restaurante</option>
+                        <option value="hostal" {% if modulo_fijo == 'hostal' %}selected{% endif %}>Hostal</option>
+                    </select>
+                    {% if modulo_fijo %}
+                    <input type="hidden" name="modulo" value="{{ modulo_fijo }}">
+                    {% endif %}
+                </div>
+            </div>
+
+            <button type="submit" {% if not caja_abierta %}disabled{% endif %}
+                    style="background: var(--primary-color); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; margin-top: 10px;">
+                <i class="fas fa-save"></i> Guardar Gasto
+            </button>
+        </form>
+    </div>
+
+    <!-- LISTADO DE GASTOS RECIENTES -->
+    <div style="background: white; border-radius: 20px; box-shadow: var(--card-shadow); border: 1.5px solid var(--bg-cream); overflow: hidden;">
+        <div style="padding: 20px; border-bottom: 1.5px solid var(--bg-cream); background: #F9FAFB;">
+            <h3 style="margin: 0; color: var(--primary-color); font-size: 1rem; font-weight: 800;">Gastos Recientes</h3>
+        </div>
+        
+        <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 500px;">
+                <thead>
+                    <tr style="background: #f8fafc;">
+                        <th style="padding: 12px 15px; text-align: left; font-size: 0.7rem; color: #64748b; text-transform: uppercase;">Fecha</th>
+                        <th style="padding: 12px 15px; text-align: left; font-size: 0.7rem; color: #64748b; text-transform: uppercase;">Módulo</th>
+                        <th style="padding: 12px 15px; text-align: left; font-size: 0.7rem; color: #64748b; text-transform: uppercase;">Descripción</th>
+                        <th style="padding: 12px 15px; text-align: right; font-size: 0.7rem; color: #64748b; text-transform: uppercase;">Monto</th>
+                        <th style="padding: 12px 15px; text-align: center; font-size: 0.7rem; color: #64748b; text-transform: uppercase;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for g in gastos %}
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 12px 15px; font-size: 0.85rem;">
+                            <div style="font-weight: 600;">{{ g.fecha|date:"d/m/y" }}</div>
+                            <div style="font-size: 0.75rem; color: #94a3b8;">{{ g.fecha|date:"H:i" }}</div>
+                        </td>
+                        <td style="padding: 12px 15px;">
+                            <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; background: {% if g.modulo == 'hostal' %}#DBEAFE; color: #1E40AF{% else %}#FEF3C7; color: #92400E{% endif %};">
+                                {{ g.modulo }}
+                            </span>
+                        </td>
+                        <td style="padding: 12px 15px; font-size: 0.88rem; font-weight: 500;">{{ g.descripcion }}</td>
+                        <td style="padding: 12px 15px; text-align: right; font-weight: 800; color: #991B1B;">-${{ g.monto }}</td>
+                        <td style="padding: 12px 15px; text-align: center;">
+                            <form method="post" action="{% if modulo_fijo == 'restaurante' %}{% url 'caja:gestion_gastos_restaurante' %}{% elif modulo_fijo == 'hostal' %}{% url 'caja:gestion_gastos_hostal' %}{% else %}{% url 'caja:gestion_gastos' %}{% endif %}" onsubmit="return confirm('¿Eliminar gasto?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="eliminar">
+                                <input type="hidden" name="gasto_id" value="{{ g.id }}">
+                                <button type="submit" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 5px;">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="padding: 40px; text-align: center; color: #94a3b8;">No hay gastos registrados recientemente.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media (max-width: 600px) {
+        h2 { font-size: 1.5rem !important; }
+        .kpi-card { padding: 15px !important; }
+    }
+</style>
+{% endblock %}

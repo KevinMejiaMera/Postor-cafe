@@ -8,6 +8,7 @@ from .models import Habitacion, Reserva, Huesped, TipoHabitacion
 from core.decorators import gerente_required
 from django.http import HttpResponse
 from .models import Habitacion, Reserva, Huesped, TipoHabitacion, SesionCajaHostal
+from caja.models import Gasto
 from django.db.models import Sum, Count
 
 @login_required
@@ -546,9 +547,14 @@ def caja_hostal(request):
                 created_at__gte=caja_abierta.fecha_apertura
             ).exclude(estado='cancelada').aggregate(total=Sum('precio_total'))['total'] or 0
 
+            # Gastos vinculados a esta sesión de hostal
+            gastos_caja = caja_abierta.gastos_hostal.aggregate(Sum('monto'))['monto__sum'] or 0
+
             caja_abierta.monto_final_sistema = ventas_sistema
             caja_abierta.monto_final_fisico = dinero_fisico
-            caja_abierta.diferencia = float(dinero_fisico) - (float(caja_abierta.monto_inicial) + float(ventas_sistema))
+            
+            efectivo_esperado = float(caja_abierta.monto_inicial) + float(ventas_sistema) - float(gastos_caja)
+            caja_abierta.diferencia = float(dinero_fisico) - efectivo_esperado
             caja_abierta.fecha_cierre = timezone.now()
             caja_abierta.estado = False
             caja_abierta.save()
@@ -558,15 +564,22 @@ def caja_hostal(request):
     historial = SesionCajaHostal.objects.all().order_by('-fecha_apertura')[:20]
 
     ventas_actuales = 0
+    gastos_actuales = 0
+    saldo_actual = 0
     if caja_abierta:
         ventas_actuales = Reserva.objects.filter(
             created_at__gte=caja_abierta.fecha_apertura
         ).exclude(estado='cancelada').aggregate(total=Sum('precio_total'))['total'] or 0
+        
+        gastos_actuales = caja_abierta.gastos_hostal.aggregate(Sum('monto'))['monto__sum'] or 0
+        saldo_actual = float(caja_abierta.monto_inicial) + float(ventas_actuales) - float(gastos_actuales)
 
     return render(request, 'hostal/caja_hostal.html', {
         'caja_abierta': caja_abierta,
         'historial': historial,
         'ventas_actuales': ventas_actuales,
+        'gastos_actuales': gastos_actuales,
+        'saldo_actual': saldo_actual
     })
 
 
@@ -611,10 +624,36 @@ def reportes_hostal(request):
     total_ingresos = reservas.aggregate(total=Sum('precio_total'))['total'] or 0
     cantidad_reservas = reservas.count()
 
+    # --- REPORTE DE "PRODUCTOS" (SERVICIOS) PARA EL HOSTAL ---
+    # Convertimos las reservas en un formato similar al restaurante (Item, Cantidad, Precio, Total)
+    reporte_servicios = reservas.values('habitacion__tipo__nombre').annotate(
+        cantidad_vendida=Count('id'),
+        total_servicio=Sum('precio_total')
+    ).order_by('-cantidad_vendida')
+    
+    # --- PROCESAR GASTOS (NUEVO) ---
+
+    gastos_query = Gasto.objects.filter(modulo='hostal')
+    if sesion_filtrada:
+        if sesion_filtrada.fecha_cierre:
+             gastos_query = gastos_query.filter(fecha__gte=sesion_filtrada.fecha_apertura, fecha__lte=sesion_filtrada.fecha_cierre)
+        else:
+             gastos_query = gastos_query.filter(fecha__gte=sesion_filtrada.fecha_apertura)
+    elif fecha_inicio_str and fecha_fin_str:
+        gastos_query = gastos_query.filter(fecha__date__range=[fi, ff])
+    
+    total_gastos = gastos_query.aggregate(Sum('monto'))['monto__sum'] or 0
+    ganancia_neta = float(total_ingresos) - float(total_gastos)
+
     return render(request, 'hostal/reportes_hostal.html', {
         'reservas': reservas.order_by('-created_at')[:100],
         'total_ingresos': total_ingresos,
+        'total_gastos': total_gastos,
+        'ganancia_neta': ganancia_neta,
+        'detalles_gastos': gastos_query.order_by('-fecha'),
+        'reporte_servicios': reporte_servicios,
         'cantidad_reservas': cantidad_reservas,
+
         'filtro': filtro,
         'fecha_inicio': fecha_inicio_str or '',
         'fecha_fin': fecha_fin_str or '',

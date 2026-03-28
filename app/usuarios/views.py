@@ -12,7 +12,7 @@ from django.utils import timezone
 from .models import Usuario, AuditLog
 from pedidos.models import Pedido, Mesa, Producto, Factura, DetallePedido
 from inventario.models import Insumo
-from caja.models import SesionCaja
+from caja.models import SesionCaja, Gasto
 from django.utils.dateparse import parse_date
 import datetime
 import csv
@@ -250,11 +250,27 @@ def reportes_ventas(request):
     
     total_ingresos = sum([item['total'] for item in reporte_productos])
     
+    # --- PROCESAR GASTOS (NUEVO) ---
+    gastos_query = Gasto.objects.filter(modulo='restaurante')
+    if sesion_filtrada:
+        if sesion_filtrada.fecha_cierre:
+            gastos_query = gastos_query.filter(fecha__gte=sesion_filtrada.fecha_apertura, fecha__lte=sesion_filtrada.fecha_cierre)
+        else:
+            gastos_query = gastos_query.filter(fecha__gte=sesion_filtrada.fecha_apertura)
+    elif fecha_inicio and fecha_fin:
+        gastos_query = gastos_query.filter(fecha__date__range=[fecha_inicio, fecha_fin])
+    
+    total_gastos = gastos_query.aggregate(Sum('monto'))['monto__sum'] or 0
+    ganancia_neta = total_ingresos - total_gastos
+    
     # Obtener las Cajas Recientes para el Sidebar (Solo de hoy y ayer)
     cajas_recientes = SesionCaja.objects.filter(fecha_apertura__date__gte=ayer).order_by('-fecha_apertura')
 
     return render(request, 'usuarios/reportes.html', {
         'total_ingresos': total_ingresos,
+        'total_gastos': total_gastos,
+        'ganancia_neta': ganancia_neta,
+        'detalles_gastos': gastos_query.order_by('-fecha'),
         'reporte_productos': reporte_productos,
         'fecha_inicio': fecha_inicio_str,
         'fecha_fin': fecha_fin_str,

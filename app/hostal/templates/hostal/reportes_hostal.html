@@ -123,7 +123,17 @@
         .kpi-val { font-size: 1.4rem; }
     }
     
-    @media print { .sidebar, .report-header button, .sidebar-filters { display: none !important; } .main-layout { flex-direction: column; } }
+    @media print { 
+        .sidebar, .report-header button, .sidebar-filters, .report-header .filter-form { display: none !important; } 
+        .main-layout { display: block; } 
+        .main-content { margin: 0; padding: 0; width: 100%; }
+        .table-section { break-inside: avoid; border: 1px solid #eee; margin-bottom: 20px !important; box-shadow: none; }
+        .kpi-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 10px; margin-bottom: 20px; }
+        .kpi-card { border: 1px solid #eee; box-shadow: none; padding: 10px; }
+        .report-header { border-bottom: 2px solid var(--primary-color) !important; padding-bottom: 10px; margin-bottom: 20px; box-shadow: none; }
+        .rep-table thead th { background: #eee !important; color: black !important; }
+        body { background: white !important; }
+    }
 </style>
 
 <!-- HEADER Y FILTROS -->
@@ -188,32 +198,85 @@
         <!-- KPI CARDS -->
         <div class="kpi-grid">
             <div class="kpi-card">
-                <div class="kpi-icon ki-green"><i class="fas fa-coins"></i></div>
+                <div class="kpi-icon ki-olive"><i class="fas fa-hand-holding-usd"></i></div>
                 <div>
-                    <div class="kpi-lbl">Total Ingresos</div>
+                    <div class="kpi-lbl">Ingresos Brutos</div>
                     <div class="kpi-val">${{ total_ingresos|floatformat:2 }}</div>
                 </div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-icon ki-olive"><i class="fas fa-bed"></i></div>
+                <div class="kpi-icon" style="background: #FEE2E2; color: #991B1B;"><i class="fas fa-arrow-down"></i></div>
                 <div>
-                    <div class="kpi-lbl">Reservas</div>
-                    <div class="kpi-val">{{ cantidad_reservas }}</div>
+                    <div class="kpi-lbl">Total Gastos</div>
+                    <div class="kpi-val">${{ total_gastos|floatformat:2 }}</div>
                 </div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-icon ki-dark"><i class="fas fa-calendar-check"></i></div>
+                <div class="kpi-icon ki-green"><i class="fas fa-wallet"></i></div>
                 <div>
-                    <div class="kpi-lbl">Período</div>
-                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary-color); margin-top: 4px;">
-                        {% if sesion_filtrada %}Turno {{ sesion_filtrada.usuario.username }}
-                        {% elif filtro == 'hoy' %}Hoy
-                        {% elif filtro == 'ayer' %}Ayer
-                        {% elif filtro == 'semana' %}Esta semana
-                        {% elif fecha_inicio %}Personalizado
-                        {% else %}Histórico completo{% endif %}
-                    </div>
+                    <div class="kpi-lbl">Ganancia Neta</div>
+                    <div class="kpi-val">${{ ganancia_neta|floatformat:2 }}</div>
                 </div>
+            </div>
+        </div>
+
+        <!-- TABLA DE SERVICIOS (ESTILO PRODUCTOS) -->
+        <div class="table-section" style="margin-bottom: 30px;">
+            <div class="table-top">
+                <h3><i class="fas fa-bed"></i> Resumen de Servicios / Productos (Alojamiento)</h3>
+            </div>
+            <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                <table class="rep-table">
+                    <thead>
+                        <tr>
+                            <th>Tipo de Habitación / Servicio</th>
+                            <th style="text-align: center;">Ventas (Reservas)</th>
+                            <th style="text-align: right;">Total Ingresos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in reporte_servicios %}
+                        <tr>
+                            <td style="font-weight: 700;">{{ item.habitacion__tipo__nombre }}</td>
+                            <td style="text-align: center;">{{ item.cantidad_vendida }}</td>
+                            <td style="text-align: right; font-weight: 800;">${{ item.total_servicio|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" style="text-align: center; padding: 40px; color: var(--text-light);">Sin ventas de servicios en el período.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TABLA DE GASTOS (NUEVO) -->
+        <div class="table-section" style="margin-bottom: 30px;">
+            <div class="table-top">
+                <h3><i class="fas fa-receipt"></i> Detalle de Gastos del Período</h3>
+            </div>
+            <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                <table class="rep-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Descripción</th>
+                            <th>Responsable</th>
+                            <th style="text-align: right;">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in detalles_gastos %}
+                        <tr>
+                            <td style="font-size: 0.8rem;">{{ g.fecha|date:"d/m/Y H:i" }}</td>
+                            <td style="font-weight: 600;">{{ g.descripcion }}</td>
+                            <td style="font-size: 0.82rem; color: var(--text-light);">{{ g.usuario.username }}</td>
+                            <td style="text-align: right; color: #991B1B; font-weight: 800;">-${{ g.monto }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-light);">No hay gastos registrados en este rango.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
 

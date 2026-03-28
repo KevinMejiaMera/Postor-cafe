@@ -603,6 +603,14 @@
             {% endif %}
 
             <!-- LINKS ACCESIBLES PARA MESERO (Ademas de Admin/Gerente) -->
+            <a href="{% url 'caja:gestion_gastos_restaurante' %}" class="{% block active_gastos_rest %}{% endblock %}">
+                <i class="fas fa-utensils"></i> <span>Gastos Restaurante</span>
+            </a>
+            <a href="{% url 'caja:gestion_gastos_hostal' %}" class="{% block active_gastos_hostal %}{% endblock %}">
+                <i class="fas fa-bed"></i> <span>Gastos Hostal</span>
+            </a>
+
+            
             <a href="{% url 'caja:gestion_caja' %}" class="{% block active_caja %}{% endblock %}">
                 <i class="fas fa-cash-register"></i> <span>Caja</span>
             </a>

@@ -130,12 +130,20 @@
             <div class="caja-stat-value" style="font-size: 1rem;">{{ caja_abierta.usuario.get_full_name|default:caja_abierta.usuario.username }}</div>
         </div>
         <div class="caja-stat">
-            <div class="caja-stat-label">Monto Inicial</div>
+            <div class="caja-stat-label">Monto Inicial (+)</div>
             <div class="caja-stat-value">${{ caja_abierta.monto_inicial|floatformat:2 }}</div>
         </div>
-        <div class="caja-ventas">
-            <div class="caja-ventas-label">Reservas Registradas (Sistema)</div>
-            <div class="caja-ventas-value">${{ ventas_actuales|floatformat:2 }}</div>
+        <div class="caja-stat">
+            <div class="caja-stat-label">Ingresos Reservas (+)</div>
+            <div class="caja-stat-value" style="color: var(--secondary-color); font-size: 1.1rem;">${{ ventas_actuales|floatformat:2 }}</div>
+        </div>
+        <div class="caja-stat">
+            <div class="caja-stat-label">Gastos Hostal (-)</div>
+            <div class="caja-stat-value" style="color: #EF4444; font-size: 1.1rem;">${{ gastos_actuales|floatformat:2 }}</div>
+        </div>
+        <div class="caja-ventas" style="margin-top: 10px;">
+            <div class="caja-ventas-label">Saldo Actual en Caja</div>
+            <div class="caja-ventas-value" style="font-size: 1.8rem;">${{ saldo_actual|floatformat:2 }}</div>
         </div>
     </div>
 

@@ -244,8 +244,13 @@
             <h3><i class="fas fa-check-circle me-2"></i> Caja Abierta</h3>
             <p>Aperturada el: <strong>{{ caja_abierta.fecha_apertura|date:"d M H:i" }}</strong></p>
             <p>Monto Inicial: <strong>${{ caja_abierta.monto_inicial }}</strong></p>
-            <p>Ventas del Sistema (Hasta ahora): <strong style="color: var(--primary-color); font-size: 1.2rem;">${{ ventas_actuales }}</strong></p>
-            <div class="alert alert-info">
+            <hr>
+            <p>Ventas del Sistema (+): <strong style="color: var(--secondary-color);">${{ ventas_actuales }}</strong></p>
+            <p>Gastos Registrados (-): <strong style="color: #EF4444;">${{ gastos_actuales }}</strong></p>
+            <p style="font-size: 1.4rem; border-top: 2px solid var(--bg-cream); padding-top: 10px; margin-top: 10px;">
+                Saldo Actual: <strong style="color: var(--primary-color);">${{ saldo_actual }}</strong>
+            </p>
+            <div class="alert alert-info mt-3">
                 La caja se está registrando a nombre de: <strong>{{ user.username }}</strong>
             </div>
         </div>
