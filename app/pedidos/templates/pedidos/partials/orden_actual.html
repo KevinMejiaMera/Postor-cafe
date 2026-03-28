@@ -66,14 +66,13 @@
             </div>
 
             <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            {% if mesa %}
             <button type="submit" class="btn-confirm" style="margin-bottom: 0; flex: 1; background: var(--secondary-color); color: white;">
-                Confirmar a Cocina <i class="fas fa-bullhorn"></i>
+                Confirmar{% if not mesa %} Pedido{% else %} a Cocina{% endif %} <i class="fas fa-bullhorn"></i>
             </button>
-            {% else %}
+            {% if not mesa %}
             <button type="button" class="btn-confirm" style="margin-bottom: 0; flex: 1; background: var(--primary-color); color: white;"
                 hx-get="{% url 'pedidos:modal_cobrar' pedido.id %}" hx-target="#modal-container" hx-swap="innerHTML">
-                Revisar y Pagar <i class="fas fa-arrow-right"></i>
+                Cobrar y Pagar <i class="fas fa-arrow-right"></i>
             </button>
             {% endif %}
         </div>

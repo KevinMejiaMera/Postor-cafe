@@ -162,10 +162,11 @@ def confirmar_pedido(request, pedido_id):
         pedido.save()
         
         # 1. LOG DE AUDITORÍA
+        mesa_num = pedido.mesa.numero if pedido.mesa else "Directo"
         AuditLog.objects.create(
             user=request.user,
             ip_address=get_client_ip(request),
-            action=f"Envió a cocina: Pedido #{pedido.id} (Mesa {pedido.mesa.numero})"
+            action=f"Envió a cocina: Pedido #{pedido.id} (Mesa {mesa_num})"
         )
 
         # Redirect logic: if from history (as Gerente), refresh history.
