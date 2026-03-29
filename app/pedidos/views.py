@@ -837,6 +837,7 @@ def editar_pedido_directo(request, pedido_id):
 def historial_pedidos(request):
     from django.db.models import Q
     from datetime import date, datetime, timedelta
+    from django.core.paginator import Paginator
 
     # Filtros desde GET
     estado_filtro = request.GET.get('estado', '')
@@ -879,7 +880,10 @@ def historial_pedidos(request):
         ).distinct()
 
     if estado_filtro:
-        pedidos_qs = pedidos_qs.filter(estado=estado_filtro)
+        if estado_filtro == 'pendiente_pago':
+            pedidos_qs = pedidos_qs.filter(estado__in=['confirmado', 'listo', 'entregado'])
+        else:
+            pedidos_qs = pedidos_qs.filter(estado=estado_filtro)
 
     if busqueda:
         pedidos_qs = pedidos_qs.filter(
@@ -902,9 +906,15 @@ def historial_pedidos(request):
     # El total real de ventas es la suma de las facturas generadas hoy
     from django.db.models import Sum
     total_hoy = Factura.objects.filter(fecha_emision__date=hoy).aggregate(Sum('total'))['total__sum'] or 0
+
+    # === PAGINACIÓN ===
+    # El usuario pidió 10 por página, agrupado por día (lo cual ya hace el filtro de fecha_actual)
+    paginator = Paginator(pedidos_qs, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     
     return render(request, 'pedidos/historial_pedidos.html', {
-        'pedidos': pedidos_qs,
+        'pedidos': page_obj, # Enviamos el objeto de página
         'fecha_actual': fecha_actual,
         'es_hoy': fecha_actual == hoy,
         'prev_day': prev_day,

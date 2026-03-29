@@ -511,8 +511,12 @@
             <label><i class="fas fa-tag"></i> Estado</label>
             <select name="estado">
                 <option value="">Todos los estados</option>
+                <option value="pendiente_pago" {% if estado_filtro == 'pendiente_pago' %}selected{% endif %}>PENDIENTE DE PAGO</option>
+                <option value="pagado" {% if estado_filtro == 'pagado' %}selected{% endif %}>PAGADO</option>
                 {% for valor, nombre in estados %}
-                <option value="{{ valor }}" {% if estado_filtro == valor %}selected{% endif %}>{{ nombre }}</option>
+                   {% if valor != 'pagado' and valor != 'borrador' %}
+                   <option value="{{ valor }}" {% if estado_filtro == valor %}selected{% endif %}>{{ nombre }}</option>
+                   {% endif %}
                 {% endfor %}
             </select>
         </div>
@@ -641,7 +645,7 @@
                         {% if pedido.estado == 'pagado' %}
                         <span class="estado-badge estado-pagado"><i class="fas fa-check-circle"></i> Pagado</span>
                         {% elif pedido.estado == 'confirmado' %}
-                        <span class="estado-badge estado-confirmado"><i class="fas fa-clock"></i> Pendiente</span>
+                        <span class="estado-badge estado-confirmado"><i class="fas fa-clock"></i> En Cocina</span>
                         {% elif pedido.estado == 'listo' %}
                         <span class="estado-badge estado-listo"><i class="fas fa-bell"></i> Listo</span>
                         {% elif pedido.estado == 'entregado' %}
@@ -718,6 +722,28 @@
         <a href="{% url 'pedidos:historial_pedidos' %}" style="color: var(--primary-color); font-weight: 600; text-decoration: none; margin-top: 10px; display: inline-block;">
             <i class="fas fa-redo"></i> Ver todos los pedidos
         </a>
+    </div>
+    {% endif %}
+<!-- PAGINACIÓN -->
+    {% if pedidos.has_other_pages %}
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-top: 1px solid #F3F4F6; background: #FFF;">
+        <span style="font-size: 0.85rem; color: #6B7280; font-weight: 600;">Página <strong>{{ pedidos.number }}</strong> de {{ pedidos.paginator.num_pages }}</span>
+        
+        <div style="display: flex; gap: 8px;">
+            {% if pedidos.has_previous %}
+                <a href="?page={{ pedidos.previous_page_number }}{% if fecha_actual %}&fecha={{ fecha_actual|date:'Y-m-%d' }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}" 
+                   style="padding: 8px 16px; border: 1px solid #E5E7EB; border-radius: 8px; text-decoration: none; color: #374151; font-weight: 700; font-size: 0.85rem; background: #F9FAFB;">
+                    <i class="fas fa-chevron-left" style="font-size: 0.75rem;"></i> Anterior
+                </a>
+            {% endif %}
+
+            {% if pedidos.has_next %}
+                <a href="?page={{ pedidos.next_page_number }}{% if fecha_actual %}&fecha={{ fecha_actual|date:'Y-m-%d' }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}" 
+                   style="padding: 8px 16px; border: 1px solid #E5E7EB; border-radius: 8px; text-decoration: none; color: #374151; font-weight: 700; font-size: 0.85rem; background: #F9FAFB;">
+                    Siguiente <i class="fas fa-chevron-right" style="font-size: 0.75rem;"></i>
+                </a>
+            {% endif %}
+        </div>
     </div>
     {% endif %}
 </div>
