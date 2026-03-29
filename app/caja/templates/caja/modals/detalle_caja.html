@@ -49,9 +49,9 @@
                 <h4 style="color: var(--secondary-color); font-weight: 800; border-bottom: 2px solid var(--bg-cream); padding-bottom: 8px; margin-bottom: 15px;">
                     <i class="fas fa-utensils me-2"></i> Ventas Realizadas (Restaurante)
                 </h4>
-                <div style="background: white; border-radius: 16px; overflow-x: auto; border: 1px solid var(--bg-cream); -webkit-overflow-scrolling: touch;">
-                    <table style="width: 100%; min-width: 550px; border-collapse: collapse;">
-                        <thead style="background: var(--bg-light);">
+                <div style="background: white; border-radius: 16px; overflow-x: auto; border: 1px solid var(--bg-cream); -webkit-overflow-scrolling: touch; margin-bottom: 20px;">
+                    <table style="width: 100%; min-width: 750px; border-collapse: collapse;">
+                        <thead style="background: var(--bg-light); white-space: nowrap;">
                             <tr>
                                 <th style="padding: 12px; text-align: left; font-size: 0.75rem; color: var(--text-muted);">FACTURA</th>
                                 <th style="padding: 12px; text-align: left; font-size: 0.75rem; color: var(--text-muted);">CLIENTE</th>
@@ -63,9 +63,9 @@
                             {% for v in ventas %}
                             <tr style="border-bottom: 1px solid var(--bg-light);">
                                 <td style="padding: 12px; font-weight: 700;">#{{ v.id }}</td>
-                                <td style="padding: 12px;">{{ v.razon_social }}</td>
-                                <td style="padding: 12px;">{{ v.pedido.mesero.username }}</td>
-                                <td style="padding: 12px; text-align: right; font-weight: 800; color: var(--secondary-color);">$ {{ v.total|floatformat:2 }}</td>
+                                <td style="padding: 12px; white-space: nowrap;">{{ v.razon_social }}</td>
+                                <td style="padding: 12px; white-space: nowrap;">{{ v.pedido.mesero.username }}</td>
+                                <td style="padding: 12px; text-align: right; font-weight: 800; color: var(--secondary-color); white-space: nowrap;">$ {{ v.total|floatformat:2 }}</td>
                             </tr>
                             {% empty %}
                             <tr><td colspan="4" style="text-align:center; padding: 20px; color: var(--text-muted);">No hay ventas registradas.</td></tr>
@@ -79,9 +79,9 @@
                 <h4 style="color: #EF4444; font-weight: 800; border-bottom: 2px solid var(--bg-cream); padding-bottom: 8px; margin-bottom: 15px;">
                     <i class="fas fa-receipt me-2"></i> Gastos Registrados
                 </h4>
-                <div style="background: white; border-radius: 16px; overflow-x: auto; border: 1px solid var(--bg-cream); -webkit-overflow-scrolling: touch;">
-                    <table style="width: 100%; min-width: 550px; border-collapse: collapse;">
-                        <thead style="background: var(--bg-light);">
+                <div style="background: white; border-radius: 16px; overflow-x: auto; border: 1px solid var(--bg-cream); -webkit-overflow-scrolling: touch; margin-bottom: 20px;">
+                    <table style="width: 100%; min-width: 750px; border-collapse: collapse;">
+                        <thead style="background: var(--bg-light); white-space: nowrap;">
                             <tr>
                                 <th style="padding: 12px; text-align: left; font-size: 0.75rem; color: var(--text-muted);">DESCRIPCIÓN</th>
                                 <th style="padding: 12px; text-align: left; font-size: 0.75rem; color: var(--text-muted);">RESPONSABLE</th>
@@ -91,9 +91,9 @@
                         <tbody>
                             {% for g in gastos %}
                             <tr style="border-bottom: 1px solid var(--bg-light);">
-                                <td style="padding: 12px;">{{ g.descripcion }}</td>
-                                <td style="padding: 12px;">{{ g.usuario.username }}</td>
-                                <td style="padding: 12px; text-align: right; font-weight: 800; color: #EF4444;">$ {{ g.monto|floatformat:2 }}</td>
+                                <td style="padding: 12px; white-space: nowrap;">{{ g.descripcion }}</td>
+                                <td style="padding: 12px; white-space: nowrap;">{{ g.usuario.username }}</td>
+                                <td style="padding: 12px; text-align: right; font-weight: 800; color: #EF4444; white-space: nowrap;">$ {{ g.monto|floatformat:2 }}</td>
                             </tr>
                             {% empty %}
                             <tr><td colspan="3" style="text-align:center; padding: 20px; color: var(--text-muted);">No hay gastos registrados.</td></tr>
