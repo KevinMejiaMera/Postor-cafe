@@ -62,6 +62,7 @@ def panel_mesas(request):
         'productos': productos,
         'categorias': categorias,
         'mesa': None, # Pedido general directo
+        'mesas_libres': Mesa.objects.filter(estado='libre').order_by('numero'),
     }
     return render(request, 'pedidos/pos_general.html', context)
 # 👆👆👆 FIN DE LO NUEVO 👆👆👆
@@ -102,6 +103,7 @@ def detalle_mesa(request, mesa_id):
         'pedido': pedido_activo,
         'productos': productos,
         'is_htmx': is_htmx,
+        'mesas_libres': Mesa.objects.filter(estado='libre').order_by('numero'),
     }
     return render(request, 'pedidos/detalle_mesa.html', context)
 
@@ -134,15 +136,15 @@ def agregar_producto(request, pedido_id, producto_id):
         # producto.stock -= 1
         # producto.save()
 
-        # NUEVO: Si la mesa estaba libre, ahora sí la ocupamos (solo si hay mesa)
-        if pedido.mesa and pedido.mesa.estado == 'libre':
-            pedido.mesa.estado = 'ocupada'
-            pedido.mesa.save()
+        # ELIMINADO: No descontamos del stock hasta que se venda o confirme formalmente
+        # producto.stock -= 1
+        # producto.save()
 
     # 3. Respuesta: Devolvemos el HTML del panel derecho actualizado
     context = {
         'pedido': pedido,
-        'mesa': pedido.mesa
+        'mesa': pedido.mesa,
+        'mesas_libres': Mesa.objects.filter(estado='libre').order_by('numero'),
     }
     return render(request, 'pedidos/partials/orden_actual.html', context)
 
@@ -159,6 +161,12 @@ def confirmar_pedido(request, pedido_id):
 
         pedido.estado = 'confirmado'
         pedido.fecha_confirmado = timezone.now() # GUARDAR LA HORA DE ENVIO
+        
+        # OCUPAR LA MESA AL CONFIRMAR (Si tiene una asignada)
+        if pedido.mesa:
+            pedido.mesa.estado = 'ocupada'
+            pedido.mesa.save()
+            
         pedido.save()
         
         # 1. LOG DE AUDITORÍA
@@ -191,9 +199,9 @@ def pagar_pedido(request, pedido_id):
         pedido.save()
         
         # 2. Liberar mesa
-        mesa = pedido.mesa
-        mesa.estado = 'libre'
-        mesa.save()
+        if pedido.mesa:
+            pedido.mesa.estado = 'libre'
+            pedido.mesa.save()
 
         # LOG DE AUDITORÍA
         AuditLog.objects.create(
@@ -258,7 +266,8 @@ def modificar_cantidad_item(request, item_id, accion):
     # Devolvemos el HTML parcial para HTMX
     context = {
         'pedido': pedido,
-        'mesa': pedido.mesa
+        'mesa': pedido.mesa,
+        'mesas_libres': Mesa.objects.filter(estado='libre').order_by('numero'),
     }
     return render(request, 'pedidos/partials/orden_actual.html', context)
 
@@ -1016,8 +1025,34 @@ def reabrir_pedido(request, pedido_id):
             'productos': productos,
             'categorias': categorias,
             'mesa': pedido.mesa,
-            'is_htmx': True
+            'is_htmx': True,
+            'mesas_libres': Mesa.objects.filter(estado='libre').order_by('numero'),
         })
         
     messages.success(request, f"Pedido #{pedido.id} re-abierto para edición.")
     return redirect('pedidos:editar_pedido_directo', pedido_id=pedido.id)
+
+
+@login_required
+@mesero_required
+def asignar_mesa_pedido(request, pedido_id, mesa_id):
+    pedido = get_object_or_404(Pedido, pk=pedido_id)
+    
+    # Si mesa_id es 0, desasignamos la mesa (Opcional, según diseño)
+    if mesa_id == 0:
+        pedido.mesa = None
+    else:
+        mesa = get_object_or_404(Mesa, pk=mesa_id)
+        # Si la mesa está ocupada por OTRO pedido, podrías validar, 
+        # pero aquí mostramos solo libres en el front.
+        pedido.mesa = mesa
+        
+    pedido.save()
+    
+    # Devolvemos el HTML parcial para HTMX
+    context = {
+        'pedido': pedido,
+        'mesa': pedido.mesa,
+        'mesas_libres': Mesa.objects.filter(estado='libre').order_by('numero'),
+    }
+    return render(request, 'pedidos/partials/orden_actual.html', context)

@@ -105,19 +105,6 @@
                         </div>
                     </div>
 
-                    <!-- 2. DESTINO (solo si no tiene mesa) -->
-                    {% if not pedido.mesa %}
-                    <div class="c-card c-card-sm">
-                        <p class="col-title"><i class="fas fa-map-marker-alt"></i> Destino del Pedido</p>
-                        <select name="mesa_id" class="c-select">
-                            <option value="">Consumo en local / sin mesa</option>
-
-                            {% for m in mesas_libres %}
-                            <option value="{{ m.id }}">Mesa {{ m.numero }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    {% endif %}
 
                     <!-- 3. CALCULADORA -->
                     <div class="c-card calc-card">

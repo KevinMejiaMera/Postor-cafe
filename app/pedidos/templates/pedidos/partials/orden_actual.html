@@ -49,8 +49,33 @@
     <div class="order-footer">
         <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 1.3rem; margin-bottom: 15px;">
             <span>Total:</span>
-            <span style="color: var(--primary-color);">${{ pedido.total|floatformat:2 }}</span>
+            <span style="color: var(--primary-color);" class="order-total-amount">${{ pedido.total|floatformat:2 }}</span>
         </div>
+
+        {% if pedido.estado == 'borrador' %}
+        <!-- GESTIÓN DE MESAS (HORIZONTAL SCROLL) -->
+        <div class="pos-categories-wrapper" style="margin-bottom: 15px; border-top: 1px solid #F3F4F6; padding-top: 12px; border-bottom: 1px solid #F3F4F6; padding-bottom: 5px;">
+            <small style="display: block; font-weight: 800; color: #9CA3AF; margin-bottom: 8px; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.5px;">
+               <i class="fas fa-chair"></i> Seleccionar Ubicación
+            </small>
+            <div class="pos-categories" style="padding-bottom: 10px; gap: 8px;">
+               <button type="button" class="cat-btn {% if not pedido.mesa %}active{% endif %}" 
+                   style="font-size: 0.75rem; padding: 6px 12px;"
+                   hx-get="{% url 'pedidos:asignar_mesa_pedido' pedido.id 0 %}"
+                   hx-target="#zona-pedido" hx-swap="outerHTML">
+                   Llevar / Directo
+               </button>
+               {% for m in mesas_libres %}
+               <button type="button" class="cat-btn {% if pedido.mesa.id == m.id %}active{% endif %}"
+                   style="font-size: 0.75rem; padding: 6px 12px;"
+                   hx-get="{% url 'pedidos:asignar_mesa_pedido' pedido.id m.id %}"
+                   hx-target="#zona-pedido" hx-swap="outerHTML">
+                   Mesa {{ m.numero }}
+               </button>
+               {% endfor %}
+            </div>
+        </div>
+        {% endif %}
 
         {% if pedido.estado == 'borrador' and pedido.items.exists %}
         <form action="{% url 'pedidos:confirmar_pedido' pedido.id %}" method="POST" style="width: 100%;">
