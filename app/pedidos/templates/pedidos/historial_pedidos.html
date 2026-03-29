@@ -627,6 +627,13 @@
                         <div style="font-size: 0.75rem; color: #9CA3AF; margin-top: 2px;">{{ count }} producto{{ count|pluralize }}</div>
                         {% endif %}
                         {% endwith %}
+
+                        {% if pedido.observacion %}
+                        <div style="font-size: 0.72rem; color: #C2410C; margin-top: 5px; font-style: italic; display: flex; align-items: flex-start; gap: 4px; background: #FFF7ED; padding: 4px 8px; border-radius: 6px; border: 1px solid #FFEDD5;">
+                            <i class="fas fa-comment-alt" style="margin-top: 2px;"></i>
+                            <span>{{ pedido.observacion|truncatechars:40 }}</span>
+                        </div>
+                        {% endif %}
                     </td>
 
                     <!-- Estado -->

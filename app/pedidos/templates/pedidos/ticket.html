@@ -208,6 +208,12 @@
             </tbody>
         </table>
 
+        {% if factura.pedido.observacion %}
+        <div style="font-size: 0.8rem; border-top: 1px dashed black; padding-top: 8px; margin-bottom: 10px;">
+            <strong>Nota:</strong> {{ factura.pedido.observacion }}
+        </div>
+        {% endif %}
+
         <div class="totals">
             <div class="total-row">
                 <span>TOTAL:</span>
