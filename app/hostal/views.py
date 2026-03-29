@@ -28,7 +28,7 @@ def dashboard_hostal(request):
     salidas  = Reserva.objects.filter(fecha_checkout__date=hoy).count()
 
     # Verificar si hay caja abierta
-    caja_abierta = SesionCajaHostal.objects.filter(usuario=request.user, estado=True).first()
+    caja_abierta = SesionCajaHostal.objects.filter(estado=True).first()
 
     context = {
         'habitaciones': habitaciones,
@@ -102,7 +102,7 @@ def crear_tipo_habitacion(request):
 @gerente_required
 def procesar_checkin(request):
     # Verificar Caja Obligatoria
-    caja = SesionCajaHostal.objects.filter(usuario=request.user, estado=True).first()
+    caja = SesionCajaHostal.objects.filter(estado=True).first()
     if not caja:
         messages.error(request, 'Debe abrir la CAJA del hostal antes de realizar un Check-In.')
         return redirect('hostal:caja_hostal')
@@ -269,7 +269,7 @@ def calendario_reservas(request):
 @gerente_required
 def crear_reserva(request):
     # Verificar Caja Obligatoria
-    caja = SesionCajaHostal.objects.filter(usuario=request.user, estado=True).first()
+    caja = SesionCajaHostal.objects.filter(estado=True).first()
     if not caja:
         messages.error(request, 'Debe abrir la CAJA del hostal antes de crear reservas.')
         return redirect('hostal:caja_hostal')
@@ -513,7 +513,7 @@ def gestion_habitaciones(request):
 def modal_nueva_reserva(request):
     """Devuelve el HTML del modal de nueva reserva para HTMX."""
     # Verificar caja antes de siquiera mostrar el modal
-    caja = SesionCajaHostal.objects.filter(usuario=request.user, estado=True).first()
+    caja = SesionCajaHostal.objects.filter(estado=True).first()
     if not caja:
         return HttpResponse('<div class="hostal-overlay" onclick="cerrarHostalModal()"><div class="hostal-modal p-4 text-center"><h3>Caja Cerrada</h3><p>Abra la caja del hostal para continuar.</p><button class="btn btn-primary" onclick="cerrarHostalModal()">Entendido</button></div></div>')
 
@@ -529,12 +529,15 @@ def modal_nueva_reserva(request):
 @gerente_required
 def caja_hostal(request):
     """Gestión de la caja del hostal. Completamente separada del restaurante."""
-    caja_abierta = SesionCajaHostal.objects.filter(usuario=request.user, estado=True).first()
+    caja_abierta = SesionCajaHostal.objects.filter(estado=True).first()
 
     if request.method == 'POST':
         action = request.POST.get('action')
 
         if action == 'abrir':
+            if caja_abierta:
+                messages.warning(request, 'Ya existe una caja del hostal abierta.')
+                return redirect('hostal:caja_hostal')
             monto = request.POST.get('monto_inicial')
             SesionCajaHostal.objects.create(usuario=request.user, monto_inicial=monto)
             messages.success(request, 'Caja del hostal aperturada correctamente.')
@@ -757,3 +760,78 @@ def eliminar_reserva(request, reserva_id):
              return HttpResponse(status=204, headers={'HX-Refresh': 'true'})
              
     return redirect('hostal:finanzas_hostal')
+
+@login_required
+@gerente_required
+def detalle_caja_hostal_modal(request, session_id):
+    sesion = get_object_or_404(SesionCajaHostal, id=session_id)
+    
+    # Rango de tiempo de la sesión
+    fecha_fin = sesion.fecha_cierre or timezone.now()
+    reservas = Reserva.objects.filter(
+        created_at__gte=sesion.fecha_apertura,
+        created_at__lte=fecha_fin
+    ).exclude(estado='cancelada').select_related('huesped', 'habitacion', 'usuario').order_by('-created_at')
+    
+    # Gastos vinculados
+    gastos = sesion.gastos_hostal.all().select_related('usuario').order_by('-fecha')
+    
+    return render(request, 'hostal/modals/detalle_caja_hostal.html', {
+        'sesion': sesion,
+        'reservas': reservas,
+        'gastos': gastos
+    })
+
+@login_required
+@gerente_required
+def eliminar_caja_hostal(request, session_id):
+    caja = get_object_or_404(SesionCajaHostal, id=session_id)
+    caja.delete()
+    messages.success(request, "Registro de caja del hostal eliminado.")
+    return redirect('hostal:caja_hostal')
+
+@login_required
+@gerente_required
+def editar_caja_hostal_modal(request, session_id):
+    sesion = get_object_or_404(SesionCajaHostal, id=session_id)
+    if request.method == 'POST':
+        sesion.monto_inicial = request.POST.get('monto_inicial')
+        sesion.monto_final_sistema = request.POST.get('monto_final_sistema') or None
+        sesion.monto_final_fisico = request.POST.get('monto_final_fisico') or None
+        
+        if sesion.monto_final_fisico and sesion.monto_final_sistema:
+            gastos = sesion.gastos_hostal.aggregate(Sum('monto'))['monto__sum'] or 0
+            esperado = float(sesion.monto_inicial) + float(sesion.monto_final_sistema) - float(gastos)
+            sesion.diferencia = float(sesion.monto_final_fisico) - esperado
+            
+        sesion.save()
+        messages.success(request, "Caja del hostal actualizada.")
+        return redirect('hostal:caja_hostal')
+
+    return render(request, 'hostal/modals/editar_caja_hostal.html', {'sesion': sesion})
+
+from django.db.models.functions import TruncDate
+@login_required
+@gerente_required
+def unificar_cajas_hostal(request):
+    if request.method == 'POST':
+        fechas = SesionCajaHostal.objects.annotate(dia=TruncDate('fecha_apertura')).values('dia').distinct()
+        for f in fechas:
+            cajas_dia = SesionCajaHostal.objects.filter(fecha_apertura__date=f['dia']).order_by('fecha_apertura')
+            if cajas_dia.count() > 1:
+                principal = cajas_dia[0]
+                otras = cajas_dia[1:]
+                for c in otras:
+                    principal.monto_inicial += c.monto_inicial
+                    principal.monto_final_sistema = (principal.monto_final_sistema or 0) + (c.monto_final_sistema or 0)
+                    principal.monto_final_fisico = (principal.monto_final_fisico or 0) + (c.monto_final_fisico or 0)
+                    c.gastos_hostal.update(sesion_caja_hostal=principal)
+                    c.delete()
+                
+                gastos_tot = principal.gastos_hostal.aggregate(Sum('monto'))['monto__sum'] or 0
+                if principal.monto_final_fisico is not None:
+                    esperado = float(principal.monto_inicial) + float(principal.monto_final_sistema or 0) - float(gastos_tot)
+                    principal.diferencia = float(principal.monto_final_fisico) - esperado
+                principal.save()
+        messages.success(request, "Sesiones del hostal unificadas.")
+    return redirect('hostal:caja_hostal')

@@ -646,6 +646,10 @@
     <div id="modal-container"></div>
 
     <script>
+        function cerrarModal() {
+            const container = document.getElementById('modal-container');
+            if (container) container.innerHTML = '';
+        }
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const toggle = document.getElementById('sidebarToggle');

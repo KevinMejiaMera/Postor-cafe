@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from core.decorators import gerente_required
 from django.utils import timezone
 from .models import SesionCaja, Gasto
 
 def _gestion_gastos_logica(request, modulo_fijo=None):
     from hostal.models import SesionCajaHostal
-    caja_restaurante = SesionCaja.objects.filter(usuario=request.user, estado=True).first()
-    caja_hostal = SesionCajaHostal.objects.filter(usuario=request.user, estado=True).first()
+    caja_restaurante = SesionCaja.objects.filter(estado=True).first()
+    caja_hostal = SesionCajaHostal.objects.filter(estado=True).first()
     
     # Determinar qué caja usar según el módulo fijo o el enviado por POST
     if request.method == 'POST':
@@ -91,13 +92,17 @@ from django.contrib import messages
 
 @login_required
 def gestion_caja(request):
-    # Buscar si el usuario tiene una caja abierta
-    caja_abierta = SesionCaja.objects.filter(usuario=request.user, estado=True).first()
+    # Buscar si hay alguna caja abierta (compartida entre todos)
+    caja_abierta = SesionCaja.objects.filter(estado=True).first()
     
     if request.method == 'POST':
         action = request.POST.get('action')
         
         if action == 'abrir':
+            if caja_abierta:
+                messages.warning(request, "Ya existe una caja abierta.")
+                return redirect('caja:gestion_caja')
+                
             monto = request.POST.get('monto_inicial')
             SesionCaja.objects.create(
                 usuario=request.user,
@@ -110,18 +115,10 @@ def gestion_caja(request):
             if caja_abierta:
                 dinero_fisico = float(request.POST.get('monto_fisico'))
                 
-                # Calcular ventas del sistema DESDE que abrió la caja
-                if request.user.rol in ['gerente', 'admin']:
-                    # El gerente/admin cierra la caja "General", sumando TODAS las ventas
-                    ventas_sistema = Factura.objects.filter(
-                        fecha_emision__gte=caja_abierta.fecha_apertura
-                    ).aggregate(Sum('total'))['total__sum'] or 0
-                else:
-                    # El mesero cierra SU caja (ventas que él gestionó)
-                    ventas_sistema = Factura.objects.filter(
-                        pedido__mesero=request.user, 
-                        fecha_emision__gte=caja_abierta.fecha_apertura
-                    ).aggregate(Sum('total'))['total__sum'] or 0
+                # Calcular ventas del sistema DESDE que abrió la caja (Todas las ventas)
+                ventas_sistema = Factura.objects.filter(
+                    fecha_emision__gte=caja_abierta.fecha_apertura
+                ).aggregate(Sum('total'))['total__sum'] or 0
                 
                 # Calcular gastos de esta sesión
                 gastos_caja = caja_abierta.gastos.aggregate(Sum('monto'))['monto__sum'] or 0
@@ -158,22 +155,11 @@ def gestion_caja(request):
         # Gastos vinculados a esta sesión
         gastos_actuales = caja_abierta.gastos.aggregate(Sum('monto'))['monto__sum'] or 0
 
-        # Si es mesero, NO mostramos ventas acumuladas ni globales
-        if request.user.rol == 'mesero':
-            ventas_actuales = None 
-            saldo_actual = None
-        elif request.user.rol in ['gerente', 'admin']:
-            ventas_actuales = Factura.objects.filter(
-                fecha_emision__gte=caja_abierta.fecha_apertura
-            ).aggregate(Sum('total'))['total__sum'] or 0
-            saldo_actual = float(caja_abierta.monto_inicial) + float(ventas_actuales) - float(gastos_actuales)
-        else:
-             # Default fallback
-            ventas_actuales = Factura.objects.filter(
-                pedido__mesero=request.user, 
-                fecha_emision__gte=caja_abierta.fecha_apertura
-            ).aggregate(Sum('total'))['total__sum'] or 0
-            saldo_actual = float(caja_abierta.monto_inicial) + float(ventas_actuales) - float(gastos_actuales)
+        # Ventas acumuladas globales del sistema
+        ventas_actuales = Factura.objects.filter(
+            fecha_emision__gte=caja_abierta.fecha_apertura
+        ).aggregate(Sum('total'))['total__sum'] or 0
+        saldo_actual = float(caja_abierta.monto_inicial) + float(ventas_actuales) - float(gastos_actuales)
 
     return render(request, 'caja/gestion_caja.html', {
         'caja_abierta': caja_abierta,
@@ -182,3 +168,88 @@ def gestion_caja(request):
         'gastos_actuales': gastos_actuales,
         'saldo_actual': saldo_actual
     })
+
+@login_required
+def detalle_caja_modal(request, session_id):
+    from pedidos.models import Factura
+    sesion = get_object_or_404(SesionCaja, id=session_id)
+    
+    # Rango de tiempo de la sesión
+    fecha_fin = sesion.fecha_cierre or timezone.now()
+    ventas = Factura.objects.filter(
+        fecha_emision__gte=sesion.fecha_apertura,
+        fecha_emision__lte=fecha_fin
+    ).select_related('pedido__mesero', 'cliente').order_by('-fecha_emision')
+    
+    # Gastos vinculados
+    gastos = sesion.gastos.all().select_related('usuario').order_by('-fecha')
+    
+    return render(request, 'caja/modals/detalle_caja.html', {
+        'sesion': sesion,
+        'ventas': ventas,
+        'gastos': gastos
+    })
+
+@login_required
+@gerente_required
+def eliminar_caja(request, session_id):
+    caja = get_object_or_404(SesionCaja, id=session_id)
+    caja.delete()
+    messages.success(request, "Registro de caja eliminado.")
+    return redirect('caja:gestion_caja')
+
+@login_required
+@gerente_required
+def editar_caja_modal(request, session_id):
+    sesion = get_object_or_404(SesionCaja, id=session_id)
+    if request.method == 'POST':
+        sesion.monto_inicial = request.POST.get('monto_inicial')
+        sesion.monto_final_sistema = request.POST.get('monto_final_sistema') or None
+        sesion.monto_final_fisico = request.POST.get('monto_final_fisico') or None
+        
+        # Recalcular Diferencia if possible
+        if sesion.monto_final_fisico and sesion.monto_final_sistema:
+            from django.db.models import Sum
+            gastos = sesion.gastos.aggregate(Sum('monto'))['monto__sum'] or 0
+            esperado = float(sesion.monto_inicial) + float(sesion.monto_final_sistema) - float(gastos)
+            sesion.diferencia = float(sesion.monto_final_fisico) - esperado
+            
+        sesion.save()
+        messages.success(request, "Caja actualizada.")
+        return redirect('caja:gestion_caja')
+
+    return render(request, 'caja/modals/editar_caja.html', {'sesion': sesion})
+
+from django.db.models.functions import TruncDate
+@login_required
+@gerente_required
+def unificar_cajas(request):
+    """Une todas las cajas del restaurante que fueron abiertas el mismo día en un solo registro."""
+    if request.method == 'POST':
+        # Agrupar por fecha
+        fechas = SesionCaja.objects.annotate(dia=TruncDate('fecha_apertura')).values('dia').distinct()
+        
+        for f in fechas:
+            cajas_dia = SesionCaja.objects.filter(fecha_apertura__date=f['dia']).order_by('fecha_apertura')
+            if cajas_dia.count() > 1:
+                principal = cajas_dia[0]
+                otras = cajas_dia[1:]
+                
+                for c in otras:
+                    principal.monto_inicial += c.monto_inicial
+                    principal.monto_final_sistema = (principal.monto_final_sistema or 0) + (c.monto_final_sistema or 0)
+                    principal.monto_final_fisico = (principal.monto_final_fisico or 0) + (c.monto_final_fisico or 0)
+                    # Re-vincular gastos
+                    c.gastos.update(sesion_caja=principal)
+                    c.delete()
+                
+                # Recalcular diferencia de la principal
+                gastos_tot = principal.gastos.aggregate(Sum('monto'))['monto__sum'] or 0
+                if principal.monto_final_fisico is not None:
+                    esperado = float(principal.monto_inicial) + float(principal.monto_final_sistema or 0) - float(gastos_tot)
+                    principal.diferencia = float(principal.monto_final_fisico) - esperado
+                
+                principal.save()
+        
+        messages.success(request, "Se han unificado todas las cajas por día correctamente.")
+    return redirect('caja:gestion_caja')

@@ -209,8 +209,15 @@
 {% endblock %}
 
 {% block content %}
-<div class="caja-container">
-    <h2><i class="fas fa-cash-register me-2"></i> Gestión de Caja</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <h2 style="margin:0;"><i class="fas fa-cash-register me-2"></i> Gestión de Caja</h2>
+        <form method="post" action="{% url 'caja:unificar_cajas' %}" onsubmit="return confirm('¿Unificar todas las cajas por día? Esto consolidará las sesiones para simplificar el historial.')">
+            {% csrf_token %}
+            <button type="submit" class="btn" style="background: var(--accent-color); color: white; width: auto; padding: 10px 20px; font-weight: 800; border-radius: 12px;">
+                <i class="fas fa-layer-group"></i> Unificar Cajas por Día
+            </button>
+        </form>
+    </div>
 
     <!-- MESSAGES -->
     {% if messages %}
@@ -286,6 +293,7 @@
                     <th>Físico</th>
                     <th>Diferencia</th>
                     <th>Estado</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -306,6 +314,26 @@
                         <span class="badge badge-open">Abierta</span>
                         {% else %}
                         <span class="badge badge-closed">Cerrada</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Acciones">
+                        <button class="btn" style="padding: 6px 12px; font-size: 0.8rem; background: var(--bg-cream); color: var(--primary-color); border-radius: 8px; width: auto;"
+                            hx-get="{% url 'caja:detalle_caja_modal' s.id %}"
+                            hx-target="#modal-container">
+                            <i class="fas fa-eye"></i> Detalles
+                        </button>
+                        <button class="btn" style="padding: 6px 12px; font-size: 0.8rem; background: var(--secondary-color); color: white; border-radius: 8px; width: auto;"
+                            hx-get="{% url 'caja:editar_caja_modal' s.id %}"
+                            hx-target="#modal-container">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        {% if user.rol == 'gerente' or user.rol == 'admin' %}
+                        <form method="post" action="{% url 'caja:eliminar_caja' s.id %}" style="display:inline;" onsubmit="return confirm('¿Eliminar este registro de caja permanentemente?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn" style="padding: 6px 12px; font-size: 0.8rem; background: #EF4444; color: white; border-radius: 8px; width: auto;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
                         {% endif %}
                     </td>
                 </tr>

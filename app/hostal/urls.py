@@ -23,5 +23,9 @@ urlpatterns = [
     path('reservas/editar/<int:reserva_id>/', views.editar_reserva_modal, name='editar_reserva_modal'),
     path('reservas/actualizar/<int:reserva_id>/', views.actualizar_reserva, name='actualizar_reserva'),
     path('reservas/eliminar/<int:reserva_id>/', views.eliminar_reserva, name='eliminar_reserva'),
+    path('caja/detalle/<int:session_id>/', views.detalle_caja_hostal_modal, name='detalle_caja_hostal_modal'),
+    path('caja/editar/<int:session_id>/', views.editar_caja_hostal_modal, name='editar_caja_hostal_modal'),
+    path('caja/eliminar/<int:session_id>/', views.eliminar_caja_hostal, name='eliminar_caja_hostal'),
+    path('caja/unificar/', views.unificar_cajas_hostal, name='unificar_cajas_hostal'),
 ]
 

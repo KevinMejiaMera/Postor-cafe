@@ -82,10 +82,16 @@
 </style>
 
 <div class="page-header">
-    <div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <h1 class="page-title"><i class="fas fa-cash-register" style="color: var(--secondary-color);"></i> Caja - Hostal</h1>
-        <p class="page-sub">Gestión de turnos y cuadre de caja del hostal (independiente del restaurante)</p>
+        <form method="post" action="{% url 'hostal:unificar_cajas_hostal' %}" onsubmit="return confirm('¿Unificar cajas del hostal por día?')">
+            {% csrf_token %}
+            <button type="submit" class="btn-primary-hostal" style="width: auto; padding: 10px 20px;">
+                <i class="fas fa-layer-group"></i> Unificar por Día
+            </button>
+        </form>
     </div>
+    <p class="page-sub">Gestión de turnos y cuadre de caja del hostal (independiente del restaurante)</p>
 </div>
 
 <div class="caja-grid">
@@ -183,6 +189,7 @@
                     <th>Físico</th>
                     <th>Diferencia</th>
                     <th>Estado</th>
+                    <th>Detalles</th>
                 </tr>
             </thead>
             <tbody>
@@ -200,6 +207,26 @@
                     <td>
                         {% if s.estado %}<span class="bp-open">Abierta</span>
                         {% else %}<span class="bp-cerrada">Cerrada</span>{% endif %}
+                    </td>
+                    <td>
+                        <button class="btn btn-sm" style="background: var(--bg-cream); color: var(--primary-color); border-radius: 10px; font-weight: 700; font-size: 0.75rem;"
+                            hx-get="{% url 'hostal:detalle_caja_hostal_modal' s.id %}"
+                            hx-target="#hostal-modal-container">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                        <button class="btn btn-sm" style="background: var(--secondary-color); color: white; border-radius: 10px; font-weight: 700; font-size: 0.75rem;"
+                            hx-get="{% url 'hostal:editar_caja_hostal_modal' s.id %}"
+                            hx-target="#hostal-modal-container">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        {% if user.rol == 'gerente' or user.rol == 'admin' %}
+                        <form method="post" action="{% url 'hostal:eliminar_caja_hostal' s.id %}" style="display:inline;" onsubmit="return confirm('¿Eliminar permanente?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm" style="background: #EF4444; color: white; border-radius: 10px; font-weight: 700; font-size: 0.75rem;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                        {% endif %}
                     </td>
                 </tr>
                 {% empty %}
