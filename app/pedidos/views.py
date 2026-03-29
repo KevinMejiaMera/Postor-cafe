@@ -35,8 +35,8 @@ from django.contrib import messages
 @login_required
 def panel_mesas(request):
     # Validar que la caja esté abierta ANTES de empezar el día en el POS
-    if not SesionCaja.objects.filter(usuario=request.user, estado=True).exists():
-        messages.warning(request, "⚠️ Para acceder al Punto de Venta debes abrir tu caja primero.")
+    if not SesionCaja.objects.filter(estado=True).exists():
+        messages.warning(request, "⚠️ Para acceder al Punto de Venta se requiere una caja abierta.")
         return redirect('caja:gestion_caja')
 
     # La vista asume que si es POS General, usamos un ticket genérico sin mesa atada.
@@ -71,8 +71,8 @@ def panel_mesas(request):
 @mesero_required
 def detalle_mesa(request, mesa_id):
     # Validar que la caja esté abierta ANTES de atender mesa
-    if not SesionCaja.objects.filter(usuario=request.user, estado=True).exists():
-        messages.warning(request, "⚠️ Para atender mesas debes abrir tu caja primero.")
+    if not SesionCaja.objects.filter(estado=True).exists():
+        messages.warning(request, "⚠️ Para atender mesas se requiere una caja abierta.")
         return redirect('caja:gestion_caja')
 
     mesa = get_object_or_404(Mesa, pk=mesa_id)
