@@ -36,7 +36,7 @@
     }
     .btn-export-pdf:hover { background: #DC2626; }
 
-    .main-layout { display: flex; gap: 24px; align-items: flex-start; }
+    .report-main-layout { display: flex; gap: 24px; align-items: flex-start; }
 
     /* SIDEBAR */
     .sidebar-filters {
@@ -70,7 +70,7 @@
     .sf-caja-sub   { font-size: 0.72rem; color: var(--text-light); margin-top: 2px; }
 
     /* MAIN CONTENT */
-    .main-content { flex: 1; }
+    .report-content-body { flex: 1; }
 
     .kpi-grid {
         display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -114,9 +114,9 @@
     .amount { font-weight: 900; font-family: monospace; }
     .tfoot-total td { background: var(--bg-light); font-weight: 800; color: var(--primary-color); font-size: 1rem; padding: 14px 16px; }
 
-    @media (max-width: 992px) {
-        .main-layout { flex-direction: column; }
-        .sidebar-filters { flex: 1; width: 100%; }
+    @media (max-width: 991px) {
+        .report-main-layout { flex-direction: column; }
+        .sidebar-filters { flex: none; width: 100%; order: -1; }
         .report-header { flex-direction: column; align-items: stretch; text-align: center; }
         .filter-form { justify-content: center; }
         .kpi-grid { grid-template-columns: 1fr; }
@@ -125,8 +125,8 @@
     
     @media print { 
         .sidebar, .report-header button, .sidebar-filters, .report-header .filter-form { display: none !important; } 
-        .main-layout { display: block; } 
-        .main-content { margin: 0; padding: 0; width: 100%; }
+        .report-main-layout { display: block; } 
+        .report-content-body { margin: 0; padding: 0; width: 100%; }
         .table-section { break-inside: avoid; border: 1px solid #eee; margin-bottom: 20px !important; box-shadow: none; }
         .kpi-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 10px; margin-bottom: 20px; }
         .kpi-card { border: 1px solid #eee; box-shadow: none; padding: 10px; }
@@ -152,11 +152,11 @@
             <input type="date" name="fecha_fin" value="{{ fecha_fin }}">
         </div>
         <button type="submit" class="btn-filter"><i class="fas fa-filter"></i> Aplicar</button>
-        <button type="button" class="btn-export-pdf" onclick="window.print()"><i class="fas fa-file-pdf"></i> PDF</button>
+        <button type="button" class="btn-export-pdf" onclick="exportHostalReportToPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
     </form>
 </div>
 
-<div class="main-layout">
+<div class="report-main-layout">
     <!-- SIDEBAR DE FILTROS -->
     <div class="sidebar-filters">
         <p class="sf-section-title"><i class="fas fa-calendar-day"></i> Período</p>
@@ -193,7 +193,7 @@
     </div>
 
     <!-- CONTENIDO PRINCIPAL -->
-    <div class="main-content" id="reporte-resultados">
+    <div class="report-content-body" id="reporte-resultados">
 
         <!-- KPI CARDS -->
         <div class="kpi-grid">
@@ -341,4 +341,89 @@
         </div>
     </div>
 </div>
+
+<script>
+    function exportHostalReportToPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        
+        const primaryColor = [62, 67, 46];    // #3E432E
+        const secondaryColor = [97, 111, 57];  // #616F39
+
+        // Header
+        doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22); doc.setFont("helvetica", "bold");
+        doc.text("EL POSTOR CAFÉ - HOSTAL", 105, 20, { align: 'center' });
+        doc.setFontSize(12); doc.setFont("helvetica", "normal");
+        doc.text("Reporte de Ingresos y Estancias", 105, 28, { align: 'center' });
+        
+        const subTitle = document.querySelector('.report-title p').innerText;
+        doc.setFontSize(9); doc.text(subTitle, 105, 34, { align: 'center' });
+
+        // KPIs
+        const kpis = Array.from(document.querySelectorAll('.kpi-card')).map(card => [
+            card.querySelector('.kpi-lbl').innerText,
+            card.querySelector('.kpi-val').innerText
+        ]);
+
+        doc.autoTable({
+            startY: 50,
+            head: [['Indicador de Hostal', 'Monto']],
+            body: kpis,
+            theme: 'striped',
+            headStyles: { fillColor: primaryColor, halign: 'center' },
+            columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } }
+        });
+
+        // 1. Resumen de Servicios
+        doc.setFontSize(14); doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text("Resumen de Servicios / Productos", 14, doc.lastAutoTable.finalY + 15);
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 20,
+            html: '.rep-table:nth-of-type(1)',
+            theme: 'grid',
+            headStyles: { fillColor: secondaryColor },
+            styles: { fontSize: 9 }
+        });
+
+        // 2. Detalle de Gastos
+        doc.setFontSize(14);
+        doc.text("Detalle de Gastos del Período", 14, doc.lastAutoTable.finalY + 15);
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 20,
+            html: '.rep-table:nth-of-type(2)',
+            theme: 'grid',
+            headStyles: { fillColor: [153, 27, 27] },
+            styles: { fontSize: 9 }
+        });
+
+        // 3. Detalle de Reservas
+        doc.addPage();
+        doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.rect(0, 0, 210, 20, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.text("DETALLE COMPLETO DE RESERVAS", 105, 13, { align: 'center' });
+
+        doc.autoTable({
+            startY: 30,
+            html: '.rep-table:nth-of-type(3)',
+            theme: 'striped',
+            headStyles: { fillColor: secondaryColor },
+            styles: { fontSize: 8 },
+            columnStyles: { 7: { halign: 'right', fontStyle: 'bold' } }
+        });
+
+        // Footer
+        const pageCount = doc.internal.getNumberOfPages();
+        for(let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8); doc.setTextColor(150);
+            doc.text(`Generado el: ${new Date().toLocaleString()} - Página ${i} de ${pageCount}`, 105, 285, { align: 'center' });
+        }
+
+        doc.save(`Reporte_Hostal_${new Date().toISOString().slice(0,10)}.pdf`);
+    }
+</script>
 {% endblock %}

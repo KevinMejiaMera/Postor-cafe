@@ -85,6 +85,94 @@
 
         <div class="hostal-modal-footer">
             <button type="button" class="btn-hm-cancel" onclick="cerrarHostalModal()">Cerrar</button>
+            <button type="button" class="btn-hm-save" style="background: var(--secondary-color); color: white;" onclick="exportarCajaHostalPDF()">
+                <i class="fas fa-file-pdf"></i> Descargar PDF
+            </button>
         </div>
     </div>
 </div>
+
+<script>
+function exportarCajaHostalPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Configuración de Colores
+    const colorPrimario = [62, 67, 46]; // #3E432E
+    const colorSecundario = [97, 111, 57]; // #616F39
+    
+    // Encabezado
+    doc.setFontSize(22);
+    doc.setTextColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
+    doc.text("EL POSTOR CAFÉ - HOSTAL", 105, 20, { align: "center" });
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text("Reporte de Finanzas de Hostal", 105, 26, { align: "center" });
+    
+    doc.setDrawColor(200);
+    doc.line(15, 30, 195, 30);
+    
+    // Título del Reporte
+    doc.setFontSize(16);
+    doc.setTextColor(0);
+    doc.text("DETALLE DE CAJA HOSTAL #{{ sesion.id }}", 15, 42);
+    
+    // Información General
+    doc.setFontSize(10);
+    doc.text(`Responsable: {{ sesion.usuario.get_full_name|default:sesion.usuario.username }}`, 15, 52);
+    doc.text(`Fecha Apertura: {{ sesion.fecha_apertura|date:"d/m/Y H:i" }}`, 15, 57);
+    doc.text(`Fecha Cierre: {{ sesion.fecha_cierre|date:"d/m/Y H:i"|default:"SESIÓN ACTIVA" }}`, 15, 62);
+    doc.text(`Monto Inicial: $ {{ sesion.monto_inicial|floatformat:2 }}`, 140, 52);
+    doc.text(`Ventas (Reserva): $ {{ sesion.monto_final_sistema|default:0|floatformat:2 }}`, 140, 57);
+    doc.text(`Diferencia: $ {{ sesion.diferencia|default:0|floatformat:2 }}`, 140, 62);
+
+    // TABLA DE RESERVAS
+    doc.setFontSize(14);
+    doc.setTextColor(colorSecundario[0], colorSecundario[1], colorSecundario[2]);
+    doc.text("INGRESOS POR RESERVAS", 15, 75);
+    
+    const tableReservas = [];
+    {% for r in reservas %}
+    tableReservas.push(["{{ r.huesped.nombre_completo }}", "Hab. {{ r.habitacion.numero }}", "{{ r.usuario.username }}", "$ {{ r.precio_total|floatformat:2 }}"]);
+    {% endfor %}
+    
+    doc.autoTable({
+        startY: 80,
+        head: [['Huésped', 'Habitación', 'Recepcionista', 'Total']],
+        body: tableReservas,
+        headStyles: { fillColor: colorPrimario },
+        styles: { fontSize: 9 }
+    });
+    
+    // TABLA DE GASTOS
+    const lastY = doc.lastAutoTable.finalY + 15;
+    doc.setFontSize(14);
+    doc.setTextColor(239, 68, 68); // Red
+    doc.text("GASTOS DEL HOSTAL", 15, lastY);
+    
+    const tableGastos = [];
+    {% for g in gastos %}
+    tableGastos.push(["{{ g.descripcion }}", "{{ g.usuario.username }}", "$ {{ g.monto|floatformat:2 }}"]);
+    {% endfor %}
+    
+    doc.autoTable({
+        startY: lastY + 5,
+        head: [['Descripción', 'Responsable', 'Monto']],
+        body: tableGastos,
+        headStyles: { fillColor: [153, 27, 27] }, // Dark Red
+        styles: { fontSize: 9 }
+    });
+    
+    // Footer con Resumen Final
+    const finalY = doc.lastAutoTable.finalY + 15;
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text("RESUMEN DE CAJA HOSTAL:", 140, finalY);
+    doc.setFontSize(10);
+    doc.text(`Saldo Total en Mano: $ {{ sesion.monto_final_fisico|default:0|floatformat:2 }}`, 140, finalY + 7);
+    
+    // Save the PDF
+    doc.save(`Reporte_Caja_Hostal_{{ sesion.id }}_${new Date().toLocaleDateString()}.pdf`);
+}
+</script>

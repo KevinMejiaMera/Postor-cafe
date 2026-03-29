@@ -29,6 +29,10 @@
 
     <!-- HTMX para interactividad -->
     <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    
+    <!-- Librerías para Reportes PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
         :root {
@@ -79,10 +83,11 @@
         }
 
         /* Prevent scroll bleed on desktop only if sidebar is fixed */
-        @media (min-width: 992px) {
+        @media (min-width: 993px) {
             body { 
                 height: 100vh; 
                 overflow: hidden; 
+                display: block !important; /* Block instead of flex for fixed layout */
             }
         }
 
@@ -204,7 +209,12 @@
             overflow-y: auto;
             overflow-x: hidden;
             flex-shrink: 0;
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            z-index: 1000;
         }
 
         /* Personalized Scrollbar for Sidebar */
@@ -238,7 +248,8 @@
         }
 
         .sidebar.collapsed .nav-links a span,
-        .sidebar.collapsed .user-info {
+        .sidebar.collapsed .user-info,
+        .sidebar.collapsed .logo span {
             display: none !important;
         }
 
@@ -278,21 +289,25 @@
 
         .main-content {
             transition: margin-left 0.3s ease;
-            flex: 1;
+            margin-left: 280px;
+            width: calc(100% - 280px);
+            height: 100vh;
             overflow-y: auto;
             overflow-x: hidden;
+            padding: 30px;
+            box-sizing: border-box;
         }
 
-        @media (max-width: 991px) {
+        .sidebar.collapsed ~ .main-content {
+            margin-left: 85px;
+            width: calc(100% - 85px);
+        }
+
+        @media (max-width: 1100px) {
             body {
                 overflow-x: hidden;
                 overflow-y: auto;
-                display: block; /* Stack sidebar and content */
-            }
-            .main-content {
-                overflow: visible; /* Let body scroll */
-                padding-top: 70px; /* Space for fixed mobile topbar */
-                width: 100%;
+                display: flex; /* Maintain flex but allow stacking if needed elsewhere */
             }
         }
         /* === MOBILE HAMBURGER MENU === */
@@ -376,11 +391,11 @@
             }
         }
 
-        @media (max-width: 992px) {
+        @media (max-width: 991px) {
             body {
                 height: auto;
                 overflow-x: hidden;
-                flex-direction: column;
+                display: block !important;
             }
 
             .mobile-topbar {
@@ -393,7 +408,7 @@
                 left: -300px !important;
                 width: 280px !important;
                 height: 100vh !important;
-                z-index: 1050 !important;
+                z-index: 1200 !important;
                 transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
                 box-shadow: 4px 0 30px rgba(0,0,0,0.2) !important;
                 padding: 20px 0 !important;
@@ -432,7 +447,7 @@
                 padding: 16px !important;
                 padding-top: 72px !important;
                 width: 100% !important;
-                min-height: calc(100vh - 56px);
+                min-height: 100vh;
             }
         }
 
@@ -701,14 +716,26 @@
             const isMobile = window.innerWidth <= 992;
             const sidebar = document.getElementById('sidebar');
             const toggle = document.getElementById('sidebarToggle');
+            const icon = toggle ? toggle.querySelector('i') : null;
             
             if (isMobile) {
                 sidebar.classList.remove('collapsed');
                 if (toggle) toggle.style.display = 'none';
             } else {
                 if (toggle) toggle.style.display = 'flex';
-                if (localStorage.getItem('sidebarCollapsed') === 'true' || window.innerWidth <= 1200) {
+                // Solo colapsar automáticamente if localStorage says so OR if it's a very tight screen (under 1100px)
+                if (localStorage.getItem('sidebarCollapsed') === 'true' || window.innerWidth <= 1100) {
                     sidebar.classList.add('collapsed');
+                    if (icon) {
+                        icon.classList.remove('fa-chevron-left');
+                        icon.classList.add('fa-chevron-right');
+                    }
+                } else {
+                    sidebar.classList.remove('collapsed');
+                    if (icon) {
+                        icon.classList.remove('fa-chevron-right');
+                        icon.classList.add('fa-chevron-left');
+                    }
                 }
             }
         }

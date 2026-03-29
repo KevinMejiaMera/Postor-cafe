@@ -55,7 +55,8 @@
     .btn-export-pdf:hover { background: #DC2626; transform: translateY(-1px); }
 
     /* Estructura Sidebar + Content */
-    .main-layout { display: flex; gap: 28px; align-items: flex-start; }
+    /* Estructura Sidebar + Content */
+    .report-main-layout { display: flex; gap: 28px; align-items: flex-start; }
 
     .sidebar-filters {
         flex: 0 0 260px; background: white; border-radius: 20px;
@@ -89,8 +90,8 @@
     .sf-caja-sub   { font-size: 0.75rem; color: var(--text-light); margin-top: 3px; opacity: 0.8; }
     .active-filter .sf-caja-sub { color: rgba(255,255,255,0.7); }
 
-    /* Content Area */
-    .main-content { flex: 1; min-width: 0; }
+    /* Internal Report Content Area */
+    .report-content-body { flex: 1; min-width: 0; }
 
     /* KPI Grid unificado */
     .kpi-grid {
@@ -131,8 +132,8 @@
     .rep-table tbody td { padding: 15px 20px; font-size: 0.92rem; color: var(--primary); }
 
     /* Responsivo unificado */
-    @media (max-width: 992px) {
-        .main-layout { flex-direction: column; }
+    @media (max-width: 991px) {
+        .report-main-layout { flex-direction: column; }
         .sidebar-filters { flex: none; width: 100%; order: -1; }
         .report-header { flex-direction: column; align-items: stretch; text-align: center; }
         .filter-form { justify-content: center; }
@@ -142,8 +143,8 @@
 
     @media print {
         .sidebar, .navbar, .report-header .btn-export-pdf, .sidebar-filters, .filter-form, .btn-filter { display: none !important; }
-        .main-layout { display: block; }
-        .main-content { margin: 0; padding: 0; width: 100%; }
+        .report-main-layout { display: block; }
+        .report-content-body { margin: 0; padding: 0; width: 100%; }
         .report-header { border: none; border-bottom: 3px solid var(--primary); box-shadow: none; padding: 0 0 15px 0; margin-bottom: 30px; }
         .kpi-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 10px; margin-bottom: 25px; }
         .kpi-card { border: 1px solid #eee; box-shadow: none; padding: 12px; }
@@ -175,11 +176,11 @@
                 <input type="date" name="fecha_fin" value="{{ fecha_fin }}">
             </div>
             <button type="submit" class="btn-filter"><i class="fas fa-filter"></i> Analizar</button>
-            <button type="button" class="btn-export-pdf" onclick="window.print()"><i class="fas fa-file-pdf"></i> Imprimir</button>
+            <button type="button" class="btn-export-pdf" onclick="exportReportToPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
         </form>
     </div>
 
-    <div class="main-layout">
+    <div class="report-main-layout">
         <!-- SIDEBAR -->
         <div class="sidebar-filters">
             <p class="sf-section-title">Filtros Rápidos</p>
@@ -201,7 +202,7 @@
         </div>
 
         <!-- CONTENIDO -->
-        <div class="main-content">
+        <div class="report-content-body">
             <!-- KPIs -->
             <div class="kpi-grid">
                 <div class="kpi-card">
@@ -291,4 +292,104 @@
         </div>
     </div>
 </div>
+
+<script>
+    function exportReportToPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        
+        // Colores marca
+        const primaryColor = [62, 67, 46];    // #3E432E
+        const secondaryColor = [97, 111, 57];  // #616F39
+        const accentColor = [167, 156, 125];  // #A79C7D
+
+        // Header Rect
+        doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.rect(0, 0, 210, 40, 'F');
+
+        // Logo/Título (Si no hay imagen, texto estilizado)
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont("helvetica", "bold");
+        doc.text("EL POSTOR CAFÉ", 105, 20, { align: 'center' });
+        
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text("Reporte de Ventas - Restaurante", 105, 28, { align: 'center' });
+        
+        const dateText = document.querySelector('.report-title p').innerText.trim();
+        doc.setFontSize(9);
+        doc.text(dateText, 105, 34, { align: 'center' });
+
+        // KPIs (Resumen)
+        const kpis = document.querySelectorAll('.kpi-card');
+        const kpiData = [];
+        kpis.forEach(kpi => {
+            const lbl = kpi.querySelector('.kpi-lbl').innerText;
+            const val = kpi.querySelector('.kpi-val').innerText;
+            kpiData.push([lbl, val]);
+        });
+
+        doc.autoTable({
+            startY: 50,
+            head: [['Indicador de Ventas', 'Monto']],
+            body: kpiData,
+            theme: 'striped',
+            headStyles: { fillColor: primaryColor, halign: 'center' },
+            styles: { fontSize: 10, cellPadding: 5 },
+            columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } }
+        });
+
+        // Detalle de Productos
+        doc.setFontSize(14);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text("Detalle de Productos Vendidos", 14, doc.lastAutoTable.finalY + 15);
+
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 20,
+            html: '.rep-table:first-of-type',
+            theme: 'grid',
+            headStyles: { fillColor: secondaryColor },
+            styles: { fontSize: 9 },
+            columnStyles: {
+                1: { halign: 'center' },
+                2: { halign: 'center' },
+                3: { halign: 'right', fontStyle: 'bold' }
+            }
+        });
+
+        // Detalle de Gastos
+        const tables = document.querySelectorAll('.rep-table');
+        if (tables.length > 1) {
+            doc.addPage();
+            doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.rect(0, 0, 210, 20, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(14);
+            doc.text("DETALLE DE GASTOS", 105, 13, { align: 'center' });
+
+            doc.autoTable({
+                startY: 30,
+                html: tables[1],
+                theme: 'grid',
+                headStyles: { fillColor: [153, 27, 27] }, // Rojo oscuro para gastos
+                styles: { fontSize: 9 },
+                columnStyles: {
+                    3: { halign: 'right', fontStyle: 'bold', textColor: [153, 27, 27] }
+                }
+            });
+        }
+
+        // Footer con fecha de generación
+        const pageCount = doc.internal.getNumberOfPages();
+        for(let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text(`Generado el: ${new Date().toLocaleString()} - Página ${i} de ${pageCount}`, 105, 285, { align: 'center' });
+        }
+
+        doc.save(`Reporte_Restaurante_${new Date().toISOString().slice(0,10)}.pdf`);
+    }
+</script>
 {% endblock %}

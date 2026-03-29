@@ -87,8 +87,96 @@
             </div>
         </div>
 
-        <div class="hostal-modal-footer" style="padding: 20px 28px; background: white; border-top: 1px solid var(--bg-cream); display: flex; justify-content: flex-end;">
+        <div class="hostal-modal-footer" style="padding: 20px 28px; background: white; border-top: 1px solid var(--bg-cream); display: flex; justify-content: flex-end; gap: 10px;">
             <button type="button" class="btn-hm-cancel" onclick="cerrarModal()" style="padding: 10px 24px; border-radius: 12px; border: 2px solid var(--bg-cream); background: white; color: var(--text-muted); font-weight: 700; cursor: pointer;">Cerrar</button>
+            <button type="button" class="btn-hm-save" style="background: var(--secondary-color); color: white;" onclick="exportarCajaPDF()">
+                <i class="fas fa-file-pdf"></i> Descargar PDF
+            </button>
         </div>
     </div>
 </div>
+
+<script>
+function exportarCajaPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Configuración de Colores
+    const colorPrimario = [62, 67, 46]; // #3E432E
+    const colorSecundario = [97, 111, 57]; // #616F39
+    
+    // Logo (usamos texto si la imagen no carga, o intentamos cargarla)
+    doc.setFontSize(22);
+    doc.setTextColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
+    doc.text("EL POSTOR CAFÉ", 105, 20, { align: "center" });
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text("San Pedro de Huaca - Carchi", 105, 26, { align: "center" });
+    
+    doc.setDrawColor(200);
+    doc.line(15, 30, 195, 30);
+    
+    // Título del Reporte
+    doc.setFontSize(16);
+    doc.setTextColor(0);
+    doc.text("REPORTE DETALLADO DE CAJA #{{ sesion.id }}", 15, 42);
+    
+    // Información General
+    doc.setFontSize(10);
+    doc.text(`Responsable Apertura: {{ sesion.usuario.get_full_name|default:sesion.usuario.username }}`, 15, 52);
+    doc.text(`Fecha Apertura: {{ sesion.fecha_apertura|date:"d/m/Y H:i" }}`, 15, 57);
+    doc.text(`Fecha Cierre: {{ sesion.fecha_cierre|date:"d/m/Y H:i"|default:"SESIÓN ACTIVA" }}`, 15, 62);
+    doc.text(`Monto Inicial: $ {{ sesion.monto_inicial|floatformat:2 }}`, 140, 52);
+    doc.text(`Ventas Sistema: $ {{ sesion.monto_final_sistema|default:0|floatformat:2 }}`, 140, 57);
+    doc.text(`Diferencia: $ {{ sesion.diferencia|default:0|floatformat:2 }}`, 140, 62);
+
+    // TABLA DE VENTAS
+    doc.setFontSize(14);
+    doc.setTextColor(colorSecundario[0], colorSecundario[1], colorSecundario[2]);
+    doc.text("VENTAS DEL RESTAURANTE", 15, 75);
+    
+    const tableVentas = [];
+    {% for v in ventas %}
+    tableVentas.push(["#{{ v.id }}", "{{ v.razon_social }}", "{{ v.pedido.mesero.username }}", "$ {{ v.total|floatformat:2 }}"]);
+    {% endfor %}
+    
+    doc.autoTable({
+        startY: 80,
+        head: [['Factura', 'Cliente', 'Mesero', 'Total']],
+        body: tableVentas,
+        headStyles: { fillColor: colorPrimario },
+        styles: { fontSize: 9 }
+    });
+    
+    // TABLA DE GASTOS
+    const lastY = doc.lastAutoTable.finalY + 15;
+    doc.setFontSize(14);
+    doc.setTextColor(239, 68, 68); // Red
+    doc.text("GASTOS REGISTRADOS", 15, lastY);
+    
+    const tableGastos = [];
+    {% for g in gastos %}
+    tableGastos.push(["{{ g.descripcion }}", "{{ g.usuario.username }}", "$ {{ g.monto|floatformat:2 }}"]);
+    {% endfor %}
+    
+    doc.autoTable({
+        startY: lastY + 5,
+        head: [['Descripción', 'Responsable', 'Monto']],
+        body: tableGastos,
+        headStyles: { fillColor: [153, 27, 27] }, // Dark Red
+        styles: { fontSize: 9 }
+    });
+    
+    // Footer con Resumen Final
+    const finalY = doc.lastAutoTable.finalY + 15;
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text("RESUMEN DE CAJA:", 140, finalY);
+    doc.setFontSize(10);
+    doc.text(`Saldo Final Calculado: $ {{ sesion.monto_final_fisico|default:0|floatformat:2 }}`, 140, finalY + 7);
+    
+    // Save the PDF
+    doc.save(`Reporte_Caja_{{ sesion.id }}_${new Date().toLocaleDateString()}.pdf`);
+}
+</script>
