@@ -851,7 +851,10 @@ def historial_pedidos(request):
     if not any([fecha_str, fecha_desde, fecha_hasta, busqueda]):
          fecha_actual = hoy
     elif fecha_str:
-         fecha_actual = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+         try:
+             fecha_actual = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+         except ValueError:
+             fecha_actual = hoy # Fallback a hoy si la fecha viene mal
     else:
          fecha_actual = None
 

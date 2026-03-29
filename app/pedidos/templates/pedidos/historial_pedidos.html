@@ -731,14 +731,14 @@
         
         <div style="display: flex; gap: 8px;">
             {% if pedidos.has_previous %}
-                <a href="?page={{ pedidos.previous_page_number }}{% if fecha_actual %}&fecha={{ fecha_actual|date:'Y-m-%d' }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}" 
+                <a href="?page={{ pedidos.previous_page_number }}{% if fecha_actual %}&fecha={{ fecha_actual|date:'Y-m-d' }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}" 
                    style="padding: 8px 16px; border: 1px solid #E5E7EB; border-radius: 8px; text-decoration: none; color: #374151; font-weight: 700; font-size: 0.85rem; background: #F9FAFB;">
                     <i class="fas fa-chevron-left" style="font-size: 0.75rem;"></i> Anterior
                 </a>
             {% endif %}
 
             {% if pedidos.has_next %}
-                <a href="?page={{ pedidos.next_page_number }}{% if fecha_actual %}&fecha={{ fecha_actual|date:'Y-m-%d' }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}" 
+                <a href="?page={{ pedidos.next_page_number }}{% if fecha_actual %}&fecha={{ fecha_actual|date:'Y-m-d' }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}" 
                    style="padding: 8px 16px; border: 1px solid #E5E7EB; border-radius: 8px; text-decoration: none; color: #374151; font-weight: 700; font-size: 0.85rem; background: #F9FAFB;">
                     Siguiente <i class="fas fa-chevron-right" style="font-size: 0.75rem;"></i>
                 </a>
