@@ -291,7 +291,7 @@
                     <th>Inicial</th>
                     <th>Ventas (Sis)</th>
                     <th>Físico</th>
-                    <th>Diferencia</th>
+                    <th>Gastos</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
@@ -306,8 +306,8 @@
                     <td data-label="Ventas (Sis)">{% if s.monto_final_sistema is not None %}${{ s.monto_final_sistema }}{% else %}-{% endif %}
                     </td>
                     <td data-label="Físico">{% if s.monto_final_fisico is not None %}${{ s.monto_final_fisico }}{% else %}-{% endif %}</td>
-                    <td data-label="Diferencia" class="{% if s.diferencia < 0 %}text-red{% elif s.diferencia > 0 %}text-green{% endif %}">
-                        {% if s.diferencia is not None %}${{ s.diferencia }}{% else %}-{% endif %}
+                    <td data-label="Gastos" style="color: #EF4444; font-weight: 700;">
+                        ${{ s.total_gastos|default:0|floatformat:2 }}
                     </td>
                     <td data-label="Estado">
                         {% if s.estado %}

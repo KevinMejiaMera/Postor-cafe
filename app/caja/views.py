@@ -139,13 +139,17 @@ def gestion_caja(request):
     historial = []
     if request.user.rol in ['gerente', 'admin']:
         # Gerente ve TODAS las cajas (para auditar cierres de meseros)
-        historial = SesionCaja.objects.all().order_by('-fecha_apertura')[:20]
+        historial = SesionCaja.objects.annotate(
+            total_gastos=Sum('gastos__monto')
+        ).all().order_by('-fecha_apertura')[:20]
     elif request.user.rol == 'mesero':
         # Mesero no ve historial (según requerimiento anterior)
         historial = []
     else:
         # Default (otros roles si los hubiera): ven lo suyo
-        historial = SesionCaja.objects.filter(usuario=request.user).order_by('-fecha_apertura')[:10]
+        historial = SesionCaja.objects.filter(usuario=request.user).annotate(
+            total_gastos=Sum('gastos__monto')
+        ).order_by('-fecha_apertura')[:10]
     
     # Calcular ventas y gastos actuales si la caja está abierta
     ventas_actuales = 0
@@ -183,11 +187,13 @@ def detalle_caja_modal(request, session_id):
     
     # Gastos vinculados
     gastos = sesion.gastos.all().select_related('usuario').order_by('-fecha')
+    total_gastos = gastos.aggregate(Sum('monto'))['monto__sum'] or 0
     
     return render(request, 'caja/modals/detalle_caja.html', {
         'sesion': sesion,
         'ventas': ventas,
-        'gastos': gastos
+        'gastos': gastos,
+        'total_gastos': total_gastos
     })
 
 @login_required

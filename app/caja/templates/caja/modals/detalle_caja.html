@@ -6,7 +6,7 @@
                     <i class="fas fa-cash-register"></i> Detalle de Caja Restaurante #{{ sesion.id }}
                 </h3>
                 <small style="color: rgba(255,255,255,0.65); display: block; font-size: 0.8rem; margin-top: 2px;">
-                    Turno: {{ sesion.fecha_apertura|date:"d M H:i" }} - {{ sesion.fecha_cierre|date:"d M H:i"|default:"Activa" }}
+                    Turno: {{ sesion.fecha_apertura|date:"d M, h:i A" }} - {{ sesion.fecha_cierre|date:"d M, h:i A"|default:"Activa" }}
                 </small>
             </div>
             <button class="hostal-modal-close" onclick="cerrarModal()" style="background: rgba(255,255,255,0.12); border: none; color: white; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;">
@@ -15,17 +15,34 @@
         </div>
 
         <div class="hostal-modal-body" style="padding: 28px; background: #F8F9F2; max-height: 70vh; overflow-y: auto;">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
-                <div style="background: white; padding: 15px; border-radius: 12px; border: 1.5px solid var(--bg-cream);">
-                    <span style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Apertura por</span>
-                    <div style="font-weight: 800; color: var(--primary-color); font-size: 1.1rem;">{{ sesion.usuario.get_full_name|default:sesion.usuario.username }}</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 25px;">
+                <div style="background: white; padding: 12px; border-radius: 12px; border: 1.5px solid var(--bg-cream);">
+                    <span style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Apertura por</span>
+                    <div style="font-weight: 800; color: var(--primary-color); font-size: 0.95rem;">{{ sesion.usuario.get_full_name|default:sesion.usuario.username }}</div>
                 </div>
-                <div style="background: var(--primary-color); color: white; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <span style="font-size: 0.7rem; text-transform: uppercase; opacity: 0.7; font-weight: 800;">Monto Inicial</span>
-                        <div style="font-size: 1.4rem; font-weight: 900;">$ {{ sesion.monto_inicial|floatformat:2 }}</div>
-                    </div>
+                <div style="background: white; padding: 12px; border-radius: 12px; border: 1.5px solid #F3F4F6;">
+                    <span style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Monto Inicial</span>
+                    <div style="font-weight: 900; color: var(--primary-color); font-size: 1.1rem;">$ {{ sesion.monto_inicial|floatformat:2 }}</div>
                 </div>
+                <div style="background: white; padding: 12px; border-radius: 12px; border: 1.5px solid #F3F4F6;">
+                    <span style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Vendido</span>
+                    <div style="font-weight: 900; color: var(--secondary-color); font-size: 1.1rem;">$ {{ sesion.monto_final_sistema|default:0|floatformat:2 }}</div>
+                </div>
+                <div style="background: #FEF2F2; padding: 12px; border-radius: 12px; border: 1.5px solid #FEE2E2;">
+                    <span style="font-size: 0.65rem; font-weight: 800; color: #991B1B; text-transform: uppercase;">Gastos</span>
+                    <div style="font-weight: 900; color: #EF4444; font-size: 1.1rem;">$ {{ total_gastos|floatformat:2 }}</div>
+                </div>
+                <div style="background: var(--primary-color); color: white; padding: 12px; border-radius: 12px;">
+                    <span style="font-size: 0.65rem; text-transform: uppercase; opacity: 0.7; font-weight: 800;">Cierre (Mano)</span>
+                    <div style="font-size: 1.25rem; font-weight: 900;">$ {{ sesion.monto_final_fisico|default:0|floatformat:2 }}</div>
+                </div>
+            </div>
+
+            <!-- DIFERENCIA (Audit) -->
+            <div style="padding: 10px 15px; border-radius: 12px; font-weight:700; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; margin-bottom: 25px; 
+                 {% if sesion.diferencia < 0 %} background: #FEE2E2; color: #991B1B; {% elif sesion.diferencia > 0 %} background: #DCFCE7; color: #166534; {% else %} background: #F3F4F6; color: #6B7280; {% endif %}">
+                <i class="fas fa-{% if sesion.diferencia < 0 %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                AUDITORÍA: DIFERENCIA DE CAJA: ${{ sesion.diferencia|default:0|floatformat:2 }}
             </div>
 
             <div style="margin-bottom: 30px;">
@@ -125,11 +142,12 @@ function exportarCajaPDF() {
     // Información General
     doc.setFontSize(10);
     doc.text(`Responsable Apertura: {{ sesion.usuario.get_full_name|default:sesion.usuario.username }}`, 15, 52);
-    doc.text(`Fecha Apertura: {{ sesion.fecha_apertura|date:"d/m/Y H:i" }}`, 15, 57);
-    doc.text(`Fecha Cierre: {{ sesion.fecha_cierre|date:"d/m/Y H:i"|default:"SESIÓN ACTIVA" }}`, 15, 62);
+    doc.text(`Fecha Apertura: {{ sesion.fecha_apertura|date:"d/m/Y h:i A" }}`, 15, 57);
+    doc.text(`Fecha Cierre: {{ sesion.fecha_cierre|date:"d/m/Y h:i A"|default:"SESIÓN ACTIVA" }}`, 15, 62);
     doc.text(`Monto Inicial: $ {{ sesion.monto_inicial|floatformat:2 }}`, 140, 52);
     doc.text(`Ventas Sistema: $ {{ sesion.monto_final_sistema|default:0|floatformat:2 }}`, 140, 57);
-    doc.text(`Diferencia: $ {{ sesion.diferencia|default:0|floatformat:2 }}`, 140, 62);
+    doc.text(`Gastos Totales: $ {{ total_gastos|floatformat:2 }}`, 140, 62);
+    doc.text(`Diferencia Audit.: $ {{ sesion.diferencia|default:0|floatformat:2 }}`, 140, 67);
 
     // TABLA DE VENTAS
     doc.setFontSize(14);
