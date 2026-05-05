@@ -1,0 +1,106 @@
+
+{% load static %}
+<div class="pos-modal-custom modal-fade-in" 
+     style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+    
+    <div class="modal-content-soft" style="background: white; width: 95%; max-width: 450px; border-radius: 28px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.3); animation: slideUp 0.3s ease-out; position: relative; z-index: 10000;">
+        
+        <form hx-post="{% url 'pedidos:agregar_multiples_variantes' pedido_id %}"
+              hx-target="#zona-pedido"
+              hx-swap="outerHTML"
+              hx-indicator="#btn-confirmar-variantes">
+            
+            {% csrf_token %}
+
+            <!-- Header del Modal -->
+            <div style="background: #FDFCFB; padding: 25px; border-bottom: 1px solid #F3F4F6; text-align: center;">
+                <h3 style="margin: 0; font-size: 1.3rem; color: #3E432E; font-weight: 800;">{{ producto.nombre }}</h3>
+                <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #6B7280;">Ajusta las cantidades por sabor</p>
+            </div>
+
+            <!-- Lista de Variantes con Contadores -->
+            <div style="padding: 20px; max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;">
+                {% for variante in variantes %}
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white; border: 2px solid #F3F4F6; border-radius: 20px;">
+                    <div style="flex: 1;">
+                        <span style="font-weight: 700; color: #374151; display: block;">{{ variante.nombre }}</span>
+                        <span style="color: #616F39; font-weight: 800; font-size: 0.85rem;">${{ variante.precio }}</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <!-- Campo oculto para el ID -->
+                        <input type="hidden" name="variante_ids[]" value="{{ variante.id }}">
+                        
+                        <!-- Controles de Cantidad -->
+                        <button type="button" 
+                                onclick="stepQty(this, -1)"
+                                style="width: 32px; height: 32px; border-radius: 10px; border: 1px solid #E5E7EB; background: white; color: #374151; cursor: pointer; font-weight: 900;">-</button>
+                        
+                        <input type="number" 
+                               name="cantidades[]" 
+                               value="0" 
+                               min="0" 
+                               style="width: 40px; text-align: center; border: none; font-weight: 800; color: #3E432E; font-size: 1.1rem; background: transparent;"
+                               readonly>
+                        
+                        <button type="button" 
+                                onclick="stepQty(this, 1)"
+                                style="width: 32px; height: 32px; border-radius: 10px; border: none; background: #616F39; color: white; cursor: pointer; font-weight: 900;">+</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Acciones Finales -->
+            <div style="padding: 20px 25px 25px 25px; display: grid; gap: 10px;">
+                <button type="submit" 
+                        id="btn-confirmar-variantes"
+                        style="background: #3E432E; color: white; border: none; padding: 16px; border-radius: 16px; font-weight: 800; cursor: pointer; transition: 0.3s; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <span class="htmx-indicator"><i class="fas fa-spinner fa-spin"></i></span>
+                    Añadir al Pedido
+                </button>
+                
+                <button type="button" 
+                        onclick="const mc = document.getElementById('modal-container'); if(mc) mc.innerHTML = '';" 
+                        style="background: transparent; border: none; padding: 5px; color: #9CA3AF; font-weight: 700; cursor: pointer; text-decoration: underline; font-size: 0.85rem;">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function stepQty(btn, delta) {
+        const input = btn.parentElement.querySelector('input[type="number"]');
+        let val = parseInt(input.value) + delta;
+        if (val < 0) val = 0;
+        input.value = val;
+        
+        // Efecto visual al cambiar
+        const parent = btn.closest('div[style*="border: 2px solid"]');
+        if (val > 0) {
+            parent.style.borderColor = '#616F39';
+            parent.style.background = '#F9FAF6';
+        } else {
+            parent.style.borderColor = '#F3F4F6';
+            parent.style.background = 'white';
+        }
+    }
+</script>
+
+<style>
+    .htmx-indicator { display: none; }
+    .htmx-request .htmx-indicator { display: inline-block; }
+    .htmx-request[type="submit"] { opacity: 0.7; pointer-events: none; }
+    
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .modal-fade-in { animation: fadeIn 0.2s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+        -webkit-appearance: none; 
+        margin: 0; 
+    }
+</style>

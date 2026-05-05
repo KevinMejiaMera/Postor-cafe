@@ -32,7 +32,14 @@
             </div>
 
             <div class="item-info">
-                <span class="item-name">{{ item.producto.nombre }}</span>
+                <span class="item-name">
+                    {{ item.producto.nombre }}
+                    {% if item.variante %}
+                    <small style="color: #616F39; font-weight: 800; display: block; font-size: 0.7rem; text-transform: uppercase;">
+                        {{ item.variante.nombre }}
+                    </small>
+                    {% endif %}
+                </span>
             </div>
 
             <span class="item-total">${{ item.subtotal|floatformat:2 }}</span>

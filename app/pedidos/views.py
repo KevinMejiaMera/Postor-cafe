@@ -10,7 +10,7 @@ from django.views.decorators.http import etag
 from django.utils import timezone
 
 from clientes.models import Cliente
-from .models import Pedido, Producto, DetallePedido, Mesa, Factura, CategoriaProducto
+from .models import Pedido, Producto, DetallePedido, Mesa, Factura, CategoriaProducto, VarianteProducto
 from usuarios.models import AuditLog
 from inventario.models import MovimientoKardex, Insumo
 from .forms import ProductoForm # Importar Formulario
@@ -54,7 +54,7 @@ def panel_mesas(request):
             estado='borrador'
         )
         
-    productos = Producto.objects.filter(disponible=True).order_by('categoria__nombre', 'nombre')
+    productos = Producto.objects.filter(disponible=True).prefetch_related('variantes').order_by('categoria__nombre', 'nombre')
     categorias = CategoriaProducto.objects.all().order_by('nombre')
     
     context = {
@@ -93,7 +93,7 @@ def detalle_mesa(request, mesa_id):
         # mesa.estado = 'ocupada'  <-- ELIMINADO: No ocupar hasta que haya productos
         # mesa.save()
 
-    productos = Producto.objects.filter(disponible=True)
+    productos = Producto.objects.filter(disponible=True).prefetch_related('variantes')
 
     # Detección manual de HTMX
     is_htmx = request.headers.get('HX-Request') == 'true' or request.META.get('HTTP_HX_REQUEST')
@@ -504,13 +504,29 @@ def crear_producto(request):
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            # Retornar refresh para actualizar la tabla
+            producto = form.save()
+            
+            # Procesar Variantes (Sabores)
+            nombres = request.POST.getlist('v_nombre[]')
+            precios = request.POST.getlist('v_precio[]')
+            
+            for nombre, precio in zip(nombres, precios):
+                if nombre.strip():
+                    VarianteProducto.objects.create(
+                        producto=producto,
+                        nombre=nombre,
+                        precio=precio or producto.precio
+                    )
+            
             return HttpResponse(status=204, headers={'HX-Refresh': 'true'})
     else:
         form = ProductoForm()
     
-    return render(request, 'pedidos/modals/form_producto.html', {'form': form, 'titulo': 'Nuevo Plato'})
+    return render(request, 'pedidos/modals/form_producto.html', {
+        'form': form, 
+        'titulo': 'Nuevo Plato',
+        'variantes': []
+    })
 
 @login_required
 @gerente_required
@@ -520,12 +536,30 @@ def editar_producto(request, pk):
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES, instance=producto)
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            
+            # Procesar Variantes (Sincronización simple: borrar y recrear)
+            producto.variantes.all().delete()
+            nombres = request.POST.getlist('v_nombre[]')
+            precios = request.POST.getlist('v_precio[]')
+            
+            for nombre, precio in zip(nombres, precios):
+                if nombre.strip():
+                    VarianteProducto.objects.create(
+                        producto=producto,
+                        nombre=nombre,
+                        precio=precio or producto.precio
+                    )
+                    
             return HttpResponse(status=204, headers={'HX-Refresh': 'true'})
     else:
         form = ProductoForm(instance=producto)
     
-    return render(request, 'pedidos/modals/form_producto.html', {'form': form, 'titulo': f'Editar {producto.nombre}'})
+    return render(request, 'pedidos/modals/form_producto.html', {
+        'form': form, 
+        'titulo': f'Editar {producto.nombre}',
+        'variantes': producto.variantes.all()
+    })
 
 @login_required
 @require_POST
@@ -1069,3 +1103,60 @@ def asignar_mesa_pedido(request, pedido_id, mesa_id):
         'mesas_libres': Mesa.objects.filter(estado='libre').order_by('numero'),
     }
     return render(request, 'pedidos/partials/orden_actual.html', context)
+
+# --- NUEVAS VISTAS PARA VARIANTES (SABORES) ---
+
+@login_required
+def obtener_variantes(request, producto_id):
+    """Retorna el modal de selección de variantes para el POS."""
+    producto = get_object_or_404(Producto, pk=producto_id)
+    variantes = producto.variantes.filter(disponible=True)
+    
+    # Necesitamos el pedido_id para que el modal sepa a dónde añadir la variante
+    # Lo sacamos de la sesión o lo pasamos por parámetro (usaremos parámetro para mayor control)
+    pedido_id = request.GET.get('pedido_id')
+
+    return render(request, 'pedidos/modals/seleccion_variantes.html', {
+        'producto': producto,
+        'variantes': variantes,
+        'pedido_id': pedido_id
+    })
+
+@login_required
+@mesero_required
+def agregar_multiples_variantes(request, pedido_id):
+    """Añade varios sabores/variantes de un solo golpe."""
+    pedido = get_object_or_404(Pedido, pk=pedido_id)
+    
+    # Recibimos las listas de IDs y cantidades del formulario
+    variante_ids = request.POST.getlist('variante_ids[]')
+    cantidades = request.POST.getlist('cantidades[]')
+
+    for v_id, cant in zip(variante_ids, cantidades):
+        cantidad = int(cant)
+        if cantidad > 0:
+            variante = get_object_or_404(VarianteProducto, pk=v_id)
+            producto = variante.producto
+            
+            detalle, created = DetallePedido.objects.get_or_create(
+                pedido=pedido,
+                producto=producto,
+                variante=variante,
+                defaults={'precio_unitario': variante.precio}
+            )
+            
+            if not created:
+                detalle.cantidad += cantidad
+            else:
+                detalle.cantidad = cantidad
+            detalle.save()
+
+    context = {
+        'pedido': pedido,
+        'mesa': pedido.mesa,
+        'mesas_libres': Mesa.objects.filter(estado='libre').order_by('numero'),
+    }
+    # Limpieza total del modal tras añadir todo
+    html = render(request, 'pedidos/partials/orden_actual.html', context).content.decode('utf-8')
+    script = '<script>const mc = document.getElementById("modal-container"); if(mc) mc.innerHTML = "";</script>'
+    return HttpResponse(html + script)

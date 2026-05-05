@@ -362,6 +362,41 @@
                         {% if form.stock.errors %}<small style="color:#EF4444;">{{ form.stock.errors.0 }}</small>{% endif %}
                     </div>
 
+                    <!-- SECCIÓN DE VARIANTES (SABORES) -->
+                    <div class="form-field-full" style="margin-top: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <label class="field-label" style="margin-bottom: 0;">
+                                <i class="fas fa-ice-cream"></i> Variantes / Sabores
+                            </label>
+                            <button type="button" class="btn-add-cat" onclick="agregarFilaVariante()" 
+                                    style="height: 30px; width: 30px; font-size: 0.8rem;" title="Añadir sabor">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        
+                        <div id="variantes-container" style="display: flex; flex-direction: column; gap: 10px;">
+                            {% for v in variantes %}
+                            <div class="cat-row variante-row">
+                                <div style="flex: 2;">
+                                    <input type="text" name="v_nombre[]" value="{{ v.nombre }}" 
+                                           class="field-input" placeholder="Nombre (ej: Mango)">
+                                </div>
+                                <div style="flex: 1;">
+                                    <input type="number" name="v_precio[]" value="{{ v.precio|stringformat:'.2f' }}" 
+                                           class="field-input" placeholder="Precio" step="0.01">
+                                </div>
+                                <button type="button" class="btn-add-cat" onclick="this.parentElement.remove()" 
+                                        style="background: #FEE2E2; color: #EF4444; height: 42px;">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <small style="color: var(--text-muted); font-size: 0.7rem; margin-top: 5px; display: block;">
+                            Deja el precio vacío para usar el precio base del plato.
+                        </small>
+                    </div>
+
                     <!-- Disponible -->
                     <div class="form-field-full">
                         <div class="disponible-row">
@@ -395,6 +430,25 @@
         if (!event || event.target.classList.contains('modal-backdrop-prod')) {
             document.getElementById('modal-container').innerHTML = '';
         }
+    }
+
+    function agregarFilaVariante() {
+        const container = document.getElementById('variantes-container');
+        const div = document.createElement('div');
+        div.className = 'cat-row variante-row';
+        div.innerHTML = `
+            <div style="flex: 2;">
+                <input type="text" name="v_nombre[]" class="field-input" placeholder="Nombre (ej: Mango)">
+            </div>
+            <div style="flex: 1;">
+                <input type="number" name="v_precio[]" class="field-input" placeholder="Precio" step="0.01">
+            </div>
+            <button type="button" class="btn-add-cat" onclick="this.parentElement.remove()" 
+                    style="background: #FEE2E2; color: #EF4444; height: 42px;">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        `;
+        container.appendChild(div);
     }
 
     // Preview al seleccionar archivo

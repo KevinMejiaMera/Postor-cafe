@@ -52,4 +52,9 @@ urlpatterns = [
     path('historial/detalle/<int:pedido_id>/', views.detalle_pedido_modal, name='detalle_pedido_modal'),
     path('historial/eliminar/<int:pedido_id>/', views.eliminar_pedido, name='eliminar_pedido'),
     path('historial/reabrir/<int:pedido_id>/', views.reabrir_pedido, name='reabrir_pedido'),
+    
+    # Variantes (Sabores)
+    path('producto/<int:producto_id>/variantes/', views.obtener_variantes, name='obtener_variantes'),
+    path('agregar-multiples-variantes/<int:pedido_id>/', views.agregar_multiples_variantes, name='agregar_multiples_variantes'),
+    path('agregar-variante/<int:pedido_id>/<int:variante_id>/', views.agregar_multiples_variantes, name='agregar_variante'), # Alias para retrocompatibilidad
 ]

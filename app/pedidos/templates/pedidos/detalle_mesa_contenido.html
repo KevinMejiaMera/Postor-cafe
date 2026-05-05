@@ -636,10 +636,16 @@
             <div class="pos-card item-grid-pos {% if producto.stock <= 0 %}agotado{% endif %}"
                 data-nombre="{{ producto.nombre|lower }}" data-categoria="{{ producto.categoria.slug }}"
                 {% if producto.stock > 0 %}
-                hx-post="{% url 'pedidos:agregar_producto' pedido.id producto.id %}"
-                hx-target="#zona-pedido"
-                hx-swap="outerHTML"
-                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                    {% if producto.variantes.all %}
+                        hx-get="{% url 'pedidos:obtener_variantes' producto.id %}?pedido_id={{ pedido.id }}"
+                        hx-target="#modal-container"
+                        hx-swap="innerHTML"
+                    {% else %}
+                        hx-post="{% url 'pedidos:agregar_producto' pedido.id producto.id %}"
+                        hx-target="#zona-pedido"
+                        hx-swap="outerHTML"
+                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                    {% endif %}
                 {% endif %}>
                 <!-- IMAGEN (Si no tiene, muestra un placeholder elegante) -->
                 {% if producto.imagen %}

@@ -1,6 +1,6 @@
 
 from django.contrib import admin
-from .models import Mesa, Producto, Pedido, DetallePedido, CategoriaProducto
+from .models import Mesa, Producto, Pedido, DetallePedido, CategoriaProducto, VarianteProducto
 from inventario.models import Receta 
 
 @admin.register(CategoriaProducto)
@@ -14,6 +14,10 @@ class RecetaInline(admin.TabularInline):
     extra = 1
     autocomplete_fields = ['insumo'] 
 
+class VarianteProductoInline(admin.TabularInline):
+    model = VarianteProducto
+    extra = 1
+
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
     # 👇 AQUÍ ESTÁ LA COLUMNA 'ver_costo'
@@ -21,7 +25,7 @@ class ProductoAdmin(admin.ModelAdmin):
     search_fields = ('nombre',)
     
     # 👇 ESTO PONE LAS FILAS ADENTRO DEL PRODUCTO
-    inlines = [RecetaInline]
+    inlines = [VarianteProductoInline, RecetaInline]
 
     # Función que calcula el costo visualmente
     def ver_costo(self, obj):
@@ -36,6 +40,8 @@ class MesaAdmin(admin.ModelAdmin):
 
 class DetallePedidoInline(admin.TabularInline):
     model = DetallePedido
+    fields = ('producto', 'variante', 'cantidad', 'precio_unitario', 'subtotal')
+    readonly_fields = ('subtotal',)
     extra = 0
 
 @admin.register(Pedido)
@@ -43,3 +49,9 @@ class PedidoAdmin(admin.ModelAdmin):
     list_display = ('id', 'mesa', 'mesero', 'estado', 'total')
     list_filter = ('estado',)
     inlines = [DetallePedidoInline]
+
+@admin.register(VarianteProducto)
+class VarianteProductoAdmin(admin.ModelAdmin):
+    list_display = ('producto', 'nombre', 'precio', 'disponible')
+    list_filter = ('producto', 'disponible')
+    search_fields = ('nombre', 'producto__nombre')

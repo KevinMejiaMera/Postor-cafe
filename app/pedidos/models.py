@@ -49,6 +49,20 @@ class Producto(models.Model):
     def __str__(self):
         return f"{self.nombre} - ${self.precio}"
 
+# 3.1 VARIANTE DE PRODUCTO (ej: Sabores, Tamaños)
+class VarianteProducto(models.Model):
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='variantes')
+    nombre = models.CharField(max_length=50, verbose_name="Nombre de la Variante (ej: Mango)")
+    precio = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Precio de esta Variante")
+    disponible = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.producto.nombre} - {self.nombre} (${self.precio})"
+
+    class Meta:
+        verbose_name = "Variante de Producto"
+        verbose_name_plural = "Variantes de Productos"
+
     # 👇 ESTA ES LA FUNCIÓN QUE FALTABA PARA EL COSTEO
     @property
     def costo_elaboracion(self):
@@ -100,12 +114,17 @@ class Pedido(models.Model):
 class DetallePedido(models.Model):
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='items')
     producto = models.ForeignKey(Producto, on_delete=models.PROTECT)
+    variante = models.ForeignKey(VarianteProducto, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Variante/Sabor")
     cantidad = models.PositiveIntegerField(default=1)
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2) # Guardamos precio histórico
 
     def save(self, *args, **kwargs):
         if not self.id:
-            self.precio_unitario = self.producto.precio
+            # Si hay una variante, usamos su precio. Si no, el del producto base.
+            if self.variante:
+                self.precio_unitario = self.variante.precio
+            else:
+                self.precio_unitario = self.producto.precio
         super().save(*args, **kwargs)
 
     @property
