@@ -1,0 +1,129 @@
+{% extends 'usuarios/base_gerente.html' %}
+{% load static %}
+
+{% block title %}Facturación SRI - Postor Cafe{% endblock %}
+
+{% block active_facturacion %}active{% endblock %}
+
+{% block content %}
+<header class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1"><i class="fas fa-file-invoice-dollar text-primary me-2"></i>Facturación SRI</h2>
+        <p class="text-muted mb-0">Configuración de API y de emisión de facturas electrónicas</p>
+    </div>
+</header>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row">
+    <!-- Configuración -->
+    <div class="col-md-4 mb-4">
+        <div class="card card-custom h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-cogs text-primary me-2"></i>Configuración de API</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{% url 'pedidos:facturacion_gerente' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ambiente</label>
+                        <select name="ambiente" class="form-select">
+                            <option value="1" {% if config.ambiente == '1' %}selected{% endif %}>Pruebas</option>
+                            <option value="2" {% if config.ambiente == '2' %}selected{% endif %}>Producción</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">URL del Endpoint</label>
+                        <input type="url" name="api_url" class="form-control" value="{{ config.api_url }}" required>
+                        <div class="form-text">Ej: https://factuexpress.fronteratech.ec/api/...</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Token de Autorización (VSR)</label>
+                        <input type="password" name="api_token" class="form-control" value="{{ config.api_token }}">
+                        <div class="form-text">Déjalo en blanco si no deseas cambiarlo.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Guardar Configuración</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historial -->
+    <div class="col-md-8 mb-4">
+        <div class="card card-custom h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-list text-primary me-2"></i>Historial de Facturas</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Cliente / Razón Social</th>
+                                <th>Módulo</th>
+                                <th>Total</th>
+                                <th>Estado SRI</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for factura in facturas %}
+                            <tr>
+                                <td>{{ factura.fecha_emision|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <div class="fw-bold">{{ factura.razon_social|default:"CONSUMIDOR FINAL" }}</div>
+                                    <small class="text-muted">{{ factura.ruc_ci|default:"9999999999999" }}</small>
+                                </td>
+                                <td>
+                                    {% if factura.origen == 'cafeteria' %}
+                                        <span class="badge bg-primary">Cafetería</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Hostal</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold">${{ factura.total }}</td>
+                                <td>
+                                    {% if factura.estado_sri == 'autorizado' %}
+                                        <span class="badge bg-success">Autorizado</span>
+                                    {% elif factura.estado_sri == 'rechazado' %}
+                                        <span class="badge bg-danger">Rechazado (Error)</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark"><i class="fas fa-clock fa-spin me-1"></i>En Cola SRI</span>
+                                    {% endif %}
+                                    {% if factura.secuencial %}
+                                    <div class="mt-1" style="font-size: 0.75rem;">{{ factura.establecimiento }}-{{ factura.punto_emision }}-{{ factura.secuencial }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if factura.estado_sri != 'autorizado' %}
+                                    <a href="{% url 'pedidos:enviar_factura_sri' factura.id %}" class="btn btn-sm btn-outline-primary" title="Enviar al SRI">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </a>
+                                    {% else %}
+                                    <a href="{% url 'pedidos:ver_ticket' factura.id %}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Imprimir Ticket">
+                                        <i class="fas fa-print"></i>
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">No hay facturas registradas.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

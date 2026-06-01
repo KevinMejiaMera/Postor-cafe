@@ -414,10 +414,38 @@ def realizar_checkout(request, habitacion_id):
         reserva.estado = 'checkout'
         reserva.save()
         
+        # --- GENERAR FACTURA DEL HOSTAL AUTOMÁTICAMENTE ---
+        from pedidos.models import Factura
+        import threading
+        from pedidos.services.sri_api import enviar_factura_sri
+        
+        # Buscamos si ya tiene factura (por si reabre y cierra)
+        if not hasattr(reserva, 'factura_asociada'):
+            datos_factura = {
+                'reserva': reserva,
+                'origen': 'hostal',
+                'cliente': None, # O buscar si hay cliente asociado en el futuro
+                'subtotal': reserva.precio_total, 
+                'total': reserva.precio_total,
+                'metodo_pago': 'efectivo', 
+                'razon_social': reserva.huesped.nombre_completo,
+                'ruc_ci': reserva.huesped.documento_identidad or '9999999999999',
+                'direccion': 'Ecuador',
+                'correo': reserva.huesped.email or 'sin@correo.com',
+                'monto_recibido': reserva.pagado,
+                'vuelto': max(0.0, float(reserva.pagado) - float(reserva.precio_total))
+            }
+            fact = Factura.objects.create(**datos_factura)
+            
+            # Enviar a SRI en segundo plano
+            def enviar_sri_bg(fact_id):
+                enviar_factura_sri(fact_id)
+            threading.Thread(target=enviar_sri_bg, args=(fact.id,)).start()
+        
     habitacion.estado = 'limpieza'
     habitacion.save()
     
-    messages.success(request, f'Check-Out realizado para la habitación {habitacion.numero}. Ahora está en limpieza.')
+    messages.success(request, f'Check-Out realizado para la habitación {habitacion.numero}. Se generó la factura y pasó a limpieza.')
     return redirect('hostal:dashboard_hostal')
 
 @login_required

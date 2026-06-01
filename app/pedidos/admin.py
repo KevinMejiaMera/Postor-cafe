@@ -1,6 +1,6 @@
 
 from django.contrib import admin
-from .models import Mesa, Producto, Pedido, DetallePedido, CategoriaProducto, VarianteProducto
+from .models import Mesa, Producto, Pedido, DetallePedido, CategoriaProducto, VarianteProducto, Factura
 from inventario.models import Receta 
 
 @admin.register(CategoriaProducto)
@@ -55,3 +55,11 @@ class VarianteProductoAdmin(admin.ModelAdmin):
     list_display = ('producto', 'nombre', 'precio', 'disponible')
     list_filter = ('producto', 'disponible')
     search_fields = ('nombre', 'producto__nombre')
+
+# --- HISTORIAL DE FACTURAS ---
+@admin.register(Factura)
+class FacturaAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'origen', 'total', 'estado_sri', 'secuencial', 'fecha_emision')
+    list_filter = ('estado_sri', 'origen', 'fecha_emision')
+    search_fields = ('secuencial', 'clave_acceso', 'razon_social', 'ruc_ci')
+    readonly_fields = ('clave_acceso', 'estado_sri', 'fecha_autorizacion', 'secuencial')

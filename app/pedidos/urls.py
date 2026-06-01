@@ -53,6 +53,10 @@ urlpatterns = [
     path('historial/eliminar/<int:pedido_id>/', views.eliminar_pedido, name='eliminar_pedido'),
     path('historial/reabrir/<int:pedido_id>/', views.reabrir_pedido, name='reabrir_pedido'),
     
+    # Facturacion SRI
+    path('facturacion/', views.facturacion_gerente, name='facturacion_gerente'),
+    path('facturacion/enviar/<int:factura_id>/', views.enviar_factura_sri_view, name='enviar_factura_sri'),
+    
     # Variantes (Sabores)
     path('producto/<int:producto_id>/variantes/', views.obtener_variantes, name='obtener_variantes'),
     path('agregar-multiples-variantes/<int:pedido_id>/', views.agregar_multiples_variantes, name='agregar_multiples_variantes'),

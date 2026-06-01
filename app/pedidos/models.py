@@ -38,8 +38,18 @@ class CategoriaProducto(models.Model):
 
 # 3. PRODUCTO (Menú)
 class Producto(models.Model):
+    IVA_CHOICES = [
+        ('0', '0%'),
+        ('2', '12%'),
+        ('3', '14%'),
+        ('4', '15%'),
+        ('6', 'No Objeto'),
+        ('7', 'Exento'),
+    ]
 
     nombre = models.CharField(max_length=100)
+    codigo_principal = models.CharField(max_length=50, blank=True, null=True, verbose_name="Código Principal SRI", help_text="Ej: PL-001")
+    codigo_porcentaje_iva = models.CharField(max_length=2, choices=IVA_CHOICES, default='4', verbose_name="Código Porcentaje IVA SRI")
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     categoria = models.ForeignKey(CategoriaProducto, on_delete=models.SET_NULL, null=True, related_name='productos', verbose_name="Categoría")
     imagen = models.ImageField(upload_to='productos/', null=True, blank=True, verbose_name="Imagen del Producto")
@@ -139,8 +149,17 @@ class Factura(models.Model):
         ('transferencia', 'Transferencia Bancaria'),
     ]
 
-    # Relación 1 a 1: Un pedido tiene una sola factura
-    pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE, related_name='factura')
+    ORIGEN_CHOICES = [
+        ('cafeteria', 'Cafetería'),
+        ('hostal', 'Hostal'),
+    ]
+
+    origen = models.CharField(max_length=20, choices=ORIGEN_CHOICES, default='cafeteria', verbose_name="Módulo de Origen")
+
+    # Relación a Pedido (Opcional si es Hostal)
+    pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE, related_name='factura', null=True, blank=True)
+    # Relación a Reserva (Opcional si es Cafetería)
+    reserva = models.OneToOneField('hostal.Reserva', on_delete=models.CASCADE, related_name='factura', null=True, blank=True)
     
     # Relación con Cliente (Opcional, si es Consumidor Final)
     cliente = models.ForeignKey('clientes.Cliente', on_delete=models.PROTECT, null=True, blank=True)
@@ -159,6 +178,32 @@ class Factura(models.Model):
     iva = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     
+    # --- DATOS SRI (FACTURACIÓN ELECTRÓNICA) ---
+    METODO_PAGO_SRI_CHOICES = [
+        ('01', 'Sin utilización del sistema financiero (Efectivo)'),
+        ('15', 'Compensación de deudas'),
+        ('16', 'Tarjeta de débito'),
+        ('19', 'Tarjeta de crédito'),
+        ('20', 'Otros con utilización del sistema financiero'),
+        ('21', 'Endoso de títulos'),
+    ]
+    ESTADO_SRI_CHOICES = [
+        ('borrador', 'Borrador (No enviada)'),
+        ('pendiente', 'Pendiente de Autorización'),
+        ('autorizado', 'Autorizado por el SRI'),
+        ('rechazado', 'Rechazado'),
+        ('devuelta', 'Devuelta'),
+    ]
+
+    establecimiento = models.CharField(max_length=3, default='001', verbose_name="Establecimiento")
+    punto_emision = models.CharField(max_length=3, default='001', verbose_name="Punto de Emisión")
+    secuencial = models.CharField(max_length=9, blank=True, null=True, verbose_name="Secuencial SRI")
+    clave_acceso = models.CharField(max_length=49, blank=True, null=True, verbose_name="Clave de Acceso SRI")
+    estado_sri = models.CharField(max_length=20, choices=ESTADO_SRI_CHOICES, default='borrador', verbose_name="Estado SRI")
+    fecha_autorizacion = models.DateTimeField(null=True, blank=True, verbose_name="Fecha Autorización SRI")
+    metodo_pago_sri = models.CharField(max_length=2, choices=METODO_PAGO_SRI_CHOICES, default='01', verbose_name="Método de Pago SRI")
+
+    # Mantenemos el metodo_pago original si se usa internamente
     metodo_pago = models.CharField(max_length=20, choices=METODO_PAGO_CHOICES, default='efectivo')
     
     # Datos de pago (especialmente para efectivo)
@@ -169,14 +214,19 @@ class Factura(models.Model):
         return f"Factura #{self.id} - {self.razon_social}"
 
     def save(self, *args, **kwargs):
-        # Al guardar la factura, automáticamente marcamos el pedido como PAGADO
+        # Al guardar la factura, marcamos como pagado según el origen
         if not self.id: # Solo al crear
-            self.pedido.estado = 'pagado'
-            self.pedido.save()
-            
-            # También liberamos la mesa automáticamente (si el pedido tiene una)
-            if self.pedido.mesa:
-                self.pedido.mesa.estado = 'libre'
-                self.pedido.mesa.save()
+            if self.pedido:
+                self.pedido.estado = 'pagado'
+                self.pedido.save()
+                
+                # También liberamos la mesa automáticamente (si el pedido tiene una)
+                if self.pedido.mesa:
+                    self.pedido.mesa.estado = 'libre'
+                    self.pedido.mesa.save()
+            elif self.reserva:
+                # Si viene de hostal, asumiendo que facturar completa el pago
+                self.reserva.pagado = self.reserva.precio_total
+                self.reserva.save()
             
         super().save(*args, **kwargs)

@@ -389,6 +389,14 @@ def procesar_pago(request, pedido_id):
         
         factura = Factura.objects.create(**datos_factura)
         
+        # ENVIAR FACTURA AL SRI AUTOMÁTICAMENTE EN SEGUNDO PLANO
+        import threading
+        from .services.sri_api import enviar_factura_sri
+        def enviar_sri_bg(fact_id):
+            enviar_factura_sri(fact_id)
+            
+        threading.Thread(target=enviar_sri_bg, args=(factura.id,)).start()
+        
         # 3. AUTOMATIZACIÓN DE INVENTARIO (PRODUCTOS Y RECETAS)
         # Este es ahora el punto ÚNICO de descuento para asegurar que la venta se realizó.
         for item in pedido.items.all():
@@ -1160,3 +1168,42 @@ def agregar_multiples_variantes(request, pedido_id):
     html = render(request, 'pedidos/partials/orden_actual.html', context).content.decode('utf-8')
     script = '<script>const mc = document.getElementById("modal-container"); if(mc) mc.innerHTML = "";</script>'
     return HttpResponse(html + script)
+
+# --- FACTURACIÓN SRI (GERENTE) ---
+from core.models import ConfiguracionSRI
+from .services.sri_api import enviar_factura_sri
+
+@login_required
+@gerente_required
+def facturacion_gerente(request):
+    config, created = ConfiguracionSRI.objects.get_or_create(id=1)
+    
+    if request.method == 'POST':
+        api_url = request.POST.get('api_url')
+        api_token = request.POST.get('api_token')
+        ambiente = request.POST.get('ambiente')
+        
+        config.api_url = api_url
+        if api_token: # Solo actualizar si envió algo, para no borrarlo si el front lo oculta
+            config.api_token = api_token
+        config.ambiente = ambiente
+        config.save()
+        messages.success(request, "Configuración SRI actualizada correctamente.")
+        return redirect('pedidos:facturacion_gerente')
+        
+    facturas = Factura.objects.all().order_by('-fecha_emision')
+    
+    return render(request, 'pedidos/facturacion_gerente.html', {
+        'config': config,
+        'facturas': facturas
+    })
+
+@login_required
+@gerente_required
+def enviar_factura_sri_view(request, factura_id):
+    success, message = enviar_factura_sri(factura_id)
+    if success:
+        messages.success(request, f"Éxito SRI: {message}")
+    else:
+        messages.error(request, f"Error SRI: {message}")
+    return redirect('pedidos:facturacion_gerente')
