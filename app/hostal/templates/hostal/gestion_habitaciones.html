@@ -247,6 +247,11 @@
                                 placeholder="Precio actual: ${{ hab.tipo.precio_persona|floatformat:2 }}">
                             <small style="color: var(--text-light); font-size: 0.78rem;">Dejar vacío para usar el precio del tipo.</small>
                         </div>
+                        <div class="hm-field">
+                            <label class="hm-label">Porcentaje IVA (%)</label>
+                            <input type="number" step="0.01" name="porcentaje_iva" class="hm-input"
+                                value="{{ hab.porcentaje_iva|stringformat:'.2f' }}" required>
+                        </div>
                         <button type="submit" class="btn-hm-save" style="width: 100%; justify-content: center;">
                             <i class="fas fa-save"></i> Guardar Cambios
                         </button>
@@ -322,6 +327,11 @@
                     <label class="hm-label" style="color: var(--secondary-color);">Precio por Persona ($) *</label>
                     <input type="number" step="0.01" name="precio" class="hm-input" placeholder="Ej: 15.00" required style="font-size: 1.3rem; font-weight: 800;">
                     <small style="color: var(--secondary-color); font-size: 0.78rem; font-weight: 600;">Este es el precio que se cobrará por persona.</small>
+                </div>
+
+                <div class="hm-field">
+                    <label class="hm-label">Porcentaje IVA (%) *</label>
+                    <input type="number" step="0.01" name="porcentaje_iva" class="hm-input" value="15.00" required>
                 </div>
 
             </div>

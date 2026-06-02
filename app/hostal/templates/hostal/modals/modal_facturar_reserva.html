@@ -1,0 +1,94 @@
+<div class="hostal-overlay" onclick="if(event.target===this) document.getElementById('hostal-modal-container').innerHTML=''">
+    <div class="hostal-modal" style="width: 600px; padding: 0;" onclick="event.stopPropagation()">
+        <div class="hostal-modal-header" style="background: var(--secondary-color);">
+            <div>
+                <h3><i class="fas fa-file-invoice-dollar"></i> Facturar Reserva #{{ reserva.id }}</h3>
+                <small>Emitir factura electrónica al SRI</small>
+            </div>
+            <button class="hostal-modal-close" onclick="document.getElementById('hostal-modal-container').innerHTML=''">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="hostal-modal-body">
+            {% if factura %}
+                <div style="text-align: center; padding: 2rem;">
+                    <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--secondary-color); margin-bottom: 1rem;"></i>
+                    <h4 style="color: var(--primary-color); font-weight: 800;">Factura Ya Generada</h4>
+                    <p style="color: var(--text-light);">Esta reserva ya cuenta con una factura enviada al SRI.</p>
+                </div>
+            {% else %}
+                <form method="POST" action="{% url 'hostal:procesar_factura_reserva' reserva.id %}">
+                    {% csrf_token %}
+                    
+                    <div style="background: white; border: 2px dashed var(--bg-cream); border-radius: 14px; padding: 15px; margin-bottom: 20px;">
+                        <h5 style="margin-top: 0; color: var(--primary-color); font-weight: 800; font-size: 1rem; border-bottom: 1px solid var(--bg-cream); padding-bottom: 8px; margin-bottom: 12px;">Datos de la Reserva</h5>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div><strong style="color: var(--text-light);">Habitación:</strong> {{ reserva.habitacion.numero }}</div>
+                            <div><strong style="color: var(--text-light);">Total a Pagar:</strong> <span style="color: var(--primary-color); font-weight: 900; font-size: 1.1rem;">${{ reserva.precio_total|floatformat:2 }}</span></div>
+                            <div><strong style="color: var(--text-light);">Subtotal / IVA:</strong> 
+                                {{ reserva.habitacion.porcentaje_iva|floatformat:2 }}%
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 style="margin-top: 0; color: var(--primary-color); font-weight: 800; font-size: 1rem; margin-bottom: 15px;">Datos del Cliente para la Factura</h5>
+
+                    <div class="hm-field">
+                        <label class="hm-label">Razón Social / Nombres Completos *</label>
+                        <input type="text" name="razon_social" class="hm-input" value="{{ reserva.huesped.nombre_completo }}" required>
+                    </div>
+
+                    <div class="hm-grid-2">
+                        <div class="hm-field">
+                            <label class="hm-label">Tipo de Identificación *</label>
+                            <select name="tipo_identificacion" class="hm-input" required>
+                                <option value="05" {% if reserva.huesped.documento_identidad|length == 10 %}selected{% endif %}>Cédula</option>
+                                <option value="04" {% if reserva.huesped.documento_identidad|length == 13 %}selected{% endif %}>RUC</option>
+                                <option value="06">Pasaporte</option>
+                                <option value="07">Consumidor Final</option>
+                                <option value="08">Identificación del Exterior</option>
+                            </select>
+                        </div>
+                        <div class="hm-field">
+                            <label class="hm-label">Número de Identificación *</label>
+                            <input type="text" name="ruc_ci" class="hm-input" value="{{ reserva.huesped.documento_identidad|default:'9999999999999' }}" required>
+                        </div>
+                    </div>
+
+                    <div class="hm-grid-2">
+                        <div class="hm-field">
+                            <label class="hm-label">Correo Electrónico (Opcional)</label>
+                            <input type="email" name="correo" class="hm-input" value="{{ reserva.huesped.email|default:'' }}">
+                        </div>
+                        <div class="hm-field">
+                            <label class="hm-label">Dirección (Opcional)</label>
+                            <input type="text" name="direccion" class="hm-input" value="Ecuador">
+                        </div>
+                    </div>
+
+                    <h5 style="margin-top: 15px; color: var(--primary-color); font-weight: 800; font-size: 1rem; margin-bottom: 15px;">Datos de Pago</h5>
+
+                    <div class="hm-field">
+                        <label class="hm-label">Método de Pago (SRI) *</label>
+                        <select name="metodo_pago_sri" class="hm-input" required style="border-color: var(--secondary-color); font-weight: 700;">
+                            <option value="01" selected>Sin utilización del sistema financiero (Efectivo)</option>
+                            <option value="16">Tarjeta de débito</option>
+                            <option value="19">Tarjeta de crédito</option>
+                            <option value="20">Otros con utilización del sis. financiero (Transferencia)</option>
+                            <option value="15">Compensación de deudas</option>
+                            <option value="21">Endoso de títulos</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 25px;">
+                        <button type="button" class="btn-hm-cancel" style="flex: 1;" onclick="document.getElementById('hostal-modal-container').innerHTML=''">Cancelar</button>
+                        <button type="submit" class="btn-hm-save btn-hm-green" style="flex: 2; justify-content: center;">
+                            <i class="fas fa-check-circle"></i> Emitir Factura
+                        </button>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>

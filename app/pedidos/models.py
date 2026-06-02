@@ -38,18 +38,9 @@ class CategoriaProducto(models.Model):
 
 # 3. PRODUCTO (Menú)
 class Producto(models.Model):
-    IVA_CHOICES = [
-        ('0', '0%'),
-        ('2', '12%'),
-        ('3', '14%'),
-        ('4', '15%'),
-        ('6', 'No Objeto'),
-        ('7', 'Exento'),
-    ]
-
     nombre = models.CharField(max_length=100)
     codigo_principal = models.CharField(max_length=50, blank=True, null=True, verbose_name="Código Principal SRI", help_text="Ej: PL-001")
-    codigo_porcentaje_iva = models.CharField(max_length=2, choices=IVA_CHOICES, default='4', verbose_name="Código Porcentaje IVA SRI")
+    porcentaje_iva = models.DecimalField(max_digits=5, decimal_places=2, default=15.00, verbose_name="Porcentaje IVA (%)")
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     categoria = models.ForeignKey(CategoriaProducto, on_delete=models.SET_NULL, null=True, related_name='productos', verbose_name="Categoría")
     imagen = models.ImageField(upload_to='productos/', null=True, blank=True, verbose_name="Imagen del Producto")

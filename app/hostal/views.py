@@ -49,6 +49,7 @@ def crear_habitacion(request):
         piso       = request.POST.get('piso')
         precio_input = request.POST.get('precio')
         descripcion = request.POST.get('descripcion', '')
+        iva_input = request.POST.get('porcentaje_iva', '15.00')
         
         # Validar si ya existe
         if Habitacion.objects.filter(numero=numero).exists():
@@ -68,7 +69,8 @@ def crear_habitacion(request):
                 piso=piso,
                 precio_personalizado=float(precio_input),
                 descripcion=descripcion,
-                estado='disponible'
+                estado='disponible',
+                porcentaje_iva=float(iva_input)
             )
             messages.success(request, f'Habitación {numero} creada correctamente por ${precio_input}/persona.')
         except Exception as e:
@@ -414,34 +416,6 @@ def realizar_checkout(request, habitacion_id):
         reserva.estado = 'checkout'
         reserva.save()
         
-        # --- GENERAR FACTURA DEL HOSTAL AUTOMÁTICAMENTE ---
-        from pedidos.models import Factura
-        import threading
-        from pedidos.services.sri_api import enviar_factura_sri
-        
-        # Buscamos si ya tiene factura (por si reabre y cierra)
-        if not hasattr(reserva, 'factura_asociada'):
-            datos_factura = {
-                'reserva': reserva,
-                'origen': 'hostal',
-                'cliente': None, # O buscar si hay cliente asociado en el futuro
-                'subtotal': reserva.precio_total, 
-                'total': reserva.precio_total,
-                'metodo_pago': 'efectivo', 
-                'razon_social': reserva.huesped.nombre_completo,
-                'ruc_ci': reserva.huesped.documento_identidad or '9999999999999',
-                'direccion': 'Ecuador',
-                'correo': reserva.huesped.email or 'sin@correo.com',
-                'monto_recibido': reserva.pagado,
-                'vuelto': max(0.0, float(reserva.pagado) - float(reserva.precio_total))
-            }
-            fact = Factura.objects.create(**datos_factura)
-            
-            # Enviar a SRI en segundo plano
-            def enviar_sri_bg(fact_id):
-                enviar_factura_sri(fact_id)
-            threading.Thread(target=enviar_sri_bg, args=(fact.id,)).start()
-        
     habitacion.estado = 'limpieza'
     habitacion.save()
     
@@ -525,6 +499,13 @@ def gestion_habitaciones(request):
         else:
             habitacion.precio_personalizado = None # Reset to type price if empty
             
+        iva_input = request.POST.get('porcentaje_iva')
+        if iva_input:
+            try:
+                habitacion.porcentaje_iva = float(iva_input)
+            except ValueError:
+                pass
+
         habitacion.save()
         messages.success(request, f'Habitación {habitacion.numero} actualizada correctamente.')
         return redirect('hostal:gestion_habitaciones')
@@ -788,6 +769,74 @@ def eliminar_reserva(request, reserva_id):
              return HttpResponse(status=204, headers={'HX-Refresh': 'true'})
              
     return redirect('hostal:finanzas_hostal')
+
+@login_required
+@gerente_required
+def modal_facturar_reserva(request, reserva_id):
+    reserva = get_object_or_404(Reserva, id=reserva_id)
+    # Buscamos si ya existe una factura
+    from pedidos.models import Factura
+    factura = Factura.objects.filter(reserva=reserva).first()
+    
+    return render(request, 'hostal/modals/modal_facturar_reserva.html', {
+        'reserva': reserva,
+        'factura': factura
+    })
+
+@login_required
+@gerente_required
+def procesar_factura_reserva(request, reserva_id):
+    if request.method == 'POST':
+        reserva = get_object_or_404(Reserva, id=reserva_id)
+        from pedidos.models import Factura
+        import threading
+        from pedidos.services.sri_api import enviar_factura_sri
+        
+        if Factura.objects.filter(reserva=reserva).exists():
+            messages.warning(request, 'Esta reserva ya tiene una factura generada.')
+            return redirect('hostal:finanzas_hostal')
+            
+        nombres = request.POST.get('razon_social')
+        cedula_o_ruc = request.POST.get('ruc_ci')
+        tipo_id = request.POST.get('tipo_identificacion', '05')
+        direccion = request.POST.get('direccion', 'Ecuador')
+        correo = request.POST.get('correo', '')
+        metodo_pago_sri = request.POST.get('metodo_pago_sri', '01')
+        
+        # Guardar estos datos en el huesped para historial
+        huesped = reserva.huesped
+        if cedula_o_ruc != '9999999999999':
+            huesped.documento_identidad = cedula_o_ruc
+            huesped.nombre_completo = nombres
+            huesped.email = correo
+            huesped.save()
+            
+        datos_factura = {
+            'reserva': reserva,
+            'origen': 'hostal',
+            'subtotal': reserva.precio_total, 
+            'total': reserva.precio_total,
+            'metodo_pago': 'efectivo', 
+            'metodo_pago_sri': metodo_pago_sri,
+            'razon_social': nombres,
+            'ruc_ci': cedula_o_ruc,
+            'direccion': direccion,
+            'correo': correo,
+            'monto_recibido': reserva.pagado,
+            'vuelto': max(0.0, float(reserva.pagado) - float(reserva.precio_total))
+        }
+        fact = Factura.objects.create(**datos_factura)
+        
+        from django.db import transaction
+        def enviar_sri_bg(fact_id):
+            enviar_factura_sri(fact_id)
+        transaction.on_commit(lambda: threading.Thread(target=enviar_sri_bg, args=(fact.id,)).start())
+        
+        messages.success(request, f'Factura generada y enviada al SRI para la reserva #{reserva.id}')
+        
+        if request.headers.get('HX-Request'):
+             return HttpResponse(status=204, headers={'HX-Refresh': 'true'})
+        return redirect('hostal:finanzas_hostal')
 
 @login_required
 @gerente_required

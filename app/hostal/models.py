@@ -31,6 +31,8 @@ class Habitacion(models.Model):
     # Campo para control rápido de limpieza
     esta_limpia = models.BooleanField(default=True)
 
+    porcentaje_iva = models.DecimalField(max_digits=5, decimal_places=2, default=15.00, verbose_name="Porcentaje IVA (%)")
+
     def __str__(self):
         return f"Habitación {self.numero} ({self.tipo.nombre if self.tipo else 'Sin Tipo'})"
     

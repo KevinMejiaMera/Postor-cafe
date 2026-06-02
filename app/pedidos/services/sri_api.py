@@ -41,41 +41,48 @@ def enviar_factura_sri(factura_id):
             else:
                 tipo_id = "06" # Pasaporte u otro
 
-        # Mapeo de códigos internos de IVA a porcentajes numéricos de la API
-        IVA_MAPPING = {
-            '0': 0,
-            '2': 12,
-            '3': 14,
-            '4': 15,
-            '5': 5,
-            '6': 0, # No objeto
-            '7': 0, # Exento
-        }
-
         # Construir Items
         items = []
         if factura.origen == 'cafeteria' and factura.pedido:
             for item in factura.pedido.items.all():
-                codigo_iva = item.producto.codigo_porcentaje_iva
-                porcentaje_iva = IVA_MAPPING.get(codigo_iva, 15)
+                porcentaje_iva = float(getattr(item.producto, 'porcentaje_iva', 15.00))
                 
+                # Desglosar el IVA del precio unitario (El precio en BD incluye IVA)
+                precio_con_iva = float(item.precio_unitario)
+                if porcentaje_iva > 0:
+                    precio_sin_iva = precio_con_iva / (1 + (porcentaje_iva / 100.0))
+                else:
+                    precio_sin_iva = precio_con_iva
+
                 items.append({
                     "main_code": item.producto.codigo_principal or f"PROD-{item.producto.id}",
                     "description": item.producto.nombre,
                     "quantity": float(item.cantidad),
-                    "unit_price": float(item.precio_unitario),
+                    "unit_price": round(precio_sin_iva, 6),
                     "discount": 0.00,
                     "tax_rate": porcentaje_iva
                 })
         elif factura.origen == 'hostal' and factura.reserva:
             reserva = factura.reserva
+            
+            # Obtener el IVA configurado en la habitación (por defecto 15.00)
+            porcentaje_iva_hab = float(getattr(reserva.habitacion, 'porcentaje_iva', 15.00))
+            
+            precio_con_iva_hostal = float(reserva.precio_total)
+            
+            # Desglosar
+            if porcentaje_iva_hab > 0:
+                precio_sin_iva_hostal = precio_con_iva_hostal / (1 + (porcentaje_iva_hab / 100.0))
+            else:
+                precio_sin_iva_hostal = precio_con_iva_hostal
+            
             items.append({
-                "main_code": "HOST-001",
+                "main_code": f"HOST-HAB-{reserva.habitacion.numero}",
                 "description": f"Servicio de alojamiento - Habitación {reserva.habitacion.numero}",
                 "quantity": 1.0,
-                "unit_price": float(reserva.precio_total),
+                "unit_price": round(precio_sin_iva_hostal, 6),
                 "discount": 0.00,
-                "tax_rate": 15
+                "tax_rate": porcentaje_iva_hab
             })
 
         if not items:

@@ -339,15 +339,25 @@
                         {% if form.categoria.errors %}<small style="color:#EF4444;">{{ form.categoria.errors.0 }}</small>{% endif %}
                     </div>
 
-                    <!-- Precio -->
-                    <div>
-                        <label class="field-label" for="id_precio">
-                            <i class="fas fa-dollar-sign"></i> Precio de Venta ($)
-                        </label>
-                        <input type="number" name="precio" id="id_precio"
-                               value="{{ form.instance.precio|stringformat:'.2f' }}"
-                               class="field-input" placeholder="0.00" step="0.01" min="0" required>
-                        {% if form.precio.errors %}<small style="color:#EF4444;">{{ form.precio.errors.0 }}</small>{% endif %}
+                    <!-- Precio y IVA -->
+                    <div style="display: flex; gap: 14px;">
+                        <div style="flex: 1;">
+                            <label class="field-label" for="id_precio">
+                                <i class="fas fa-dollar-sign"></i> Precio de Venta ($)
+                            </label>
+                            <input type="number" name="precio" id="id_precio"
+                                   value="{{ form.instance.precio|stringformat:'.2f' }}"
+                                   class="field-input" placeholder="0.00" step="0.01" min="0" required>
+                            {% if form.precio.errors %}<small style="color:#EF4444;">{{ form.precio.errors.0 }}</small>{% endif %}
+                        </div>
+
+                        <div style="flex: 1;">
+                            <label class="field-label" for="id_porcentaje_iva">
+                                <i class="fas fa-percent"></i> Porcentaje IVA (%)
+                            </label>
+                            {{ form.porcentaje_iva }}
+                            {% if form.porcentaje_iva.errors %}<small style="color:#EF4444;">{{ form.porcentaje_iva.errors.0 }}</small>{% endif %}
+                        </div>
                     </div>
 
 

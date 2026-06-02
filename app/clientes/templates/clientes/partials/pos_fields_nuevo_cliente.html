@@ -61,14 +61,25 @@
     <!-- Indicador para el backend -->
     <input type="hidden" name="es_nuevo_cliente" value="true">
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+    <div style="display: grid; grid-template-columns: 2fr 1fr 2fr; gap: 15px; margin-bottom: 15px;">
         <div class="input-group">
             <label class="pos-label">Nombres *</label>
             <input type="text" name="nuevo_nombres" class="pos-input" placeholder="Ej: Juan Perez" required>
         </div>
 
         <div class="input-group">
-            <label class="pos-label">Cédula / RUC *</label>
+            <label class="pos-label">Tipo ID *</label>
+            <select name="nuevo_tipo_id" class="pos-input" required>
+                <option value="05" selected>Cédula</option>
+                <option value="04">RUC</option>
+                <option value="06">Pasaporte</option>
+                <option value="07">Consumidor Final</option>
+                <option value="08">ID Exterior</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label class="pos-label">Número ID *</label>
             <input type="text" name="nuevo_cedula" class="pos-input" placeholder="10xxxxxxxx" required>
         </div>
     </div>

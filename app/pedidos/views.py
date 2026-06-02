@@ -334,6 +334,7 @@ def procesar_pago(request, pedido_id):
         if request.POST.get('es_nuevo_cliente') == 'true':
             nombres = request.POST.get('nuevo_nombres')
             cedula = request.POST.get('nuevo_cedula')
+            tipo_id = request.POST.get('nuevo_tipo_id', '05') # Por defecto cédula
             direccion = request.POST.get('nuevo_direccion')
             telefono = request.POST.get('nuevo_telefono')
             email = request.POST.get('nuevo_email')
@@ -344,6 +345,7 @@ def procesar_pago(request, pedido_id):
                     cedula_o_ruc=cedula,
                     defaults={
                         'nombres': nombres,
+                        'tipo_identificacion': tipo_id,
                         'direccion': direccion,
                         'telefono': telefono,
                         'email': email
@@ -373,12 +375,15 @@ def procesar_pago(request, pedido_id):
 
         # 3. Crear la Factura (Snapshot de datos)
         # Si no hay cliente, usamos datos genéricos de Consumidor Final
+        metodo_pago_sri = request.POST.get('metodo_pago_sri', '01')
+        
         datos_factura = {
             'pedido': pedido,
             'cliente': cliente,
             'subtotal': pedido.total, 
             'total': pedido.total,
             'metodo_pago': 'efectivo', 
+            'metodo_pago_sri': metodo_pago_sri,
             'razon_social': cliente.nombres if cliente else 'CONSUMIDOR FINAL',
             'ruc_ci': cliente.cedula_o_ruc if cliente else '9999999999999',
             'direccion': cliente.direccion if cliente else '',
@@ -391,11 +396,13 @@ def procesar_pago(request, pedido_id):
         
         # ENVIAR FACTURA AL SRI AUTOMÁTICAMENTE EN SEGUNDO PLANO
         import threading
+        from django.db import transaction
         from .services.sri_api import enviar_factura_sri
+        
         def enviar_sri_bg(fact_id):
             enviar_factura_sri(fact_id)
             
-        threading.Thread(target=enviar_sri_bg, args=(factura.id,)).start()
+        transaction.on_commit(lambda: threading.Thread(target=enviar_sri_bg, args=(factura.id,)).start())
         
         # 3. AUTOMATIZACIÓN DE INVENTARIO (PRODUCTOS Y RECETAS)
         # Este es ahora el punto ÚNICO de descuento para asegurar que la venta se realizó.
