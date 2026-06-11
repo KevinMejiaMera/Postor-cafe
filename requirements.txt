@@ -37,6 +37,7 @@ django-redis
 django-timezone-field
 django-widget-tweaks
 django_celery_results
+djangorestframework
 frozenlist
 grafana_api_client
 greenlet

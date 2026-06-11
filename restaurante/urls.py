@@ -44,6 +44,7 @@ urlpatterns = [
     path('caja/', include('caja.urls')),
     path('eventos/', include('eventos.urls')),
     path('hostal/', include('hostal.urls')),
+    path('api/printer/', include('printer.urls')),
     
     # PWA
     path('sw.js', TemplateView.as_view(template_name='usuarios/pwa/sw.js', content_type='application/javascript'), name='sw.js'),

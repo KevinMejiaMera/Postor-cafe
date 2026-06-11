@@ -62,7 +62,17 @@ INSTALLED_APPS = [
     'caja',
     'eventos.apps.EventosConfig',
     'hostal.apps.HostalConfig',
+    'printer',
+    'rest_framework',
+    'rest_framework.authtoken',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -303,3 +313,25 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Sanitizar logs
 SILENCED_SYSTEM_CHECKS = ["axes.W006"] if "ip_address" in AXES_LOCKOUT_PARAMETERS else []
+
+# =============================
+# Configuración de Impresión (printer app)
+# =============================
+COMPANY_CONFIG = {
+    'name': os.getenv('COMPANY_NAME', 'Postor Café'),
+    'address': os.getenv('COMPANY_ADDRESS', 'Dirección del local'),
+    'phone': os.getenv('COMPANY_PHONE', '+593 99 999 9999'),
+    'email': os.getenv('COMPANY_EMAIL', 'info@postorcafe.com'),
+    'tax_id': os.getenv('COMPANY_RUC', '1234567890001'),
+    'website': os.getenv('COMPANY_WEBSITE', ''),
+    'logo': '',
+}
+
+PRINTING_CONFIG = {
+    'receipt_header': '',
+    'receipt_footer': '¡Gracias por su visita!',
+    'kitchen_header': '--- COMANDA DE COCINA ---',
+    'kitchen_footer': '--- FIN COMANDA ---',
+    'characters_per_line': 42,
+    'paper_width_mm': 80,
+}

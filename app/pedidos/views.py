@@ -29,6 +29,132 @@ def get_client_ip(request):
 from caja.models import SesionCaja
 from django.contrib import messages
 
+# --- FUNCIONES DE IMPRESIÓN AUTOMÁTICA ---
+def _print_kitchen_order(pedido, request=None):
+    """Imprime comanda de cocina al confirmar pedido"""
+    try:
+        from printer.models import Printer, PrintJob, PrinterSettings
+        settings = PrinterSettings.get_settings()
+        if not settings.auto_print_kitchen:
+            return
+
+        printer = None
+        for p in Printer.objects.filter(is_active=True):
+            cfg = p.config or {}
+            if cfg.get('prints_command'):
+                printer = p
+                break
+
+        if not printer:
+            return
+
+        now = timezone.localtime(timezone.now())
+        items = []
+        for item in pedido.items.all():
+            items.append({
+                'name': item.producto.nombre,
+                'quantity': item.cantidad,
+                'note': '',
+                'description': item.variante.nombre if item.variante else ''
+            })
+
+        order_data = {
+            'order_number': f'PED-{pedido.id}',
+            'table_number': str(pedido.mesa.numero) if pedido.mesa else 'DIRECTO',
+            'cashier_name': pedido.mesero.username if pedido.mesero else '',
+            'items': items,
+            'printed_at': now.isoformat(),
+            'observation': pedido.observacion or ''
+        }
+
+        from printer.views import PrintReceiptView
+        content = PrintReceiptView().generate_command_content(printer, order_data)
+
+        if pedido.observacion:
+            content += f"\nNOTA: {pedido.observacion}\n"
+
+        PrintJob.objects.create(
+            printer=printer,
+            document_type='order',
+            content=content,
+            data={'pedido_id': pedido.id, 'order': order_data},
+            related_model='Pedido',
+            related_id=str(pedido.id),
+            open_cash_drawer=False,
+            status='pending',
+            created_by=pedido.mesero.username if pedido.mesero else 'sistema'
+        )
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error imprimiendo comanda: {e}")
+
+
+def _print_receipt(factura, request=None):
+    """Imprime ticket de venta al procesar pago"""
+    try:
+        from printer.models import Printer, PrintJob, PrinterSettings
+        settings = PrinterSettings.get_settings()
+        if not settings.auto_print_receipt:
+            return
+
+        printer = None
+        for p in Printer.objects.filter(is_active=True):
+            cfg = p.config or {}
+            if cfg.get('prints_receipt'):
+                printer = p
+                break
+
+        if not printer:
+            return
+
+        pedido = factura.pedido
+        now = timezone.localtime(timezone.now())
+        items = []
+        subtotal = 0
+        for item in pedido.items.all():
+            items.append({
+                'name': item.producto.nombre,
+                'quantity': item.cantidad,
+                'price': float(item.precio_unitario),
+                'total': float(item.subtotal),
+                'note': ''
+            })
+            subtotal += float(item.subtotal)
+
+        order_data = {
+            'order_number': f'FAC-{factura.id}',
+            'table_number': str(pedido.mesa.numero) if pedido.mesa else 'DIRECTO',
+            'customer_name': factura.razon_social,
+            'cashier_name': pedido.mesero.username if pedido.mesero else '',
+            'items': items,
+            'subtotal': subtotal,
+            'discount': 0,
+            'total': float(factura.total),
+            'payment_method': factura.get_metodo_pago_display(),
+            'payment_reference': '',
+            'printed_at': now.isoformat()
+        }
+
+        from printer.views import PrintReceiptView
+        content = PrintReceiptView().generate_receipt_content(printer, order_data)
+
+        PrintJob.objects.create(
+            printer=printer,
+            document_type='receipt',
+            content=content,
+            data={'factura_id': factura.id, 'order': order_data},
+            related_model='Factura',
+            related_id=str(factura.id),
+            open_cash_drawer=settings.auto_open_drawer_on_payment,
+            status='pending',
+            created_by=pedido.mesero.username if pedido.mesero else 'sistema'
+        )
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error imprimiendo ticket: {e}")
+
 # --- VISTAS DEL MESERO ---
 
 # 👇👇👇 ESTA ES LA VISTA NUEVA QUE FALTABA 👇👇👇
@@ -176,6 +302,9 @@ def confirmar_pedido(request, pedido_id):
             ip_address=get_client_ip(request),
             action=f"Envió a cocina: Pedido #{pedido.id} (Mesa {mesa_num})"
         )
+
+        # 2. IMPRIMIR COMANDA DE COCINA AUTOMÁTICAMENTE
+        _print_kitchen_order(pedido, request)
 
         # Redirect logic: if from history (as Gerente), refresh history.
         if request.user.rol == 'gerente':
@@ -430,7 +559,10 @@ def procesar_pago(request, pedido_id):
                         observacion=f"Venta Final Pedido #{pedido.id}: {cantidad_vendida}x {producto.nombre}"
                     )
 
-        # 4. Mensaje de Éxito y Redirección
+        # 4. IMPRIMIR TICKET DE VENTA AUTOMÁTICAMENTE
+        _print_receipt(factura, request)
+
+        # 5. Mensaje de Éxito y Redirección
         messages.success(request, f"Venta Realizada: Pedido #{factura.pedido.id} - Total: ${factura.total}")
         
         # SI ES HTMX (Usado en el modal de cobro), devolvemos el modal de éxito

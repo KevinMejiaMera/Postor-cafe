@@ -16,6 +16,10 @@ urlpatterns = [
     path('dashboard/gerente/reportes/', views.reportes_ventas, name='reportes_ventas'),
     path('dashboard/gerente/inventario/', views.gestion_inventario, name='gestion_inventario'),
     path('dashboard/gerente/agenda/', views.agenda_pedidos, name='agenda_pedidos'),
+    path('dashboard/gerente/impresoras/', views.configuracion_impresoras, name='configuracion_impresoras'),
+    path('dashboard/gerente/impresoras/<uuid:printer_id>/test_print/', views.impresora_test_print, name='impresora_test_print'),
+    path('dashboard/gerente/impresoras/<uuid:printer_id>/test_drawer/', views.impresora_test_drawer, name='impresora_test_drawer'),
+    path('dashboard/gerente/impresoras/job/<uuid:job_id>/retry/', views.print_job_retry, name='print_job_retry'),
 
     # Rutas para password reset
     path('password-reset/', views.password_reset_request, name='password_reset'),

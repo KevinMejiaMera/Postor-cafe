@@ -618,6 +618,9 @@
             <a href="{% url 'usuarios:agenda_pedidos' %}" class="{% block active_agenda %}{% endblock %}">
                 <i class="fas fa-calendar-check"></i> <span>Agenda</span>
             </a>
+            <a href="{% url 'usuarios:configuracion_impresoras' %}" class="{% block active_impresoras %}{% endblock %}">
+                <i class="fas fa-print"></i> <span>Impresoras</span>
+            </a>
             {% endif %}
 
             <!-- LINKS ACCESIBLES PARA MESERO (Ademas de Admin/Gerente) -->

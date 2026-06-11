@@ -16,8 +16,11 @@ from caja.models import SesionCaja, Gasto
 from django.utils.dateparse import parse_date
 import datetime
 import csv
+import json
 from django.db.models.functions import TruncDay
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 # Helper functions
 def es_gerente(user):
@@ -424,3 +427,119 @@ def agenda_pedidos(request):
         return redirect('usuarios:login')
         
     return render(request, 'usuarios/agenda.html')
+
+
+# ============================================================================
+# CONFIGURACIÓN DE IMPRESORAS (Panel Gerente)
+# ============================================================================
+
+@login_required
+def configuracion_impresoras(request):
+    if not es_gerente(request.user):
+        return redirect('usuarios:login')
+
+    from printer.models import Printer, PrinterSettings, PrintJob
+    import requests as http_requests
+
+    printer_settings = PrinterSettings.get_settings()
+    printers = Printer.objects.filter(is_active=True).order_by('name')
+    print_jobs = PrintJob.objects.all().order_by('-created_at')[:20]
+
+    if request.method == 'POST':
+        # Configuración global
+        auto_print_kitchen = request.POST.get('auto_print_kitchen') == 'on'
+        auto_print_receipt = request.POST.get('auto_print_receipt') == 'on'
+        auto_open_drawer = request.POST.get('auto_open_drawer') == 'on'
+        receipt_header = request.POST.get('receipt_header', '')
+        receipt_footer = request.POST.get('receipt_footer', '')
+
+        printer_settings.auto_print_kitchen = auto_print_kitchen
+        printer_settings.auto_print_receipt = auto_print_receipt
+        printer_settings.auto_open_drawer_on_payment = auto_open_drawer
+        if receipt_header:
+            printer_settings.receipt_header = receipt_header
+        if receipt_footer:
+            printer_settings.receipt_footer = receipt_footer
+        printer_settings.save()
+
+        # Impresora cocina
+        kitchen_printer_id = request.POST.get('kitchen_printer')
+        if kitchen_printer_id:
+            p = Printer.objects.filter(id=kitchen_printer_id).first()
+            if p:
+                for printer in Printer.objects.filter(is_active=True):
+                    cfg = printer.config or {}
+                    cfg['prints_command'] = str(printer.id) == str(kitchen_printer_id)
+                    printer.config = cfg
+                    printer.save()
+
+        # Impresora factura
+        receipt_printer_id = request.POST.get('receipt_printer')
+        if receipt_printer_id:
+            p = Printer.objects.filter(id=receipt_printer_id).first()
+            if p:
+                for printer in Printer.objects.filter(is_active=True):
+                    cfg = printer.config or {}
+                    cfg['prints_receipt'] = str(printer.id) == str(receipt_printer_id)
+                    printer.config = cfg
+                    printer.save()
+
+        messages.success(request, 'Configuración de impresión guardada correctamente.')
+        return redirect('usuarios:configuracion_impresoras')
+
+    kitchen_printer = None
+    receipt_printer = None
+    for p in printers:
+        cfg = p.config or {}
+        if cfg.get('prints_command'):
+            kitchen_printer = p
+        if cfg.get('prints_receipt'):
+            receipt_printer = p
+
+    context = {
+        'printer_settings': printer_settings,
+        'printers': printers,
+        'kitchen_printer': kitchen_printer,
+        'receipt_printer': receipt_printer,
+        'print_jobs': print_jobs,
+    }
+    return render(request, 'usuarios/configuracion_impresoras.html', context)
+
+
+@login_required
+@require_POST
+def impresora_test_print(request, printer_id):
+    if not es_gerente(request.user):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    from printer.models import Printer
+    from printer.print_manager import PrinterManager
+    printer = get_object_or_404(Printer, id=printer_id, is_active=True)
+    success, message = PrinterManager.print_test_page(printer, user=request.user.username)
+    return JsonResponse({'success': success, 'message': message})
+
+
+@login_required
+@require_POST
+def impresora_test_drawer(request, printer_id):
+    if not es_gerente(request.user):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    from printer.models import Printer
+    from printer.print_manager import PrinterManager
+    printer = get_object_or_404(Printer, id=printer_id, is_active=True)
+    success, message = PrinterManager.open_cash_drawer(printer)
+    return JsonResponse({'success': success, 'message': message})
+
+
+@login_required
+@require_POST
+def print_job_retry(request, job_id):
+    if not es_gerente(request.user):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    from printer.models import PrintJob
+    job = get_object_or_404(PrintJob, id=job_id)
+    if job.status != 'failed':
+        return JsonResponse({'error': 'Solo se pueden reintentar trabajos fallidos'}, status=400)
+    job.status = 'pending'
+    job.error_message = ''
+    job.save(update_fields=['status', 'error_message'])
+    return JsonResponse({'success': True, 'message': 'Trabajo re-enviado para impresión'})

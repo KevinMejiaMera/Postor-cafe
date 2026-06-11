@@ -1,0 +1,302 @@
+{% extends 'usuarios/base_gerente.html' %}
+{% load static %}
+
+{% block title %}Impresoras - Postor Cafe{% endblock %}
+
+{% block active_impresoras %}active{% endblock %}
+
+{% block content %}
+<header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <div>
+        <h4 style="margin: 0; color: var(--text-muted); font-weight: 500;">
+            <i class="fas fa-print" style="color: var(--accent-color);"></i> Módulo de Impresión
+        </h4>
+        <h2 style="margin: 5px 0 0 0; color: var(--primary-color); font-size: 1.8rem; font-weight: 800;">Configuración de Impresoras</h2>
+    </div>
+</header>
+
+<form method="POST" action="{% url 'usuarios:configuracion_impresoras' %}">
+{% csrf_token %}
+
+<!-- SECCIÓN: IMPRESORAS -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 30px;">
+
+    <!-- CARD: IMPRESORA COCINA -->
+    <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--card-shadow);">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+            <div style="width: 50px; height: 50px; background: #FFF3E0; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #E65100; font-size: 1.3rem;">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0; color: var(--primary-color); font-weight: 800; font-size: 1.1rem;">Impresora de Cocina</h3>
+                <small style="color: var(--text-muted);">Comandas de preparación</small>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-color); display: block; margin-bottom: 6px;">
+                <i class="fas fa-print"></i> Impresora
+            </label>
+            <select name="kitchen_printer" style="width: 100%; padding: 10px 12px; border: 2px solid var(--bg-cream); border-radius: 12px; font-size: 0.9rem; font-weight: 600; outline: none; background: white; color: var(--primary-color);">
+                <option value="">-- Ninguna --</option>
+                {% for p in printers %}
+                <option value="{{ p.id }}" {% if kitchen_printer.id == p.id %}selected{% endif %}>{{ p.name }} ({{ p.get_printer_type_display }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 14px; background: var(--bg-light); border-radius: 12px; border: 2px solid var(--bg-cream);">
+                <input type="checkbox" name="auto_print_kitchen" {% if printer_settings.auto_print_kitchen %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--secondary-color);">
+                <span style="font-weight: 700; color: var(--primary-color); font-size: 0.9rem;">Imprimir comanda automáticamente al confirmar pedido</span>
+            </label>
+        </div>
+
+        {% if kitchen_printer %}
+        <button type="button" class="btn-test-print" data-printer-id="{{ kitchen_printer.id }}" data-type="kitchen" style="width: 100%; padding: 10px; border: 2px solid var(--secondary-color); color: var(--secondary-color); background: white; border-radius: 12px; font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: 0.2s;">
+            <i class="fas fa-flask"></i> Probar Impresión Cocina
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- CARD: IMPRESORA FACTURA -->
+    <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--card-shadow);">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+            <div style="width: 50px; height: 50px; background: #E8F5E9; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #2E7D32; font-size: 1.3rem;">
+                <i class="fas fa-receipt"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0; color: var(--primary-color); font-weight: 800; font-size: 1.1rem;">Impresora de Factura</h3>
+                <small style="color: var(--text-muted);">Tickets de venta para el cliente</small>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-color); display: block; margin-bottom: 6px;">
+                <i class="fas fa-print"></i> Impresora
+            </label>
+            <select name="receipt_printer" style="width: 100%; padding: 10px 12px; border: 2px solid var(--bg-cream); border-radius: 12px; font-size: 0.9rem; font-weight: 600; outline: none; background: white; color: var(--primary-color);">
+                <option value="">-- Ninguna --</option>
+                {% for p in printers %}
+                <option value="{{ p.id }}" {% if receipt_printer.id == p.id %}selected{% endif %}>{{ p.name }} ({{ p.get_printer_type_display }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="margin-bottom: 10px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 14px; background: var(--bg-light); border-radius: 12px; border: 2px solid var(--bg-cream);">
+                <input type="checkbox" name="auto_print_receipt" {% if printer_settings.auto_print_receipt %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--secondary-color);">
+                <span style="font-weight: 700; color: var(--primary-color); font-size: 0.9rem;">Imprimir ticket automáticamente al pagar</span>
+            </label>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 14px; background: var(--bg-light); border-radius: 12px; border: 2px solid var(--bg-cream);">
+                <input type="checkbox" name="auto_open_drawer" {% if printer_settings.auto_open_drawer_on_payment %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--secondary-color);">
+                <span style="font-weight: 700; color: var(--primary-color); font-size: 0.9rem;">Abrir caja registradora al imprimir ticket</span>
+            </label>
+        </div>
+
+        {% if receipt_printer %}
+        <div style="display: flex; gap: 10px;">
+            <button type="button" class="btn-test-print" data-printer-id="{{ receipt_printer.id }}" data-type="receipt" style="flex: 1; padding: 10px; border: 2px solid var(--secondary-color); color: var(--secondary-color); background: white; border-radius: 12px; font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: 0.2s;">
+                <i class="fas fa-flask"></i> Probar Ticket
+            </button>
+            <button type="button" class="btn-test-drawer" data-printer-id="{{ receipt_printer.id }}" style="flex: 1; padding: 10px; border: 2px solid #A79C7D; color: #A79C7D; background: white; border-radius: 12px; font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: 0.2s;">
+                <i class="fas fa-cash-register"></i> Probar Caja
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- SECCIÓN: ENCABEZADO / PIE DE TICKET -->
+<div style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--card-shadow); margin-bottom: 30px;">
+    <h3 style="margin-top: 0; margin-bottom: 20px; color: var(--primary-color); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-pencil-alt" style="color: var(--accent-color);"></i> Personalización de Ticket
+    </h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div>
+            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-color); display: block; margin-bottom: 6px;">Encabezado del Ticket</label>
+            <textarea name="receipt_header" rows="4" style="width: 100%; border: 2px solid var(--bg-cream); border-radius: 12px; padding: 10px; font-family: 'Courier New', monospace; font-size: 0.85rem; resize: vertical; box-sizing: border-box;">{{ printer_settings.get_receipt_header }}</textarea>
+        </div>
+        <div>
+            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-color); display: block; margin-bottom: 6px;">Pie del Ticket</label>
+            <textarea name="receipt_footer" rows="4" style="width: 100%; border: 2px solid var(--bg-cream); border-radius: 12px; padding: 10px; font-family: 'Courier New', monospace; font-size: 0.85rem; resize: vertical; box-sizing: border-box;">{{ printer_settings.get_receipt_footer }}</textarea>
+        </div>
+    </div>
+</div>
+
+<!-- BOTÓN GUARDAR -->
+<div style="text-align: right; margin-bottom: 30px;">
+    <button type="submit" style="background: var(--primary-color); color: white; border: none; padding: 14px 40px; border-radius: 14px; font-weight: 800; font-size: 1rem; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 6px 20px rgba(62, 67, 46, 0.2);">
+        <i class="fas fa-save"></i> Guardar Configuración
+    </button>
+</div>
+
+</form>
+
+<!-- SECCIÓN: HISTORIAL DE TRABAJOS -->
+<section class="audit-section" style="margin-top: 0;">
+    <h3 style="color: var(--primary-color); font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-clipboard-list"></i> Trabajos de Impresión Recientes
+        <span style="font-size: 0.75rem; background: var(--bg-cream); color: var(--text-muted); padding: 4px 12px; border-radius: 20px; font-weight: 600;">Últimos 20</span>
+    </h3>
+    <div style="overflow-x: auto;">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th style="border: none; color: var(--primary-color);">N° Trabajo</th>
+                    <th style="border: none; color: var(--primary-color);">Impresora</th>
+                    <th style="border: none; color: var(--primary-color);">Tipo</th>
+                    <th style="border: none; color: var(--primary-color);">Estado</th>
+                    <th style="border: none; color: var(--primary-color);">Fecha</th>
+                    <th style="border: none; color: var(--primary-color);">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in print_jobs %}
+                <tr>
+                    <td><strong>{{ job.job_number }}</strong></td>
+                    <td>{{ job.printer.name }}</td>
+                    <td>{{ job.get_document_type_display }}</td>
+                    <td>
+                        {% if job.status == 'completed' %}
+                        <span style="background: #E8F5E9; color: #2E7D32; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">Completado</span>
+                        {% elif job.status == 'failed' %}
+                        <span style="background: #FFEBEE; color: #C62828; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;" title="{{ job.error_message }}">Fallido</span>
+                        {% elif job.status == 'printing' %}
+                        <span style="background: #FFF3E0; color: #E65100; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">Imprimiendo</span>
+                        {% else %}
+                        <span style="background: #F3F4F6; color: #6B7280; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">{{ job.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td><small class="text-muted">{{ job.created_at|date:"d/m/Y H:i" }}</small></td>
+                    <td>
+                        {% if job.status == 'failed' %}
+                        <button class="btn-retry-job" data-job-id="{{ job.id }}" style="border: none; background: var(--primary-color); color: white; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer;">
+                            <i class="fas fa-redo"></i> Reintentar
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">No hay trabajos de impresión registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Test Print
+    document.querySelectorAll('.btn-test-print').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const printerId = this.dataset.printerId;
+            const type = this.dataset.type;
+            const originalText = this.innerHTML;
+
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Imprimiendo...';
+            this.disabled = true;
+
+            fetch(`/usuarios/dashboard/gerente/impresoras/${printerId}/test_print/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            })
+            .catch(err => {
+                alert('❌ Error de conexión: ' + err);
+            })
+            .finally(() => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            });
+        });
+    });
+
+    // Test Drawer
+    document.querySelectorAll('.btn-test-drawer').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const printerId = this.dataset.printerId;
+            const originalText = this.innerHTML;
+
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Abriendo caja...';
+            this.disabled = true;
+
+            fetch(`/usuarios/dashboard/gerente/impresoras/${printerId}/test_drawer/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            })
+            .catch(err => {
+                alert('❌ Error de conexión: ' + err);
+            })
+            .finally(() => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            });
+        });
+    });
+
+    // Retry failed jobs
+    document.querySelectorAll('.btn-retry-job').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const jobId = this.dataset.jobId;
+            const originalText = this.innerHTML;
+
+            if (!confirm('¿Reintentar este trabajo de impresión?')) return;
+
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reintentando...';
+            this.disabled = true;
+
+            fetch(`/usuarios/dashboard/gerente/impresoras/job/${jobId}/retry/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    location.reload();
+                } else {
+                    alert('❌ ' + (data.error || data.message));
+                }
+            })
+            .catch(err => {
+                alert('❌ Error: ' + err);
+            })
+            .finally(() => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            });
+        });
+    });
+</script>
+{% endblock %}
