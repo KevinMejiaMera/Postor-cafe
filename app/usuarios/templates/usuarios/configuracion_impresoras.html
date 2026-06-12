@@ -153,22 +153,7 @@
     </div>
 </div>
 
-<!-- SECCIÓN: ENCABEZADO / PIE DE TICKET -->
-<div style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--card-shadow); margin-bottom: 30px;">
-    <h3 style="margin-top: 0; margin-bottom: 20px; color: var(--primary-color); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
-        <i class="fas fa-pencil-alt" style="color: var(--accent-color);"></i> Personalización de Ticket
-    </h3>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        <div>
-            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-color); display: block; margin-bottom: 6px;">Encabezado del Ticket</label>
-            <textarea name="receipt_header" rows="4" style="width: 100%; border: 2px solid var(--bg-cream); border-radius: 12px; padding: 10px; font-family: 'Courier New', monospace; font-size: 0.85rem; resize: vertical; box-sizing: border-box;">{{ printer_settings.get_receipt_header }}</textarea>
-        </div>
-        <div>
-            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-color); display: block; margin-bottom: 6px;">Pie del Ticket</label>
-            <textarea name="receipt_footer" rows="4" style="width: 100%; border: 2px solid var(--bg-cream); border-radius: 12px; padding: 10px; font-family: 'Courier New', monospace; font-size: 0.85rem; resize: vertical; box-sizing: border-box;">{{ printer_settings.get_receipt_footer }}</textarea>
-        </div>
-    </div>
-</div>
+
 
 <!-- BOTÓN GUARDAR -->
 <div style="text-align: right; margin-bottom: 30px;">
