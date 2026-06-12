@@ -46,7 +46,8 @@ urlpatterns = [
     path('hostal/', include('hostal.urls')),
     path('api/printer/', include('printer.urls')),
     
-    # ALIAS PARA EL AGENTE DE IMPRESIÓN (Para evitar errores 404 de concatenación)
+    # ALIAS PARA EL AGENTE DE IMPRESIÓN (Según los logs el agente pide /api/hardware/)
+    path('api/hardware/', include('printer.urls')),
     path('', include('printer.urls')),
     
     # PWA
