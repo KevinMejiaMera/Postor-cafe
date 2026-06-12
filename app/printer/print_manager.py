@@ -173,7 +173,11 @@ class PrinterManager:
         # Procesar el contenido línea por línea para aplicar formatos
         lines = print_job.content.split('\n')
         
+        import unicodedata
         for line in lines:
+            # Eliminar tildes y caracteres especiales para evitar caracteres raros en la impresora
+            line = unicodedata.normalize('NFKD', line).encode('ASCII', 'ignore').decode('ASCII')
+            
             # Detectar y aplicar formatos especiales
             if line.strip().startswith('=') and line.strip().endswith('='):
                 # Línea de separación gruesa
