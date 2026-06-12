@@ -7,7 +7,7 @@ services:
     # En producción no montamos el código fuente localmente
     # El código ya está baked en la imagen
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8004:8000"
     volumes:
       - postor_static_volume:/app/staticfiles
       - postor_media_volume:/app/media
