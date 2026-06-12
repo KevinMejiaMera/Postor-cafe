@@ -46,6 +46,9 @@ urlpatterns = [
     path('hostal/', include('hostal.urls')),
     path('api/printer/', include('printer.urls')),
     
+    # ALIAS PARA EL AGENTE DE IMPRESIÓN (Para evitar errores 404 de concatenación)
+    path('', include('printer.urls')),
+    
     # PWA
     path('sw.js', TemplateView.as_view(template_name='usuarios/pwa/sw.js', content_type='application/javascript'), name='sw.js'),
     path('manifest.json', TemplateView.as_view(template_name='usuarios/pwa/manifest.json', content_type='application/json'), name='manifest.json'),
