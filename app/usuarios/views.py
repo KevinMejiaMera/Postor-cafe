@@ -525,6 +525,7 @@ def impresora_test_print(request, printer_id):
             hex_commands = PrinterManager.generate_print_commands(job)
             try:
                 b64_cmds = base64.b64encode(bytes.fromhex(hex_commands)).decode('utf-8')
+                print("RAWBT BASE64:", b64_cmds)  # Añadido para debug
                 response_data['rawbt_b64'] = b64_cmds
             except Exception as e:
                 pass
