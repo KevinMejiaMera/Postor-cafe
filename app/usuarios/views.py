@@ -561,6 +561,9 @@ def crear_impresora(request):
     is_for_kitchen = request.POST.get('is_for_kitchen') == 'on'
     is_for_receipt = request.POST.get('is_for_receipt') == 'on'
 
+    if connection_type == 'rawbt':
+        connection_string = 'rawbt'
+
     if not name or not connection_string:
         messages.error(request, 'Nombre y cadena de conexión son obligatorios.')
         return redirect('usuarios:configuracion_impresoras')
@@ -607,6 +610,9 @@ def editar_impresora(request, printer_id):
     is_active = request.POST.get('is_active') == 'on'
     is_for_kitchen = request.POST.get('is_for_kitchen') == 'on'
     is_for_receipt = request.POST.get('is_for_receipt') == 'on'
+
+    if connection_type == 'rawbt':
+        connection_string = 'rawbt'
 
     if not name or not connection_string:
         messages.error(request, 'Nombre y cadena de conexión son obligatorios.')

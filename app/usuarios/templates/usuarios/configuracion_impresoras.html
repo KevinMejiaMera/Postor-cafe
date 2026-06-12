@@ -521,5 +521,41 @@
             });
         });
     });
+
+    // Lógica para ocultar Cadena de Conexión y Puerto si se usa RawBT
+    document.addEventListener('DOMContentLoaded', function() {
+        function toggleFields(form) {
+            const connType = form.querySelector('select[name="connection_type"]');
+            const connString = form.querySelector('input[name="connection_string"]');
+            const port = form.querySelector('input[name="port"]');
+            if(connType && connString && port) {
+                const connStringContainer = connString.closest('div');
+                const portContainer = port.closest('div');
+                if(connType.value === 'rawbt') {
+                    connStringContainer.style.display = 'none';
+                    portContainer.style.display = 'none';
+                    connString.required = false;
+                } else {
+                    connStringContainer.style.display = 'block';
+                    portContainer.style.display = 'block';
+                    connString.required = true;
+                }
+            }
+        }
+
+        // Aplicar al cargar la página a todos los formularios de impresoras
+        document.querySelectorAll('form').forEach(form => {
+            if(form.querySelector('select[name="connection_type"]')) {
+                toggleFields(form);
+            }
+        });
+
+        // Aplicar cada vez que cambie el selector
+        document.addEventListener('change', function(e) {
+            if(e.target && e.target.name === 'connection_type') {
+                toggleFields(e.target.closest('form'));
+            }
+        });
+    });
 </script>
 {% endblock %}
