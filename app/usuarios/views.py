@@ -552,16 +552,19 @@ def crear_impresora(request):
         return JsonResponse({'error': 'No autorizado'}, status=403)
     from printer.models import Printer
     name = request.POST.get('name', '').strip()
-    printer_type = request.POST.get('printer_type', 'thermal')
     connection_type = request.POST.get('connection_type', 'usb')
     connection_string = request.POST.get('connection_string', '').strip()
     port = request.POST.get('port') or None
     paper_width = int(request.POST.get('paper_width', 80))
+    characters_per_line = int(request.POST.get('characters_per_line', 42))
+    has_cash_drawer = request.POST.get('has_cash_drawer') == 'on'
+    is_default = request.POST.get('is_default') == 'on'
+    is_active = request.POST.get('is_active') == 'on'
     is_for_kitchen = request.POST.get('is_for_kitchen') == 'on'
     is_for_receipt = request.POST.get('is_for_receipt') == 'on'
 
     if not name or not connection_string:
-        messages.error(request, 'Nombre y dirección de conexión son obligatorios.')
+        messages.error(request, 'Nombre y cadena de conexión son obligatorios.')
         return redirect('usuarios:configuracion_impresoras')
 
     config = {}
@@ -572,13 +575,15 @@ def crear_impresora(request):
 
     Printer.objects.create(
         name=name,
-        printer_type=printer_type,
+        printer_type='thermal',
         connection_type=connection_type,
         connection_string=connection_string,
         port=int(port) if port else None,
         paper_width=paper_width,
-        characters_per_line=42 if paper_width >= 80 else 32,
-        is_active=True,
+        characters_per_line=characters_per_line,
+        has_cash_drawer=has_cash_drawer,
+        is_default=is_default,
+        is_active=is_active,
         config=config
     )
     messages.success(request, f'Impresora "{name}" creada correctamente.')
