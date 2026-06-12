@@ -21,6 +21,7 @@ urlpatterns = [
     path('dashboard/gerente/impresoras/<uuid:printer_id>/test_drawer/', views.impresora_test_drawer, name='impresora_test_drawer'),
     path('dashboard/gerente/impresoras/job/<uuid:job_id>/retry/', views.print_job_retry, name='print_job_retry'),
     path('dashboard/gerente/impresoras/crear/', views.crear_impresora, name='crear_impresora'),
+    path('dashboard/gerente/impresoras/<uuid:printer_id>/editar/', views.editar_impresora, name='editar_impresora'),
     path('dashboard/gerente/impresoras/<uuid:printer_id>/eliminar/', views.eliminar_impresora, name='eliminar_impresora'),
 
     # Rutas para password reset

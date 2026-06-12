@@ -442,7 +442,7 @@ def configuracion_impresoras(request):
     import requests as http_requests
 
     printer_settings = PrinterSettings.get_settings()
-    printers = Printer.objects.filter(is_active=True).order_by('name')
+    printers = Printer.objects.all().order_by('-is_active', 'name')
     print_jobs = PrintJob.objects.all().order_by('-created_at')[:20]
 
     if request.method == 'POST':
@@ -585,6 +585,50 @@ def crear_impresora(request):
         config=config
     )
     messages.success(request, f'Impresora "{name}" creada correctamente.')
+    return redirect('usuarios:configuracion_impresoras')
+
+
+@login_required
+@require_POST
+def editar_impresora(request, printer_id):
+    if not es_gerente(request.user):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    from printer.models import Printer
+    printer = get_object_or_404(Printer, id=printer_id)
+    
+    name = request.POST.get('name', '').strip()
+    connection_type = request.POST.get('connection_type', 'usb')
+    connection_string = request.POST.get('connection_string', '').strip()
+    port = request.POST.get('port') or None
+    paper_width = int(request.POST.get('paper_width', 80))
+    characters_per_line = int(request.POST.get('characters_per_line', 42))
+    has_cash_drawer = request.POST.get('has_cash_drawer') == 'on'
+    is_default = request.POST.get('is_default') == 'on'
+    is_active = request.POST.get('is_active') == 'on'
+    is_for_kitchen = request.POST.get('is_for_kitchen') == 'on'
+    is_for_receipt = request.POST.get('is_for_receipt') == 'on'
+
+    if not name or not connection_string:
+        messages.error(request, 'Nombre y cadena de conexión son obligatorios.')
+        return redirect('usuarios:configuracion_impresoras')
+
+    config = printer.config or {}
+    config['prints_command'] = is_for_kitchen
+    config['prints_receipt'] = is_for_receipt
+
+    printer.name = name
+    printer.connection_type = connection_type
+    printer.connection_string = connection_string
+    printer.port = int(port) if port else None
+    printer.paper_width = paper_width
+    printer.characters_per_line = characters_per_line
+    printer.has_cash_drawer = has_cash_drawer
+    printer.is_default = is_default
+    printer.is_active = is_active
+    printer.config = config
+    printer.save()
+    
+    messages.success(request, f'Impresora "{name}" actualizada correctamente.')
     return redirect('usuarios:configuracion_impresoras')
 
 
