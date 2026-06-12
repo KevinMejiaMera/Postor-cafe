@@ -447,19 +447,17 @@ def configuracion_impresoras(request):
 
     if request.method == 'POST':
         # Configuración global
-        auto_print_kitchen = request.POST.get('auto_print_kitchen') == 'on'
-        auto_print_receipt = request.POST.get('auto_print_receipt') == 'on'
-        auto_open_drawer = request.POST.get('auto_open_drawer') == 'on'
-        receipt_header = request.POST.get('receipt_header', '')
-        receipt_footer = request.POST.get('receipt_footer', '')
-
-        printer_settings.auto_print_kitchen = auto_print_kitchen
-        printer_settings.auto_print_receipt = auto_print_receipt
-        printer_settings.auto_open_drawer_on_payment = auto_open_drawer
-        if receipt_header:
-            printer_settings.receipt_header = receipt_header
-        if receipt_footer:
-            printer_settings.receipt_footer = receipt_footer
+        printer_settings.auto_print_kitchen = request.POST.get('auto_print_kitchen') == 'on'
+        printer_settings.auto_print_receipt = request.POST.get('auto_print_receipt') == 'on'
+        printer_settings.auto_open_drawer_on_payment = request.POST.get('auto_open_drawer') == 'on'
+        
+        # Datos del local para el ticket
+        printer_settings.company_name = request.POST.get('company_name', '').strip()
+        printer_settings.company_address = request.POST.get('company_address', '').strip()
+        printer_settings.company_phone = request.POST.get('company_phone', '').strip()
+        printer_settings.tax_id = request.POST.get('tax_id', '').strip()
+        printer_settings.receipt_footer = request.POST.get('receipt_footer', '').strip()
+        
         printer_settings.save()
 
         # Impresora cocina

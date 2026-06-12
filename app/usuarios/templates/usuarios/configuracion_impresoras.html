@@ -153,7 +153,34 @@
     </div>
 </div>
 
-
+<!-- SECCIÓN: DATOS DE LA EMPRESA PARA EL TICKET -->
+<div style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--card-shadow); margin-bottom: 30px;">
+    <h3 style="margin-top: 0; margin-bottom: 20px; color: var(--primary-color); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-store" style="color: var(--accent-color);"></i> Datos del Ticket
+    </h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div>
+            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-color); display: block; margin-bottom: 6px;">Nombre del Local</label>
+            <input type="text" name="company_name" value="{{ printer_settings.get_company_name }}" placeholder="Ej: Postor Cafe" style="width: 100%; border: 2px solid var(--bg-cream); border-radius: 12px; padding: 10px; font-size: 0.9rem; box-sizing: border-box;">
+        </div>
+        <div>
+            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-color); display: block; margin-bottom: 6px;">RUC / Identificación</label>
+            <input type="text" name="tax_id" value="{{ printer_settings.get_tax_id }}" placeholder="Ej: 1234567890001" style="width: 100%; border: 2px solid var(--bg-cream); border-radius: 12px; padding: 10px; font-size: 0.9rem; box-sizing: border-box;">
+        </div>
+        <div style="grid-column: span 2;">
+            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-color); display: block; margin-bottom: 6px;">Dirección del Local</label>
+            <input type="text" name="company_address" value="{{ printer_settings.get_company_address }}" placeholder="Ej: Dirección principal..." style="width: 100%; border: 2px solid var(--bg-cream); border-radius: 12px; padding: 10px; font-size: 0.9rem; box-sizing: border-box;">
+        </div>
+        <div>
+            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-color); display: block; margin-bottom: 6px;">Teléfono (Opcional)</label>
+            <input type="text" name="company_phone" value="{{ printer_settings.get_company_phone }}" placeholder="Ej: 0999999999" style="width: 100%; border: 2px solid var(--bg-cream); border-radius: 12px; padding: 10px; font-size: 0.9rem; box-sizing: border-box;">
+        </div>
+        <div>
+            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-color); display: block; margin-bottom: 6px;">Mensaje de Despedida</label>
+            <input type="text" name="receipt_footer" value="{{ printer_settings.get_receipt_footer }}" placeholder="Ej: ¡Gracias por su compra!" style="width: 100%; border: 2px solid var(--bg-cream); border-radius: 12px; padding: 10px; font-size: 0.9rem; box-sizing: border-box;">
+        </div>
+    </div>
+</div>
 
 <!-- BOTÓN GUARDAR -->
 <div style="text-align: right; margin-bottom: 30px;">
