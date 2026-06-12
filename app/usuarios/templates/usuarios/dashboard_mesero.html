@@ -796,7 +796,7 @@
         // Ejecutar RawBT si hay un trabajo pendiente en la sesión
         {% if rawbt_b64 %}
         setTimeout(() => {
-            window.location.href = "intent:base64,{{ rawbt_b64 }}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
+            window.location.href = "rawbt:base64,{{ rawbt_b64 }}";
         }, 500);
         {% endif %}
     </script>

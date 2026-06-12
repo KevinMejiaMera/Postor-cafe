@@ -441,8 +441,8 @@
             .then(data => {
                 if (data.success) {
                     if (data.rawbt_b64) {
-                        // Abrir intent agregando el prefijo base64, para que RawBT no lo imprima como texto plano
-                        window.location.href = "intent:base64," + data.rawbt_b64 + "#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
+                        // Usar el esquema rawbt: directo
+                        window.location.href = "rawbt:base64," + data.rawbt_b64;
                         setTimeout(() => {
                             alert('✅ ' + data.message);
                         }, 1000);
