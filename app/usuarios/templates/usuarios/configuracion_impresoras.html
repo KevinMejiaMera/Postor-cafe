@@ -436,6 +436,9 @@
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
+                    if (data.rawbt_b64) {
+                        window.location.href = "intent:" + data.rawbt_b64 + "#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
+                    }
                     alert('✅ ' + data.message);
                 } else {
                     alert('❌ ' + data.message);

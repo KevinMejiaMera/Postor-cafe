@@ -73,7 +73,7 @@ def _print_kitchen_order(pedido, request=None):
         if pedido.observacion:
             content += f"\nNOTA: {pedido.observacion}\n"
 
-        PrintJob.objects.create(
+        job = PrintJob.objects.create(
             printer=printer,
             document_type='order',
             content=content,
@@ -84,6 +84,18 @@ def _print_kitchen_order(pedido, request=None):
             status='pending',
             created_by=pedido.mesero.username if pedido.mesero else 'sistema'
         )
+        
+        if printer.connection_type == 'rawbt':
+            from printer.print_manager import PrinterManager
+            import base64
+            hex_commands = PrinterManager.generate_print_commands(job)
+            try:
+                b64_cmds = base64.b64encode(bytes.fromhex(hex_commands)).decode('utf-8')
+                return b64_cmds
+            except Exception as e:
+                logger.error(f"Error base64 comanda: {e}")
+                
+        return None
     except Exception as e:
         import logging
         logger = logging.getLogger(__name__)
@@ -139,7 +151,7 @@ def _print_receipt(factura, request=None):
         from printer.views import PrintReceiptView
         content = PrintReceiptView().generate_receipt_content(printer, order_data)
 
-        PrintJob.objects.create(
+        job = PrintJob.objects.create(
             printer=printer,
             document_type='receipt',
             content=content,
@@ -150,6 +162,18 @@ def _print_receipt(factura, request=None):
             status='pending',
             created_by=pedido.mesero.username if pedido.mesero else 'sistema'
         )
+        
+        if printer.connection_type == 'rawbt':
+            from printer.print_manager import PrinterManager
+            import base64
+            hex_commands = PrinterManager.generate_print_commands(job)
+            try:
+                b64_cmds = base64.b64encode(bytes.fromhex(hex_commands)).decode('utf-8')
+                return b64_cmds
+            except Exception as e:
+                logger.error(f"Error base64 ticket: {e}")
+                
+        return None
     except Exception as e:
         import logging
         logger = logging.getLogger(__name__)
@@ -183,12 +207,16 @@ def panel_mesas(request):
     productos = Producto.objects.filter(disponible=True).prefetch_related('variantes').order_by('categoria__nombre', 'nombre')
     categorias = CategoriaProducto.objects.all().order_by('nombre')
     
+    # Pop rawbt_b64 to trigger intent if any
+    rawbt_b64 = request.session.pop('rawbt_b64', None)
+    
     context = {
         'pedido': pedido_activo,
         'productos': productos,
         'categorias': categorias,
         'mesa': None, # Pedido general directo
         'mesas_libres': Mesa.objects.filter(estado='libre').order_by('numero'),
+        'rawbt_b64': rawbt_b64,
     }
     return render(request, 'pedidos/pos_general.html', context)
 # 👆👆👆 FIN DE LO NUEVO 👆👆👆
@@ -304,7 +332,9 @@ def confirmar_pedido(request, pedido_id):
         )
 
         # 2. IMPRIMIR COMANDA DE COCINA AUTOMÁTICAMENTE
-        _print_kitchen_order(pedido, request)
+        rawbt_b64 = _print_kitchen_order(pedido, request)
+        if rawbt_b64:
+            request.session['rawbt_b64'] = rawbt_b64
 
         # Redirect logic: if from history (as Gerente), refresh history.
         if request.user.rol == 'gerente':
@@ -560,14 +590,16 @@ def procesar_pago(request, pedido_id):
                     )
 
         # 4. IMPRIMIR TICKET DE VENTA AUTOMÁTICAMENTE
-        _print_receipt(factura, request)
+        rawbt_b64 = _print_receipt(factura, request)
+        if rawbt_b64:
+            request.session['rawbt_b64'] = rawbt_b64
 
         # 5. Mensaje de Éxito y Redirección
         messages.success(request, f"Venta Realizada: Pedido #{factura.pedido.id} - Total: ${factura.total}")
         
         # SI ES HTMX (Usado en el modal de cobro), devolvemos el modal de éxito
         if request.headers.get('HX-Request'):
-             return render(request, 'pedidos/modals/venta_exitosa.html', {'factura': factura})
+             return render(request, 'pedidos/modals/venta_exitosa.html', {'factura': factura, 'rawbt_b64': rawbt_b64})
 
         # Redirección inteligente (fallback para forms normales)
         if request.user.rol == 'gerente':

@@ -83,7 +83,8 @@ def dashboard_mesero(request):
     if request.user.rol != 'mesero':
         return redirect('usuarios:login')
     mesas = Mesa.objects.all().order_by('numero')
-    return render(request, 'usuarios/dashboard_mesero.html', {'mesas': mesas})
+    rawbt_b64 = request.session.pop('rawbt_b64', None)
+    return render(request, 'usuarios/dashboard_mesero.html', {'mesas': mesas, 'rawbt_b64': rawbt_b64})
 
 # 4. DASHBOARD GERENTE (LA QUE FALTABA)
 @login_required
@@ -513,7 +514,22 @@ def impresora_test_print(request, printer_id):
     from printer.print_manager import PrinterManager
     printer = get_object_or_404(Printer, id=printer_id, is_active=True)
     success, message = PrinterManager.print_test_page(printer, user=request.user.username)
-    return JsonResponse({'success': success, 'message': message})
+    
+    response_data = {'success': success, 'message': message}
+    
+    if success and printer.connection_type == 'rawbt':
+        # Get the job we just created
+        job = printer.print_jobs.order_by('-created_at').first()
+        if job:
+            import base64
+            hex_commands = PrinterManager.generate_print_commands(job)
+            try:
+                b64_cmds = base64.b64encode(bytes.fromhex(hex_commands)).decode('utf-8')
+                response_data['rawbt_b64'] = b64_cmds
+            except Exception as e:
+                pass
+
+    return JsonResponse(response_data)
 
 
 @login_required
