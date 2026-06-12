@@ -11,7 +11,7 @@
 {% if rawbt_b64 %}
 <script>
     setTimeout(() => {
-        window.location.href = "intent:{{ rawbt_b64 }}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
+        window.location.href = "intent:base64,{{ rawbt_b64 }}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
     }, 500);
 </script>
 {% endif %}
