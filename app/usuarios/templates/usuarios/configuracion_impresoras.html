@@ -113,6 +113,46 @@
     </div>
 </div>
 
+<!-- SECCIÓN: GESTIÓN DE IMPRESORAS -->
+<div style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--card-shadow); margin-bottom: 30px;">
+    <h3 style="margin-top: 0; margin-bottom: 20px; color: var(--primary-color); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-list" style="color: var(--accent-color);"></i> Impresoras Registradas
+    </h3>
+    <div style="overflow-x: auto;">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th style="border: none; color: var(--primary-color);">Nombre</th>
+                    <th style="border: none; color: var(--primary-color);">Tipo de Conexión</th>
+                    <th style="border: none; color: var(--primary-color);">Ruta/IP</th>
+                    <th style="border: none; color: var(--primary-color);">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in printers %}
+                <tr>
+                    <td><strong>{{ p.name }}</strong> ({{ p.get_printer_type_display }})</td>
+                    <td>{{ p.get_connection_type_display }}</td>
+                    <td>{{ p.connection_string }}</td>
+                    <td>
+                        <form method="POST" action="{% url 'usuarios:eliminar_impresora' p.id %}" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar la impresora {{ p.name }}?');">
+                            {% csrf_token %}
+                            <button type="submit" style="border: none; background: #FFEBEE; color: #C62828; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer;">
+                                <i class="fas fa-trash-alt"></i> Eliminar
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">No hay impresoras registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <!-- SECCIÓN: ENCABEZADO / PIE DE TICKET -->
 <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--card-shadow); margin-bottom: 30px;">
     <h3 style="margin-top: 0; margin-bottom: 20px; color: var(--primary-color); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">

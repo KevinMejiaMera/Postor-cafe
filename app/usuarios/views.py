@@ -588,3 +588,26 @@ def crear_impresora(request):
     )
     messages.success(request, f'Impresora "{name}" creada correctamente.')
     return redirect('usuarios:configuracion_impresoras')
+
+
+@login_required
+@require_POST
+def eliminar_impresora(request, printer_id):
+    if not es_gerente(request.user):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    from printer.models import Printer
+    printer = get_object_or_404(Printer, id=printer_id)
+    
+    # Optional: Delete associated print jobs first if needed, or if it's protected, just mark as inactive
+    # printer.print_jobs.all().delete()
+    try:
+        printer.delete()
+        messages.success(request, f'Impresora eliminada correctamente.')
+    except Exception as e:
+        # If it's protected by foreign keys, we mark it as inactive instead
+        printer.is_active = False
+        printer.save()
+        messages.warning(request, f'Impresora desactivada (no se puede borrar porque tiene historial de impresión).')
+        
+    return redirect('usuarios:configuracion_impresoras')
+
