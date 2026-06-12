@@ -440,11 +440,7 @@ class PrinterManager:
         commands.extend(ESCPOSCommands.ALIGN_LEFT)
         commands.extend(ESCPOSCommands.LF)
         
-        # Código QR de prueba
-        commands.extend(ESCPOSCommands.ALIGN_CENTER)
-        commands.extend(b'Codigo QR de prueba:\n')
-        commands.extend(ESCPOSCommands.qr_code('https://agrototal.ec', size=4))
-        commands.extend(ESCPOSCommands.LF * 2)
+        # Código QR eliminado de la prueba para mayor compatibilidad con impresoras genéricas
         
         # Fin
         commands.extend(ESCPOSCommands.ALIGN_CENTER)
