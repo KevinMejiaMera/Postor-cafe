@@ -543,3 +543,43 @@ def print_job_retry(request, job_id):
     job.error_message = ''
     job.save(update_fields=['status', 'error_message'])
     return JsonResponse({'success': True, 'message': 'Trabajo re-enviado para impresión'})
+
+
+@login_required
+@require_POST
+def crear_impresora(request):
+    if not es_gerente(request.user):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    from printer.models import Printer
+    name = request.POST.get('name', '').strip()
+    printer_type = request.POST.get('printer_type', 'thermal')
+    connection_type = request.POST.get('connection_type', 'usb')
+    connection_string = request.POST.get('connection_string', '').strip()
+    port = request.POST.get('port') or None
+    paper_width = int(request.POST.get('paper_width', 80))
+    is_for_kitchen = request.POST.get('is_for_kitchen') == 'on'
+    is_for_receipt = request.POST.get('is_for_receipt') == 'on'
+
+    if not name or not connection_string:
+        messages.error(request, 'Nombre y dirección de conexión son obligatorios.')
+        return redirect('usuarios:configuracion_impresoras')
+
+    config = {}
+    if is_for_kitchen:
+        config['prints_command'] = True
+    if is_for_receipt:
+        config['prints_receipt'] = True
+
+    Printer.objects.create(
+        name=name,
+        printer_type=printer_type,
+        connection_type=connection_type,
+        connection_string=connection_string,
+        port=int(port) if port else None,
+        paper_width=paper_width,
+        characters_per_line=42 if paper_width >= 80 else 32,
+        is_active=True,
+        config=config
+    )
+    messages.success(request, f'Impresora "{name}" creada correctamente.')
+    return redirect('usuarios:configuracion_impresoras')

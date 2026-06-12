@@ -13,6 +13,9 @@
         </h4>
         <h2 style="margin: 5px 0 0 0; color: var(--primary-color); font-size: 1.8rem; font-weight: 800;">Configuración de Impresoras</h2>
     </div>
+    <button type="button" onclick="document.getElementById('modal-nueva-impresora').style.display='flex'" style="background: var(--primary-color); color: white; border: none; padding: 12px 24px; border-radius: 14px; font-weight: 800; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(62, 67, 46, 0.2);">
+        <i class="fas fa-plus"></i> Nueva Impresora
+    </button>
 </header>
 
 <form method="POST" action="{% url 'usuarios:configuracion_impresoras' %}">
@@ -135,6 +138,79 @@
 </div>
 
 </form>
+
+<!-- MODAL: NUEVA IMPRESORA -->
+<div id="modal-nueva-impresora" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;"
+     onclick="if(event.target===this)this.style.display='none'">
+    <div style="background: white; border-radius: 20px; padding: 30px; width: 500px; max-width: 90vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: var(--primary-color); font-weight: 800;">
+                <i class="fas fa-plus-circle" style="color: var(--accent-color);"></i> Nueva Impresora
+            </h3>
+            <button type="button" onclick="document.getElementById('modal-nueva-impresora').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+        </div>
+        <form method="POST" action="{% url 'usuarios:crear_impresora' %}">
+            {% csrf_token %}
+            <div style="display: grid; gap: 15px;">
+                <div>
+                    <label style="font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 4px;">Nombre *</label>
+                    <input type="text" name="name" required style="width: 100%; padding: 10px; border: 2px solid var(--bg-cream); border-radius: 12px; box-sizing: border-box;">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label style="font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 4px;">Tipo</label>
+                        <select name="printer_type" style="width: 100%; padding: 10px; border: 2px solid var(--bg-cream); border-radius: 12px;">
+                            <option value="thermal">Térmica</option>
+                            <option value="laser">Láser</option>
+                            <option value="matrix">Matriz de Puntos</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 4px;">Conexión</label>
+                        <select name="connection_type" style="width: 100%; padding: 10px; border: 2px solid var(--bg-cream); border-radius: 12px;">
+                            <option value="network">Red/IP</option>
+                            <option value="usb">USB</option>
+                            <option value="bluetooth">Bluetooth</option>
+                            <option value="serial">Serial/COM</option>
+                            <option value="rawbt">Inalámbrica (RawBT)</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 4px;">Dirección / IP *</label>
+                    <input type="text" name="connection_string" required placeholder="ej: 192.168.1.100" style="width: 100%; padding: 10px; border: 2px solid var(--bg-cream); border-radius: 12px; box-sizing: border-box;">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label style="font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 4px;">Puerto</label>
+                        <input type="number" name="port" value="9100" style="width: 100%; padding: 10px; border: 2px solid var(--bg-cream); border-radius: 12px; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 4px;">Ancho papel</label>
+                        <select name="paper_width" style="width: 100%; padding: 10px; border: 2px solid var(--bg-cream); border-radius: 12px;">
+                            <option value="80">80 mm</option>
+                            <option value="58">58 mm</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 20px; padding: 10px 0;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="is_for_kitchen"> <span style="font-weight: 600;">Imprimir comandas</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="is_for_receipt"> <span style="font-weight: 600;">Imprimir tickets</span>
+                    </label>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--bg-cream);">
+                <button type="button" onclick="document.getElementById('modal-nueva-impresora').style.display='none'" style="padding: 10px 24px; border: 2px solid var(--bg-cream); background: white; border-radius: 12px; font-weight: 700; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="padding: 10px 24px; background: var(--primary-color); color: white; border: none; border-radius: 12px; font-weight: 800; cursor: pointer;">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- SECCIÓN: HISTORIAL DE TRABAJOS -->
 <section class="audit-section" style="margin-top: 0;">
