@@ -193,10 +193,11 @@ class PrinterManager:
                 
             elif 'TOTAL' in line.upper():
                 # Líneas de total en negrita y tamaño grande
-                commands.extend(ESCPOSCommands.font_size(2, 2))
+                commands.extend(ESCPOSCommands.font_size(1, 2))
                 commands.extend(ESCPOSCommands.TEXT_BOLD_ON)
                 commands.extend(line.encode('utf-8', errors='ignore'))
                 commands.extend(ESCPOSCommands.TEXT_BOLD_OFF)
+                commands.extend(ESCPOSCommands.font_size(1, 1))
                 commands.extend(ESCPOSCommands.TEXT_NORMAL)
                 commands.extend(ESCPOSCommands.LF)
                 
@@ -205,8 +206,9 @@ class PrinterManager:
                 commands.extend(ESCPOSCommands.ALIGN_CENTER)
                 commands.extend(ESCPOSCommands.font_size(2, 2))
                 commands.extend(ESCPOSCommands.TEXT_BOLD_ON)
-                commands.extend(line.encode('utf-8', errors='ignore'))
+                commands.extend(line.strip().encode('utf-8', errors='ignore'))
                 commands.extend(ESCPOSCommands.TEXT_BOLD_OFF)
+                commands.extend(ESCPOSCommands.font_size(1, 1))
                 commands.extend(ESCPOSCommands.TEXT_NORMAL)
                 commands.extend(ESCPOSCommands.ALIGN_LEFT)
                 commands.extend(ESCPOSCommands.LF)
