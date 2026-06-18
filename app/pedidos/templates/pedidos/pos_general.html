@@ -13,7 +13,11 @@
     setTimeout(() => {
         var intent_suffix = "#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
         var encoded_data = "base64,{{ rawbt_b64 }}";
-        window.location.href = "intent:" + encoded_data + intent_suffix;
+        var iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = "intent:" + encoded_data + intent_suffix;
+        document.body.appendChild(iframe);
+        setTimeout(() => document.body.removeChild(iframe), 1000);
     }, 500);
 </script>
 {% endif %}

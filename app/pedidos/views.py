@@ -337,12 +337,24 @@ def confirmar_pedido(request, pedido_id):
             request.session['rawbt_b64'] = rawbt_b64
 
         # Redirect logic: if from history (as Gerente), refresh history.
+        if request.headers.get('HX-Request'):
+            url = reverse('pedidos:historial_pedidos') if request.user.rol == 'gerente' else reverse('usuarios:dashboard_mesero')
+            response = HttpResponse(status=204)
+            response['HX-Redirect'] = url
+            return response
+
         if request.user.rol == 'gerente':
              return redirect('pedidos:historial_pedidos')
         
         return redirect('usuarios:dashboard_mesero')
     else:
         # Si no hay items, volver al pedido
+        if request.headers.get('HX-Request'):
+            url = reverse('pedidos:detalle_mesa', args=[pedido.mesa.id]) if pedido.mesa else reverse('pedidos:editar_pedido_directo', args=[pedido.id])
+            response = HttpResponse(status=204)
+            response['HX-Redirect'] = url
+            return response
+            
         if pedido.mesa:
              return redirect('pedidos:detalle_mesa', mesa_id=pedido.mesa.id)
         return redirect('pedidos:editar_pedido_directo', pedido_id=pedido.id)
