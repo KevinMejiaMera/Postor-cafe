@@ -599,8 +599,13 @@ def procesar_pago(request, pedido_id):
         
         # SI ES HTMX (Usado en el modal de cobro), devolvemos el modal de éxito
         if request.headers.get('HX-Request'):
-             return render(request, 'pedidos/modals/venta_exitosa.html', {'factura': factura, 'rawbt_b64': rawbt_b64})
-
+            # Limpiamos de la sesión para evitar doble impresión al recargar
+            request.session.pop('rawbt_b64', None)
+            return render(request, 'pedidos/modals/venta_exitosa.html', {
+                'factura': factura,
+                'rawbt_b64': rawbt_b64
+            })
+        
         # Redirección inteligente (fallback para forms normales)
         if request.user.rol == 'gerente':
              return redirect('pedidos:historial_pedidos')
@@ -1129,6 +1134,9 @@ def historial_pedidos(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    # Extraer comando de impresión si venimos de confirmar un pedido
+    rawbt_b64 = request.session.pop('rawbt_b64', None)
+    
     return render(request, 'pedidos/historial_pedidos.html', {
         'pedidos': page_obj, # Enviamos el objeto de página
         'fecha_actual': fecha_actual,
@@ -1143,6 +1151,7 @@ def historial_pedidos(request):
         'pedidos_hoy_count': pedidos_hoy.count(),
         'total_ventas_hoy': total_hoy,
         'estados': Pedido.ESTADO_CHOICES,
+        'rawbt_b64': rawbt_b64,
     })
 
 @login_required

@@ -758,5 +758,14 @@
             }
         });
     }
+
+    // Ejecutar RawBT si hay un trabajo de impresión pendiente (ej: comanda de cocina)
+    {% if rawbt_b64 %}
+    setTimeout(() => {
+        var intent_suffix = "#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
+        var encoded_data = "base64,{{ rawbt_b64 }}";
+        window.location.href = "intent:" + encoded_data + intent_suffix;
+    }, 500);
+    {% endif %}
 </script>
 {% endblock %}
