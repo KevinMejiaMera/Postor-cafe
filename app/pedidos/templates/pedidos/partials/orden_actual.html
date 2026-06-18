@@ -85,7 +85,7 @@
         {% endif %}
 
         {% if pedido.estado == 'borrador' and pedido.items.exists %}
-        <form action="{% url 'pedidos:confirmar_pedido' pedido.id %}" method="POST" style="width: 100%;">
+        <form hx-post="{% url 'pedidos:confirmar_pedido' pedido.id %}" hx-target="#modal-container" method="POST" style="width: 100%;">
             {% csrf_token %}
 
             <div style="margin-bottom: 10px;">

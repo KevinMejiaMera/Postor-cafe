@@ -339,6 +339,22 @@ def confirmar_pedido(request, pedido_id):
         # Redirect logic: if from history (as Gerente), refresh history.
         if request.headers.get('HX-Request'):
             url = reverse('pedidos:historial_pedidos') if request.user.rol == 'gerente' else reverse('usuarios:dashboard_mesero')
+            
+            if rawbt_b64:
+                # Quitamos de sesión porque ya lo vamos a procesar aquí
+                request.session.pop('rawbt_b64', None)
+                html = f"""
+                <script>
+                    var intent_suffix = "#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
+                    var encoded_data = "base64,{rawbt_b64}";
+                    window.location.href = "intent:" + encoded_data + intent_suffix;
+                    setTimeout(() => {{
+                        window.location.href = "{url}";
+                    }}, 800);
+                </script>
+                """
+                return HttpResponse(html)
+            
             response = HttpResponse(status=204)
             response['HX-Redirect'] = url
             return response
