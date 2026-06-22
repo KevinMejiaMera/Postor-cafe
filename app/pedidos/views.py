@@ -51,11 +51,12 @@ def _print_kitchen_order(pedido, request=None):
         now = timezone.localtime(timezone.now())
         items = []
         for item in pedido.items.all():
+            nombre_producto = f"{item.producto.nombre} ({item.variante.nombre})" if item.variante else item.producto.nombre
             items.append({
-                'name': item.producto.nombre,
+                'name': nombre_producto,
                 'quantity': item.cantidad,
                 'note': '',
-                'description': item.variante.nombre if item.variante else ''
+                'description': ''
             })
 
         order_data = {
@@ -125,8 +126,9 @@ def _print_receipt(factura, request=None):
         items = []
         subtotal = 0
         for item in pedido.items.all():
+            nombre_producto = f"{item.producto.nombre} ({item.variante.nombre})" if item.variante else item.producto.nombre
             items.append({
-                'name': item.producto.nombre,
+                'name': nombre_producto,
                 'quantity': item.cantidad,
                 'price': float(item.precio_unitario),
                 'total': float(item.subtotal),
@@ -1092,8 +1094,9 @@ def historial_pedidos(request):
     fecha_hasta = request.GET.get('fecha_hasta', '')
     busqueda = request.GET.get('q', '')
 
-    # Si no hay filtros de fecha, por defecto mostramos HOY
-    hoy = date.today()
+    # Si no hay filtros de fecha, por defecto mostramos HOY en la zona horaria local
+    from django.utils import timezone
+    hoy = timezone.localtime(timezone.now()).date()
     if not any([fecha_str, fecha_desde, fecha_hasta, busqueda]):
          fecha_actual = hoy
     elif fecha_str:

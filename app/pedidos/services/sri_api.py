@@ -89,7 +89,7 @@ def enviar_factura_sri(factura_id):
             return False, "No hay items para facturar."
 
         payload = {
-            "issue_date": factura.fecha_emision.strftime("%Y-%m-%d"),
+            "issue_date": timezone.localtime(factura.fecha_emision).strftime("%Y-%m-%d"),
             "customer_identification_type": tipo_id,
             "customer_identification": identificacion,
             "customer_name": factura.razon_social or "CONSUMIDOR FINAL",

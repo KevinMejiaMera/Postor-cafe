@@ -917,6 +917,7 @@ class PrintReceiptView(APIView):
             
         lines.append(f"Fecha: {current_time.strftime('%d/%m/%Y')}  Hora: {current_time.strftime('%H:%M')}")
         lines.append(f"Ticket #: {order_data.get('order_number', 'N/A')}")
+        lines.append(f"Mesa: {order_data.get('table_number', 'N/A')}")
         
         cashier = order_data.get('cashier_name') or 'CAJA'
         lines.append(f"Atendido por: {cashier}")

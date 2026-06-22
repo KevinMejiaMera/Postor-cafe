@@ -407,7 +407,7 @@ class PrinterManager:
         commands.extend(f'Caja: {"Si" if printer.has_cash_drawer else "No"}\n'.encode('utf-8'))
         commands.extend(ESCPOSCommands.LF)
         
-        commands.extend(f'Fecha: {timezone.now().strftime("%Y-%m-%d %H:%M:%S")}\n'.encode('utf-8'))
+        commands.extend(f'Fecha: {timezone.localtime(timezone.now()).strftime("%Y-%m-%d %H:%M:%S")}\n'.encode('utf-8'))
         commands.extend(ESCPOSCommands.LF)
         
         # Línea de separación

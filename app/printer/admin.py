@@ -143,7 +143,7 @@ texto en minusculas
               INFORMACION
 ════════════════════════════════════════
 
-Fecha: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}
+Fecha: {timezone.localtime(timezone.now()).strftime('%Y-%m-%d %H:%M:%S')}
 Usuario: {request.user.username}
 
 Caja registradora: {'✅ SI' if printer.has_cash_drawer else '❌ NO'}
