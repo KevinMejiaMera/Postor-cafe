@@ -140,6 +140,7 @@ def _print_receipt(factura, request=None):
             'order_number': f'FAC-{factura.id}',
             'table_number': str(pedido.mesa.numero) if pedido.mesa else 'DIRECTO',
             'customer_name': factura.razon_social,
+            'customer_ruc': factura.ruc_ci,
             'cashier_name': pedido.mesero.username if pedido.mesero else '',
             'items': items,
             'subtotal': subtotal,
@@ -147,7 +148,10 @@ def _print_receipt(factura, request=None):
             'total': float(factura.total),
             'payment_method': factura.get_metodo_pago_display(),
             'payment_reference': '',
-            'printed_at': now.isoformat()
+            'printed_at': now.isoformat(),
+            'tipo_comprobante': factura.tipo_comprobante,
+            'clave_acceso': factura.clave_acceso,
+            'estado_sri': factura.get_estado_sri_display(),
         }
 
         from printer.views import PrintReceiptView
@@ -565,6 +569,7 @@ def procesar_pago(request, pedido_id):
         # 3. Crear la Factura (Snapshot de datos)
         # Si no hay cliente, usamos datos genéricos de Consumidor Final
         metodo_pago_sri = request.POST.get('metodo_pago_sri', '01')
+        tipo_documento = request.POST.get('tipo_documento', 'factura')
         
         datos_factura = {
             'pedido': pedido,
@@ -573,6 +578,7 @@ def procesar_pago(request, pedido_id):
             'total': pedido.total,
             'metodo_pago': 'efectivo', 
             'metodo_pago_sri': metodo_pago_sri,
+            'tipo_comprobante': tipo_documento,
             'razon_social': cliente.nombres if cliente else 'CONSUMIDOR FINAL',
             'ruc_ci': cliente.cedula_o_ruc if cliente else '9999999999999',
             'direccion': cliente.direccion if cliente else '',
@@ -583,15 +589,11 @@ def procesar_pago(request, pedido_id):
         
         factura = Factura.objects.create(**datos_factura)
         
-        # ENVIAR FACTURA AL SRI AUTOMÁTICAMENTE EN SEGUNDO PLANO
-        import threading
-        from django.db import transaction
-        from .services.sri_api import enviar_factura_sri
-        
-        def enviar_sri_bg(fact_id):
-            enviar_factura_sri(fact_id)
-            
-        transaction.on_commit(lambda: threading.Thread(target=enviar_sri_bg, args=(factura.id,)).start())
+        # ENVIAR FACTURA AL SRI DE FORMA SÍNCRONA
+        if tipo_documento == 'factura':
+            from .services.sri_api import enviar_factura_sri
+            enviar_factura_sri(factura.id)
+            factura.refresh_from_db()
         
         # 3. AUTOMATIZACIÓN DE INVENTARIO (PRODUCTOS Y RECETAS)
         # Este es ahora el punto ÚNICO de descuento para asegurar que la venta se realizó.

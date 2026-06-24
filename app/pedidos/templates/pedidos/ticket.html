@@ -176,14 +176,46 @@
             <div class="info-row">
                 <span>Fecha:</span> <span>{{ factura.fecha_emision|date:"d/m/Y H:i" }}</span>
             </div>
+            {% if factura.tipo_comprobante == 'nota_entrega' %}
+            <div class="info-row" style="margin-top: 5px;">
+                <span style="font-weight: bold; width: 100%; text-align: center;">NOTA DE ENTREGA (USO INTERNO)</span>
+            </div>
+            <div class="info-row">
+                <span>Nro:</span> <span>{{ factura.id|stringformat:"05d" }}</span>
+            </div>
+            {% else %}
+            <div class="info-row" style="margin-top: 5px;">
+                <span style="font-weight: bold; width: 100%; text-align: center;">FACTURA ELECTRÓNICA</span>
+            </div>
             <div class="info-row">
                 <span>Factura N°:</span> <span>001-001-{{ factura.id|stringformat:"05d" }}</span>
             </div>
+            {% if factura.estado_sri %}
+            <div class="info-row">
+                <span>Estado:</span> <span>{{ factura.get_estado_sri_display }}</span>
+            </div>
+            {% endif %}
+            {% if factura.clave_acceso %}
+            <div style="margin-top: 10px;">
+                <strong>CLAVE DE ACCESO:</strong>
+                <div style="font-size: 0.75rem; word-break: break-all; margin-top: 3px;">
+                    {{ factura.clave_acceso }}
+                </div>
+            </div>
+            {% endif %}
+            {% endif %}
         </div>
 
         <div class="info">
-            <div><strong>Cliente:</strong> {{ factura.razon_social }}</div>
+            {% if factura.tipo_comprobante == 'factura' %}
             <div><strong>RUC/CI:</strong> {{ factura.ruc_ci }}</div>
+            <div><strong>Razón Social:</strong> {{ factura.razon_social }}</div>
+            {% else %}
+            <div><strong>Cliente:</strong> {{ factura.razon_social }}</div>
+            {% if factura.ruc_ci != '9999999999999' %}
+            <div><strong>RUC/CI:</strong> {{ factura.ruc_ci }}</div>
+            {% endif %}
+            {% endif %}
             {% if factura.direccion %}
             <div><strong>Dir:</strong> {{ factura.direccion }}</div>
             {% endif %}
@@ -223,7 +255,9 @@
 
         <div class="footer">
             <p style="margin-top: 20px; font-size: 0.9rem;">¡Gracias por su compra!</p>
-            <small>Documento sin validez tributaria (Demo)</small>
+            {% if factura.tipo_comprobante == 'nota_entrega' %}
+            <small>Documento sin validez tributaria</small>
+            {% endif %}
         </div>
 
         <div class="no-print">

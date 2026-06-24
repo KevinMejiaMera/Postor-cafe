@@ -134,6 +134,11 @@ class DetallePedido(models.Model):
 
 # 5. FACTURA (Documento legal)
 class Factura(models.Model):
+    TIPO_COMPROBANTE_CHOICES = [
+        ('factura', 'Factura'),
+        ('nota_entrega', 'Nota de Entrega'),
+    ]
+
     METODO_PAGO_CHOICES = [
         ('efectivo', 'Efectivo'),
         ('tarjeta', 'Tarjeta de Crédito/Débito'),
@@ -146,6 +151,7 @@ class Factura(models.Model):
     ]
 
     origen = models.CharField(max_length=20, choices=ORIGEN_CHOICES, default='cafeteria', verbose_name="Módulo de Origen")
+    tipo_comprobante = models.CharField(max_length=20, choices=TIPO_COMPROBANTE_CHOICES, default='factura')
 
     # Relación a Pedido (Opcional si es Hostal)
     pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE, related_name='factura', null=True, blank=True)

@@ -779,7 +779,29 @@ class PrintReceiptView(APIView):
         lines.append("=" * chars_per_line)
     
     # Información del ticket
-        lines.append("TICKET DE VENTA".center(chars_per_line))
+        tipo_comprobante = order_data.get('tipo_comprobante', 'factura')
+        if tipo_comprobante == 'nota_entrega':
+            lines.append("NOTA DE ENTREGA (USO INTERNO)".center(chars_per_line))
+        else:
+            lines.append("FACTURA ELECTRONICA".center(chars_per_line))
+            
+        lines.append(f"Nro: {order_data.get('order_number', 'N/A')}")
+        
+        if tipo_comprobante == 'factura':
+            clave = order_data.get('clave_acceso', '')
+            estado = order_data.get('estado_sri', '')
+            
+            if estado:
+                lines.append(f"Estado: {estado}")
+            if clave:
+                lines.append("CLAVE DE ACCESO:")
+                if len(clave) > chars_per_line:
+                    lines.append(clave[:chars_per_line])
+                    lines.append(clave[chars_per_line:])
+                else:
+                    lines.append(clave)
+                    
+        lines.append("-" * chars_per_line)
     
     # Usar hora del cliente si existe, sino hora local del servidor
         printed_at_str = order_data.get('printed_at')
@@ -794,10 +816,14 @@ class PrintReceiptView(APIView):
         if not current_time:
             current_time = timezone.localtime(timezone.now())
     
-        lines.append(f"Fecha: {current_time.strftime('%d/%m/%Y')}  Hora: {current_time.strftime('%H:%M')}")
+        lines.append(f"Emision: {current_time.strftime('%d/%m/%Y %H:%M')}")
         
-        lines.append(f"Ticket #: {order_data.get('order_number', 'N/A')}")
-        lines.append(f"Cliente: {order_data.get('customer_name', 'CONSUMIDOR FINAL')}")
+        if tipo_comprobante == 'factura' and order_data.get('customer_ruc'):
+            lines.append(f"RUC/CI: {order_data.get('customer_ruc')}")
+            lines.append(f"Razon Social: {order_data.get('customer_name', 'CONSUMIDOR FINAL')}")
+        else:
+            lines.append(f"Cliente: {order_data.get('customer_name', 'CONSUMIDOR FINAL')}")
+        
         lines.append(f"Mesa: {order_data.get('table_number', 'N/A')}")
         lines.append("-" * chars_per_line)
 

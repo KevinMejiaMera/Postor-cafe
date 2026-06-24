@@ -153,8 +153,8 @@
                     </div>
 
                     <!-- 4. TOTAL + BOTÓN FINAL -->
-                    <div class="cobrar-footer-row">
-                        <div class="total-chip">
+                    <div class="cobrar-footer-row" style="flex-direction: column; gap: 8px;">
+                        <div class="total-chip" style="margin-bottom: 4px;">
                             <span class="chip-label">A COBRAR</span>
                             <span class="chip-amount mono"
                                 id="monto_a_pagar_label"
@@ -162,9 +162,14 @@
                                 ${{ pedido.total|floatformat:2 }}
                             </span>
                         </div>
-                        <button type="submit" class="btn-finalizar">
-                            <i class="fas fa-check-double"></i> FINALIZAR VENTA
-                        </button>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" name="tipo_documento" value="nota_entrega" class="btn-nota" style="flex: 1; background: var(--bg-cream); color: var(--primary-color); border: none; border-radius: 16px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; transition: 0.25s;">
+                                <i class="fas fa-receipt"></i> NOTA DE ENTREGA
+                            </button>
+                            <button type="submit" name="tipo_documento" value="factura" class="btn-finalizar" style="flex: 1;">
+                                <i class="fas fa-file-invoice-dollar"></i> FACTURAR (SRI)
+                            </button>
+                        </div>
                     </div>
 
                 </div>

@@ -22,6 +22,27 @@
         </div>
 
         <div class="action-grid">
+            {% if factura.tipo_comprobante == 'factura' %}
+            <div class="sri-status" style="background: var(--bg-cream); padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; font-size: 0.95rem;">
+                <p style="margin: 0 0 5px 0;"><strong>Estado SRI:</strong> <span style="color: var(--secondary-color);">{{ factura.get_estado_sri_display }}</span></p>
+                {% if factura.clave_acceso %}
+                <p style="margin: 0;"><strong>Clave de Acceso:</strong><br><small style="word-break: break-all; font-family: monospace; color: var(--text-dark);">{{ factura.clave_acceso }}</small></p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <a href="{% url 'pedidos:ver_ticket' factura.id %}" target="_blank" class="btn-print" style="background: #ef4444; color: white;">
+                    <i class="fas fa-file-pdf"></i> Imprimir PDF
+                </a>
+                
+                {% if rawbt_b64 %}
+                <button type="button" class="btn-print" onclick="imprimirRawBT()" style="background: var(--secondary-color); border: none; color: white;">
+                    <i class="fas fa-print"></i> Ticket Impresora
+                </button>
+                {% endif %}
+            </div>
+
             <button type="button" class="btn-close-success" onclick="finalizarUX()">
                 <i class="fas fa-plus"></i> Nueva Venta / Cerrar
             </button>
@@ -44,9 +65,7 @@
         }
     }
     
-    // Si hay comandos de impresión RawBT, ejecutarlos automáticamente
-    {% if rawbt_b64 %}
-    setTimeout(() => {
+    function imprimirRawBT() {
         var intent_suffix = "#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
         var encoded_data = "base64,{{ rawbt_b64 }}";
         var iframe = document.createElement('iframe');
@@ -54,6 +73,12 @@
         iframe.src = "intent:" + encoded_data + intent_suffix;
         document.body.appendChild(iframe);
         setTimeout(() => document.body.removeChild(iframe), 1000);
+    }
+    
+    // Si hay comandos de impresión RawBT, ejecutarlos automáticamente
+    {% if rawbt_b64 %}
+    setTimeout(() => {
+        imprimirRawBT();
     }, 500);
     {% endif %}
 </script>
