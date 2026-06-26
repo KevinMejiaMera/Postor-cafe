@@ -52,6 +52,7 @@ urlpatterns = [
     path('historial/detalle/<int:pedido_id>/', views.detalle_pedido_modal, name='detalle_pedido_modal'),
     path('historial/eliminar/<int:pedido_id>/', views.eliminar_pedido, name='eliminar_pedido'),
     path('historial/reabrir/<int:pedido_id>/', views.reabrir_pedido, name='reabrir_pedido'),
+    path('historial/reimprimir/<int:pedido_id>/', views.reimprimir_ticket_rawbt, name='reimprimir_ticket'),
     
     # Facturacion SRI
     path('facturacion/', views.facturacion_gerente, name='facturacion_gerente'),

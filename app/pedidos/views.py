@@ -648,6 +648,35 @@ def ver_ticket(request, factura_id):
     factura = get_object_or_404(Factura, pk=factura_id)
     return render(request, 'pedidos/ticket.html', {'factura': factura})
 
+@login_required
+def reimprimir_ticket_rawbt(request, pedido_id):
+    pedido = get_object_or_404(Pedido, pk=pedido_id)
+    rawbt_b64 = None
+    
+    if pedido.estado == 'pagado' and hasattr(pedido, 'factura'):
+        rawbt_b64 = _print_receipt(pedido.factura, request)
+    else:
+        rawbt_b64 = _print_kitchen_order(pedido, request)
+        
+    if rawbt_b64:
+        html = f"""
+        <script>
+            (function() {{
+                var intent_suffix = "#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
+                var encoded_data = "base64,{rawbt_b64}";
+                var iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = "intent:" + encoded_data + intent_suffix;
+                document.body.appendChild(iframe);
+                setTimeout(() => document.body.removeChild(iframe), 1000);
+            }})();
+        </script>
+        """
+        return HttpResponse(html)
+    else:
+        html = "<script>alert('Error al generar el ticket. Verifique la configuración de la impresora (debe estar activa y configurada para tickets/comandas).');</script>"
+        return HttpResponse(html)
+
 # --- GESTIÓN DE PRODUCTOS (GERENTE) ---
 
 # --- GESTIÓN DE RECETAS (Menú Gerente) ---
